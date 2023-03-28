@@ -3,8 +3,6 @@ from functions.netcat import *
 import re
 import logging
 
-my_threads = ['cafs_iostat']
-
 def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REPO_PORT, PLATFORM_REPO_PROTOCOL, PLATFORM_USE_SUDO):
 
 	def cafs_iostat():
