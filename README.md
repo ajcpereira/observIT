@@ -50,7 +50,7 @@ solution:
         poll: 2 # Minutes
 
 parameters:
-  repository: 172.17.0.3
+  repository: graphite
   repository_port: 2003
   repository_protocol: tcp
   host_keys: "/opt/fj-collector/collector/config/id_rsa" # You can use the public key here or the private - ssh-copy-id username@remote_host, must be done previously
