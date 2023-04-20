@@ -6,10 +6,23 @@
 ### Requirements
 
 Requires docker
+Requires git
 
 Requires folder /opt/fj-collector/collector/logs
 Requires folder /opt/fj-collector/collector/config must include the "collector.yml" file:
 
+### Installation Procedure
+
+````
+cd /opt
+git clone https://github.com/ajcpereira/fj-collector.git
+cd fj-collector
+docker-compose up
+````
+
+inside /opt/fj-collector/collector/config create the following collector.yaml
+ 
+### collector.yaml
 ````
 solution: 
   platform: 
@@ -44,15 +57,6 @@ parameters:
   know_hosts: "/opt/fj-collector/collector/config/known_hosts" # If host is unknown the process will fail
   use_sudo: no
 ````  
-
-
-### Installation Procedure
-
-Copy the docker-compose.yml and run docker
-
-````
-docker compose up
-````
 
 ### Architecture
 ![Design](https://github.com/ajcpereira/reporting/raw/main/img/design.png)
