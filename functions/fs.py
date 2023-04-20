@@ -21,7 +21,7 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
 
 		header=1
 		response = stdout.read().decode('ascii')
-
+                logging.info("SSH Output on function FS - %s" % response)
 		for line in response.splitlines():
 			if line.startswith("Device"):
 				header +=1
