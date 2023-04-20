@@ -53,8 +53,8 @@ parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  host_keys: "/opt/fj-collector/collector/config/id_rsa" # You can use the public key here or the private - ssh-copy-id username@remote_host, must be done previously
-  known_hosts: "/opt/fj-collector/collector/config/known_hosts" # If host is unknown the process will fail
+  host_keys: "/collector/fj-collector/config/id_rsa" # You can use the public key here or the private - ssh-copy-id username@remote_host, must be done previously
+  known_hosts: "/collector/fj-collector/config/known_hosts" # If host is unknown the process will fail
   use_sudo: no
 ````  
 
