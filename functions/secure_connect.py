@@ -9,9 +9,9 @@ def secure_connect(hostname,bastion,user, type, host_keys, know_hosts, PLATFORM,
 	log_stamp=time.time()
 	try:
 		ssh = paramiko.SSHClient()
-		ssh.load_system_host_keys(know_hosts)
-		#ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-		ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
+		#ssh.load_system_host_keys(know_hosts)
+		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		#ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
 	except Exception as e:
 		print(e)
 		
