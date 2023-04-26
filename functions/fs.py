@@ -30,7 +30,7 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 
                 logging.info("SSH Output on function FS - %s" % response)
                 response2 = stdout.read().decode('ascii')
-		logging.info("SSH Output on function FS decode - %s" % response2)
+                logging.info("SSH Output on function FS decode - %s" % response2)
              
                 for line in response.splitlines():
                     #if len(line.split())==16 and not line.startswith("\n") and not line.startswith("Device"):
