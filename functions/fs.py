@@ -11,8 +11,8 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
 	#########################
                 log_stamp=time.time()
                 logging.info("Starting metrics - %s" % log_stamp)
-                CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
-                CMD2="iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
+                #CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
+                #CMD2="iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
                 CMD3="awk 'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18" "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "$10" "$11" "$12" "$13" "$14" "$15" "$16" "$17}' | sort"
 
                 if PLATFORM_USE_SUDO == "yes":
@@ -20,8 +20,8 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                     CMD2 = "sudo " + CMD2
                     CMD2 = "sudo " + CMD3
 
-                ssh.exec_command(CMD1)
-                ssh.exec_command(CMD2)
+                #ssh.exec_command(CMD1)
+                #ssh.exec_command(CMD2)
                 stdin, stdout, stderr = ssh.exec_command(CMD3)
                 timestamp = int(time.time())
 		
@@ -29,7 +29,6 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 response = stdout
                 response2 = stdout.read().decode('ascii')
                 logging.info("SSH Output on function FS - %s" % response)
-                logging.info("SSH Output on function FS output ascii - %s" % response2)
                 logging.info("SSH Output on function FS stderr - %s" % stderr)
              
                 for line in response.splitlines():
