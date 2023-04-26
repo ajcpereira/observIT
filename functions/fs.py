@@ -25,8 +25,8 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 stdin, stdout, stderr = ssh.exec_command(CMD3)
                 timestamp = int(time.time())
 		
-                response = stdout.read().decode('ascii')
-		
+                #response = stdout.read().decode('ascii')
+		response = stdout
                 logging.info("SSH Output on function FS - %s" % response)
                 logging.info("SSH Output on function FS stderr - %s" % stderr)
              
