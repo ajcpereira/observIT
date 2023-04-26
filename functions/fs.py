@@ -26,8 +26,10 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 timestamp = int(time.time())
 		
                 #response = stdout.read().decode('ascii')
-		response = stdout
+                response = stdout
+                response2 = stdout.decode('ascii')
                 logging.info("SSH Output on function FS - %s" % response)
+                logging.info("SSH Output on function FS output ascii - %s" % response2)
                 logging.info("SSH Output on function FS stderr - %s" % stderr)
              
                 for line in response.splitlines():
@@ -41,4 +43,3 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
 
 #########################
 #NEXT METRIC
-#########################
