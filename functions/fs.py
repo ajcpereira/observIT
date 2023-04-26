@@ -21,14 +21,15 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                     CMD2 = "sudo " + CMD3
 
                 ssh.exec_command(CMD1)
-                stdin-2, stdout-2, stderr-2 = ssh.exec_command(CMD2)
+                ssh.exec_command(CMD2)
                 stdin, stdout, stderr = ssh.exec_command(CMD3)
                 timestamp = int(time.time())
-		response-2 = stdout-2.read().decode('ascii')
+		
                 response = stdout.read().decode('ascii')
-
-                logging.info("SSH Output on function FS CMD2 - %s" % response-2)		
+		
                 logging.info("SSH Output on function FS - %s" % response)
+                logging.info("SSH Output on function FS stderr - %s" % stderr)
+             
                 for line in response.splitlines():
                     #if len(line.split())==16 and not line.startswith("\n") and not line.startswith("Device"):
                     columns = line.split()			
