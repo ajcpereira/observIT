@@ -25,9 +25,7 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 stdin, stdout, stderr = ssh.exec_command(CMD3, get_pty=True)
                 timestamp = int(time.time())
 		
-                #response = stdout.read().decode('ascii')
-		
-                response = stdout.read()
+                response = stdout.read().decode('ascii')
                 response2 = stdout.read().decode('ascii')
                 response3 = stdout.readlines()
                 
