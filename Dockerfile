@@ -11,24 +11,23 @@ RUN apt-get update \
 
 
 # TEMPORARY INSTALL
-RUN apt-get install -y netcat telnet net-tools
+#RUN apt-get install -y netcat telnet net-tools
 # TEMPORARY INSTALL
 
 
 RUN python3 -m pip install --upgrade pip
-
 RUN python3 -m venv $VIRTUAL_ENV
 
 # Install dependencies:
 ADD requirements.txt .
 RUN pip3 install -r requirements.txt
 
-
-# Run the application:
+# Copy application
 RUN mkdir functions
 RUN mkdir config
 ADD functions functions
-#ADD config/collector.yml config/collector.yml
 ADD main.py .
+
+# Run the application:
 CMD ["python3", "main.py"]
 #ENTRYPOINT ["tail", "-f", "/dev/null"]
