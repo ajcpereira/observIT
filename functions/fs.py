@@ -27,7 +27,7 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
 		
                 #response = stdout.read().decode('ascii')
                 response = stdout
-                response2 = stdout.read().decode()
+                response2 = stdout.read().decode('utf-16')
                 logging.info("SSH Output on function FS - %s" % response)
                 logging.info("SSH Output on function FS decode - %s" % response2)
              
