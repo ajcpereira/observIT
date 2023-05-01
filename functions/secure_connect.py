@@ -37,7 +37,8 @@ def secure_connect(hostname,bastion,user, type, host_keys, know_hosts, PLATFORM,
 #		# return client
 	else:
 		logging.info("Will SSH without proxy - %s" % log_stamp)
-		ssh.connect(hostname, username=user, key_filename=host_keys, auth_timeout=5)
+		pkey = paramiko.RSAKey.from_private_key_file(host_keys)
+		ssh.connect(hostname, username=user, pkey=pkey, look_for_keys=False, auth_timeout=5, timeout=10)
 		eval(type)(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REPO_PORT, PLATFORM_REPO_PROTOCOL, PLATFORM_USE_SUDO)
 		ssh.close()
 		logging.info("Finished SSH without proxy - %s" % log_stamp)

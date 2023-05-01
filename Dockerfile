@@ -17,6 +17,7 @@ RUN apt-get update \
 
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m venv $VIRTUAL_ENV
+RUN . $VIRTUAL_ENV/bin/activate
 
 # Install dependencies:
 ADD requirements.txt .
