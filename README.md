@@ -53,10 +53,14 @@ parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  host_keys: "/collector/fj-collector/config/id_rsa" # You can use the public key here or the private - ssh-copy-id username@remote_host, must be done previously
+  host_keys: "/collector/fj-collector/config/id_rsa" # You will have to use a private key - ssh-copy-id username@remote_host, must be done previously
   known_hosts: "/collector/fj-collector/config/known_hosts" # If host is unknown the process will fail
   use_sudo: no
 ````  
+
+### Metrics
+
+Atm we are collecting the iostat for each CS HE filesystem
 
 ### Architecture
 ![Design](https://github.com/ajcpereira/reporting/raw/main/img/design.png)
