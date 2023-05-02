@@ -22,12 +22,15 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
 
                 ssh.exec_command(CMD1)
                 ssh.exec_command(CMD2)
+                logging.info("CMD3 - %s" % CMD3)
                 stdin, stdout, stderr = ssh.exec_command(CMD3)
 
                 timestamp = int(time.time())
 
                 response = stdout.read().decode('ascii')
-
+                logging.info("stdout - %s" % stdout)
+                logging.info("stderr - %s" % stderr)
+                logging.info("Response - %s" % response)
                 logging.info("Finished ssh execution of metrics - %s" % time.time())
 
                 
