@@ -11,45 +11,30 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
 	#CAFS_IOSTAT
 	#########################
                 logging.info("Starting ssh execution of metrics - %s" % time.time())
-                CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
-                CMD2="iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
+                #CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
+                #CMD2="iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
                 CMD3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
-                CMD4="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort > /tmp/tgreis.txt"
-                CMD5="cat /tmp/tgreis.txt"
-                CMD6="/root/awk.fjcoll.sh"
                 
                 if PLATFORM_USE_SUDO == "yes":
                     CMD1 = "sudo " + CMD1
                     CMD2 = "sudo " + CMD2
                     CMD3 = "sudo " + CMD3
 
-                ssh.exec_command(CMD1)
-                ssh.exec_command(CMD2)
-                ssh.exec_command(CMD4)
-		
-                stdin_6, stdout_6, stderr_6 = ssh.exec_command(CMD6)
-                response_6 = stdout_6.read().decode('ascii')
-                logging.info("Response_6 - %s" % response_6)
-		
-                stdin_5, stdout_5, stderr_5 = ssh.exec_command(CMD5)
-                response_5 = stdout_5.read().decode('ascii')
-                logging.info("Response_5 - %s" % response_5)
-                
-                logging.info("CMD3 - %s" % CMD3)
-                stdin, stdout, stderr = ssh.exec_command(CMD3)
-
+                #ssh.run(CMD1)
+                #ssh.run(CMD2)
+                stdout = ssh.run(CMD3)
+                logging.info("Stdout - %s" % stdout)       
                 timestamp = int(time.time())
 
-                response = stdout.read().decode('ascii')
-                logging.info("stdout - %s" % stdout)
-                logging.info("stderr - %s" % stderr)
+                response = stdout.stdout
                 logging.info("Response - %s" % response)
+                
                 logging.info("Finished ssh execution of metrics - %s" % time.time())
 
                 
              
                 for line in response.splitlines():
-                    #if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
+                    if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
                         logging.info("Starting metrics on FS type - %s" % time.time())
                         columns = line.split()
                         netcat(PLATFORM_REPO, PLATFORM_REPO_PORT, PLATFORM_REPO_PROTOCOL,  str(PLATFORM) + "." + str(PLATFORM_NAME) + "." + str(type) + "." + hostname.replace(".","-") + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "svctm" + " " + re.sub(",",".",columns[15]) +" "+ str(timestamp) + "\n")

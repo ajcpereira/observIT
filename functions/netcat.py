@@ -1,6 +1,6 @@
 import socket
 import logging
-#import time
+import time
 
 
 def netcat(graphite_srv, port, protocol, text):
