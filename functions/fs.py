@@ -15,6 +15,8 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 CMD2="iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
                 CMD3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
 		CMD4="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort > /tmp/tgreis.txt"
+		CMD5="cat /tmp/tgreis.txt"
+		CMD6="/root/awk.fjcoll.sh"
                 
                 if PLATFORM_USE_SUDO == "yes":
                     CMD1 = "sudo " + CMD1
@@ -24,7 +26,16 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 ssh.exec_command(CMD1)
                 ssh.exec_command(CMD2)
                 ssh.exec_command(CMD4)
-                logging.info("CMD3 - %s" % CMD3)
+		
+		stdin_6, stdout_6, stderr_6 = ssh.exec_command(CMD6)
+		response_6 = stdout_6.read().decode('ascii')
+		logging.info("Response_6 - %s" % response_6)
+		
+		stdin_5, stdout_5, stderr_5 = ssh.exec_command(CMD5)
+		response_5 = stdout_5.read().decode('ascii')
+		logging.info("Response_5 - %s" % response_5)
+                
+		logging.info("CMD3 - %s" % CMD3)
                 stdin, stdout, stderr = ssh.exec_command(CMD3)
 
                 timestamp = int(time.time())
