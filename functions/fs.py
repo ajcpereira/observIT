@@ -11,8 +11,8 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
 	#CAFS_IOSTAT
 	#########################
                 logging.info("Starting ssh execution of metrics - %s" % time.time())
-                #CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
-                #CMD2="iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
+                CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
+                CMD2="iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
                 CMD3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
                 
                 if PLATFORM_USE_SUDO == "yes":
@@ -20,8 +20,8 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                     CMD2 = "sudo " + CMD2
                     CMD3 = "sudo " + CMD3
 
-                #ssh.run(CMD1)
-                #ssh.run(CMD2)
+                ssh.run(CMD1)
+                ssh.run(CMD2)
                 stdout = ssh.run(CMD3)
                 logging.info("Stdout - %s" % stdout)       
                 timestamp = int(time.time())
