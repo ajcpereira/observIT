@@ -33,7 +33,7 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 
              
                 for line in response.splitlines():
-                    if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
+                    #if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
                         logging.info("Starting metrics on FS type - %s" % time.time())
                         columns = line.split()
                         netcat(PLATFORM_REPO, PLATFORM_REPO_PORT, PLATFORM_REPO_PROTOCOL,  str(PLATFORM) + "." + str(PLATFORM_NAME) + "." + str(type) + "." + hostname.replace(".","-") + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "svctm" + " " + re.sub(",",".",columns[15]) +" "+ str(timestamp) + "\n")
