@@ -19,9 +19,9 @@ services:
     - "80:80/tcp"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - /opt/fj-collector/graphite/data/conf:/opt/graphite/data/conf
-      - /opt/fj-collector/graphite/data/storage:/opt/graphite/data/storage
-      - /opt/fj-collector/graphite/data/statsd_config:/opt/data/statsd/config
+      - /opt/fj-collector/graphite/data/conf:/opt/graphite/conf
+      - /opt/fj-collector/graphite/data/storage:/opt/graphite/storage
+      - /opt/fj-collector/graphite/data/statsd_config:/opt/statsd/config
     
   grafana:
     image: "grafana/grafana-enterprise:latest"
