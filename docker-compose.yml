@@ -1,9 +1,9 @@
 version: "3.9"
 services:
   fj-collector:
-    build: .
-    image: "fj-collector-local:latest"
-#    image: "ajcpereira/fj-collector:latest"
+#    build: .
+#    image: "fj-collector-local:latest"
+    image: "ajcpereira/fj-collector:latest"
     restart: unless-stopped
     volumes:
       - /opt/fj-collector/collector/config:/collector/fj-collector/config/

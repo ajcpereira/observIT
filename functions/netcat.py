@@ -7,7 +7,7 @@ def netcat(graphite_srv, port, protocol, text):
     log_stamp=time.time()
 
     logging.info("Starting netcat - %s" % log_stamp)
-    logging.debug(text)
+    logging.debug("Netcat text to send - %s" % text)
 
     if protocol == "tcp":
         s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
