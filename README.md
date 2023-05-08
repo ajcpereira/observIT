@@ -6,15 +6,16 @@
 ### Requirements
 
 Requires docker
+
 Requires git
 
 Requires folder /opt/fj-collector/collector/logs
-Requires folder /opt/fj-collector/collector/config must include the "collector.yml" file:
+
+Requires folder /opt/fj-collector/collector/config where it must include the "collector.yml" file:
 
 ### Installation Procedure
 
 ````
-cd /opt
 git clone https://github.com/ajcpereira/fj-collector.git
 cd fj-collector
 docker-compose up
