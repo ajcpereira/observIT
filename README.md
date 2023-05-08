@@ -73,7 +73,7 @@ You MUST edit the /opt/fj-collector/graphite/data/conf/storage-schemas.conf to c
 ````
 [default_1min_for_1day]
 pattern = .*
-retentions = 10s:6h,1m:6d,10m:1800d
+retentions = 10s:6d,1m:12d,10m:1800d
 ````
 
 Changing this file will not affect already-created .wsp files. Use whisper-resize.py to change those.
