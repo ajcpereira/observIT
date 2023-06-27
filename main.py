@@ -7,9 +7,8 @@ import schedule
 import logging
 
 configfile = "/collector/fj-collector/config/collector.yml"
-#configfile = "/home/ajcpereira/git/reporting/collector/config/collector.yml"
 
-# Read the YAML file
+# Open the YAML file and read it
 with open(configfile, 'r') as f:
   try:
     configdata = yaml.safe_load(f)
@@ -26,15 +25,14 @@ with open(configfile, 'r') as f:
   PLATFORM_KNOW_HOSTS=configdata["parameters"]["known_hosts"]
   PLATFORM_LOG="logging." + configdata["parameters"]["log"]
 
-#logging.basicConfig(filename='/collector/fj-collector/logs/fj-collector.log', encoding='utf-8', level=logging.INFO)
+# Start Logging Facility
 logging.basicConfig(filename='/collector/fj-collector/logs/fj-collector.log', level=eval(PLATFORM_LOG))
-# Default Filename for configuration
 
+# GET Time for logging YAML
+log_stamp=time.ctime()
 
 # PROCESS AND EXECUTE EACH LINE FROM YAML
-log_stamp=time.time()
-
-logging.info("Starting YAML Processing- %s" % log_stamp)
+logging.info("Starting YAML Processing - %s" % log_stamp)
 
 for i in range(len(configdata['solution']['platform'])):
   if configdata['solution']['platform'][i]['type'] == "CS8000":
@@ -50,8 +48,8 @@ for i in range(len(configdata['solution']['platform'])):
           print("channel" + configdata['solution']['platform'][i]['resources']['ip'])
       else:
           print("No valid option for type")
-logging.info("Finished YAML Processing- %s" % log_stamp)
+logging.info("Finished YAML Processing - %s" % log_stamp)
 
 while True:
     schedule.run_pending()
-    time.sleep(1)
+    time.sleep(10)

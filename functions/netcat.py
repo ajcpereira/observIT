@@ -4,7 +4,7 @@ import time
 
 
 def netcat(graphite_srv, port, protocol, text):
-    log_stamp=time.time()
+    log_stamp=time.ctime()
 
     logging.info("Starting netcat - %s" % log_stamp)
     logging.debug("Netcat text to send - %s" % text)
