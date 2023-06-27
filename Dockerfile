@@ -15,7 +15,7 @@ RUN apt-get update \
 # TEMPORARY INSTALL
 
 
-RUN python3 -m pip install --upgrade pip
+#RUN python3 -m pip install --upgrade pip
 RUN python3 -m venv $VIRTUAL_ENV
 RUN . $VIRTUAL_ENV/bin/activate
 
