@@ -27,7 +27,7 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 ssh.run(CMD2)
 
                 stdout = ssh.run(CMD3, hide=True)
-                timestamp = int(time.ctime())
+                timestamp = int(time.time())
 
                 response = stdout.stdout
 
