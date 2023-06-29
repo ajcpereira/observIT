@@ -16,7 +16,7 @@ def fs(hostname, ssh, PLATFORM, PLATFORM_NAME, type, PLATFORM_REPO, PLATFORM_REP
                 CMD3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
 
                 logging.debug("use_sudo is set to %s" % PLATFORM_USE_SUDO)
-                if PLATFORM_USE_SUDO:
+                if PLATFORM_USE_SUDO == "True":
                     CMD1 = "sudo " + CMD1
                     logging.debug("Will use CMD1 with sudo - %s" % CMD1)
 
