@@ -3,12 +3,12 @@
 #                       IDENTIFICATION DIVISION                                 #
 #                                                                               #
 #################################################################################
-# This is the main program from the Fujitsu Collector
+# This is the main program from the FJ Collector
 # it receives inputs from a YAML configfile to collect metrics from
 # different resources
 #
 # This is no comercial product and it's 'as is' is basically for PoC that a 
-# unique tool can get the most relevant data from a Datacenter and how is easy
+# unique tool can get the most relevant data from a Datacenter and how easy
 # it can be
 #
 # Also, will allow to the ones intervening in this process to acquire knowledge
@@ -24,6 +24,10 @@ import yaml
 import logging
 import time
 import os
+import sys
+import schedule
+sys.path.append("functions")
+from functions.secure_connect import secure_connect
 
 configfile="config.yaml"
 
@@ -34,19 +38,24 @@ configfile="config.yaml"
 #################################################################################
 
 ########## SUPPORTED RESOURCES AND METRICS ######################################
-resources_types=["primergy", "primequest", "eternus_icp", "linux_os"]
+# Relation between metrics and function name
+# primergy_metrics=["cpu","mem","fs"],["func_lx_cpu", "func_lx_mem", "func_lx_fs"]
+# eternus_icp_metrcs=["fs"],["func_cs_fs"]
+
+# Required parameters for function
+# func_cs_fs=["user", "know_hosts", "host_keys", "poll"]
+# func_lx_mem=["snmp_community", "user", "poll"]
+
+# every function must have alias as optional
+
+l_resources_types=["primergy", "primequest", "eternus_icp", "linux_os"]
 primergy_metrics=["cpu","mem","fs"]
 linux_os_metrics=["cpu", "mem", "fs"]
-eternus_icp_metrics=["fs"]
+eternus_icp_metrics=["fs"],["func_system_name","func_ip","func_alias", "func_pool", "func_bastion", "func_user", "func_metric", "func_host_keys", "func_know_hosts", "func_use_sudo","PLATFORM_REPO","PLATFORM_REPO_PORT","PLATFORM_REPO_PROTOCOL","PLATFORM_LOG","PLATFORM_LOGFILE"]
+
 ########## SUPPORTED RESOURCES AND METRICS ######################################
 
 ########## GLOBAL PARAMETERS ####################################################
-global PLATFORM_REPO
-global PLATFORM_REPO_PORT
-global PLATFORM_REPO_PROTOCOL
-global PLATFORM_LOG
-global PLATFORM_LOGFILE
-
 PLATFORM_REPO="graphite"
 PLATFORM_REPO_PORT=2003
 PLATFORM_REPO_PROTOCOL="tcp"
@@ -61,13 +70,16 @@ PLATFORM_LOGFILE="logs/fj-collector.log"
 #################################################################################
 
 ########## FUNCTION OPEN YAML FILE AND READ IT ##################################
-def readglobalparametersconfigfile():
+def f_readglobalparametersconfigfile():
+    ########## BEGIN - READ YAML FILE ###########################################
     with open(configfile, 'r') as f:
         try:
             configdata = yaml.safe_load(f)
             f.close
         except FileNotFoundError:
             print("Sorry, the file %s does not exist" % configfile)
+    ########## END - READ YAML FILE #############################################
+
     ########## BEGIN - INITIALIZE GLOBAL VARS ###################################
     global PLATFORM_REPO
     global PLATFORM_REPO_PORT
@@ -92,38 +104,35 @@ def readglobalparametersconfigfile():
 ########## FUNCTION OPEN YAML FILE AND READ IT ##################################
 
 
-########## FUNCTION BUILD TASKS FROM CONFIG FILE ###############################
-def readconfigfile(configdata):
-#    for systems_line in range(len(configdata['systems'])):
-#        for systems_config_line in range(len(configdata['systems'][systems_line]['config'])):
-#            for systems_resources_line in range(len(configdata['systems'][systems_line]['config'][systems_config_line]['metrics'])):
-#                print(configdata['systems'][systems_line]['name'])
-#                print(configdata['systems'][systems_line]['config'][systems_config_line]['resources_types'])
-#                print(configdata['systems'][systems_line]['config'][systems_config_line]['metrics'][systems_resources_line]['name'])
-#                for param in configdata['systems'][systems_line]['config'][systems_config_line]['parameters']:
-#                    print(param['user'])
+########## FUNCTION GET VALUES TO BUILD TASKS FROM CONFIG FILE ##################
+def f_readconfigfile(configdata):
     for system in configdata['systems']:
-        print(system['name'])
+        func_system_name=system['name']
         for config in system['config']:
-            print(config['resources_types'])
+            func_resource=config['resources_types']
             for metric in config['metrics']:
-                print(metric['name'])
+                func_metric=metric['name']
             for ip in config['ips']:
-                print(ip['ip'], ip['alias'])
+                func_ip=ip['ip']
+                func_alias=ip['alias']
             parameters = config['parameters']
-            #print(parameters['user'])
-            #print(parameters['host_keys'])
-            #print(parameters['known_hosts'])
-            #print(parameters['poll'])
-        print("\n#######################################################\n")
+            if 'host_keys' in parameters:
+                func_host_keys=parameters['host_keys']
+            if 'user' in parameters:
+                func_user=parameters['user']
+            if 'know_hosts' in parameters:
+                func_know_hosts=parameters['know_hosts']
+            if 'poll' in parameters:
+                func_poll=parameters['poll']
+            if 'use_sudo' in parameters:
+                func_use_sudo=parameters['use_sudo']
 
-
-########## FUNCTION BUILD TASKS FROM CONFIG FILE ###############################
+########## FUNCTION GET VALUES TO BUILD TASKS FROM CONFIG FILE ##################
 
 
 ########## FUNCTION VALIDATE RESOURCES AND METRICS FROM CONFIG FILE ##########
-def validate_resources_metrics(input_resources, input_metrics):
-    if input_resources in resources_types:
+def f_validate_resources_metrics(input_resources, input_metrics):
+    if input_resources in l_resources_types:
         print (input_resources)
         if input_metrics in eval(input_resources + "_metrics"):
             print(input_metrics)
@@ -133,19 +142,15 @@ def validate_resources_metrics(input_resources, input_metrics):
         print("resource not valid - %s" % input_resources)
 ########## FUNCTION VALIDATE RESOURCES AND METRICS FROM CONFIG FILE ##########
 
-
-
-
 #################################################################################
 #                                                                               #
 #                       MAIN                                                    #
 #                                                                               #
 #################################################################################
 
-
 if __name__ == "__main__":
 
-    configdata, orig_mtime=readglobalparametersconfigfile()
+    configdata, orig_mtime=f_readglobalparametersconfigfile()
 
     ########## BEGIN - Start Logging Facility #######################################
     logging.basicConfig(filename=PLATFORM_LOGFILE, level=eval(PLATFORM_LOG))
@@ -154,41 +159,18 @@ if __name__ == "__main__":
     ########## BEGIN - Log configfile start processing ##############################
     logging.info("Starting YAML Processing - %s" % time.ctime())
 
-    readconfigfile(configdata)
-    #validate_resources_metrics(USER_INPUT1, USER_INPUT2)
+    f_readconfigfile(configdata)
+
     ########## END - Log configfile start processing ################################
-
-
 
     while True:
         actual_mtime=os.path.getmtime(configfile)
         if orig_mtime >= os.path.getmtime(configfile):
             print("No change")
-            #schedule.run_pending()
+            # schedule.run_pending()
         else:
             logging.info("Config File was changed will reload - %s" % time.ctime())
-            print("File Change")
-            orig_mtime = actual_mtime
-            # Stop processes
-            # Call readgobbal and readconfig
+            # schedule.clear()
+            # configdata, orig_mtime=f_readglobalparametersconfigfile()
+            # f_readconfigfile(configdata)
         time.sleep(10)
-
-
-
-      
-
-
-
-#      if configdata['solution']['platform'][i]['type'] == "CS8000":
-#        PLATFORM=(configdata['solution']['platform'][i]['type'])
-#        PLATFORM_NAME=(configdata['solution']['platform'][i]['name'])
-#        for z in range(len(configdata['solution']['platform'][i]['resources']['type'])):
-#          if configdata['solution']['platform'][i]['resources']['type'][z] == "fs":
-#            for x in range(len(configdata['solution']['platform'][i]['resources']['ip'])):
-#              var_configdata_current=configdata['solution']['platform'][i]['resources']
-#              schedule.every(var_configdata_current["poll"]*60).seconds.do(secure_connect, var_configdata_current["ip"][x], var_configdata_current["proxy"], var_configdata_current["user"], var_configdata_current["type"][z], PLATFORM_HOSTKEYS, PLATFORM_KNOW_HOSTS, PLATFORM, PLATFORM_NAME, PLATFORM_REPO, PLATFORM_REPO_PORT, PLATFORM_REPO_PROTOCOL, PLATFORM_USE_SUDO)
-#          elif configdata['solution']['platform'][i]['resources']['type'][z] == "channel":
-#            for x in range(len(configdata['solution']['platform'][i]['resources']['ip'])):
-#              print("channel" + configdata['solution']['platform'][i]['resources']['ip'])
-#          else:
-#              print("No valid option for type")
