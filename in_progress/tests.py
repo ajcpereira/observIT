@@ -34,8 +34,9 @@ configfile="config.yaml"
 #################################################################################
 
 ########## SUPPORTED RESOURCES AND METRICS ######################################
-resources_types=["primergy", "primequest", "eternus_icp"]
+resources_types=["primergy", "primequest", "eternus_icp", "linux_os"]
 primergy_metrics=["cpu","mem","fs"]
+linux_os_metrics=["cpu", "mem", "fs"]
 eternus_icp_metrics=["fs"]
 ########## SUPPORTED RESOURCES AND METRICS ######################################
 
@@ -52,12 +53,6 @@ PLATFORM_REPO_PROTOCOL="tcp"
 PLATFORM_LOG="INFO"
 PLATFORM_LOGFILE="logs/fj-collector.log"
 ########## GLOBAL PARAMETERS ####################################################
-
-### REMOVER DEPOIS DOS TESTES
-USER_INPUT1="primergy"
-USER_INPUT2="xpto"
-###
-###
 
 #################################################################################
 #                                                                               #
@@ -99,8 +94,30 @@ def readglobalparametersconfigfile():
 
 ########## FUNCTION BUILD TASKS FROM CONFIG FILE ###############################
 def readconfigfile(configdata):
-    for systems_line in range(len(configdata['systems'])):
-        print (configdata['systems'][systems_line]['name'])
+#    for systems_line in range(len(configdata['systems'])):
+#        for systems_config_line in range(len(configdata['systems'][systems_line]['config'])):
+#            for systems_resources_line in range(len(configdata['systems'][systems_line]['config'][systems_config_line]['metrics'])):
+#                print(configdata['systems'][systems_line]['name'])
+#                print(configdata['systems'][systems_line]['config'][systems_config_line]['resources_types'])
+#                print(configdata['systems'][systems_line]['config'][systems_config_line]['metrics'][systems_resources_line]['name'])
+#                for param in configdata['systems'][systems_line]['config'][systems_config_line]['parameters']:
+#                    print(param['user'])
+    for system in configdata['systems']:
+        print(system['name'])
+        for config in system['config']:
+            print(config['resources_types'])
+            for metric in config['metrics']:
+                print(metric['name'])
+            for ip in config['ips']:
+                print(ip['ip'], ip['alias'])
+            parameters = config['parameters']
+            #print(parameters['user'])
+            #print(parameters['host_keys'])
+            #print(parameters['known_hosts'])
+            #print(parameters['poll'])
+        print("\n#######################################################\n")
+
+
 ########## FUNCTION BUILD TASKS FROM CONFIG FILE ###############################
 
 
@@ -138,8 +155,10 @@ if __name__ == "__main__":
     logging.info("Starting YAML Processing - %s" % time.ctime())
 
     readconfigfile(configdata)
-
+    #validate_resources_metrics(USER_INPUT1, USER_INPUT2)
     ########## END - Log configfile start processing ################################
+
+
 
     while True:
         actual_mtime=os.path.getmtime(configfile)
@@ -147,12 +166,12 @@ if __name__ == "__main__":
             print("No change")
             #schedule.run_pending()
         else:
+            logging.info("Config File was changed will reload - %s" % time.ctime())
+            print("File Change")
             orig_mtime = actual_mtime
             # Stop processes
             # Call readgobbal and readconfig
-            print("File Change")
-        time.sleep(1)
-    validate_resources_metrics(USER_INPUT1, USER_INPUT2)
+        time.sleep(10)
 
 
 
