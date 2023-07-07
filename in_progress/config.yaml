@@ -59,9 +59,9 @@ systems:
           use_sudo: yes
           poll: 1
         metrics:
-          - cpu
-          - mem
-          - disk      
+          - name: cpu
+          - name: mem
+          - name: disk      
         ips:
           - ip: 10.10.10.10
             alias: CS_IDP1
@@ -75,7 +75,7 @@ systems:
           snmp_community: TESTE_SNMP
           snmp_port: 161
         metrics:
-          - temp
+          - name: temp
         ips:
           - ip: 10.10.10.10
             alias: LT1
