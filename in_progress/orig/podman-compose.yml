@@ -1,0 +1,34 @@
+version: "3.9"
+services:
+  fj-collector:
+#    build: .
+#    image: "fj-collector-local:latest"
+    image: "ajcpereira/fj-collector:latest"
+    restart: unless-stopped
+    volumes:
+      - /opt/fj-collector/collector/config:/collector/fj-collector/config/
+      - /opt/fj-collector/collector/logs:/collector/fj-collector/logs/
+    
+
+  graphite:
+    image: "graphiteapp/graphite-statsd:latest"
+    restart: unless-stopped
+    ports:
+    - "18125:8125/udp"
+    - "12003:2003/tcp"
+    - "80:80/tcp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /opt/fj-collector/graphite/data/conf:/opt/graphite/conf
+      - /opt/fj-collector/graphite/data/storage:/opt/graphite/storage
+      - /opt/fj-collector/graphite/data/statsd_config:/opt/statsd/config
+    
+  grafana:
+    image: "grafana/grafana-enterprise:latest"
+    restart: unless-stopped
+    ports:
+    - "3000:3000/tcp"
+    volumes:
+      - /opt/fj-collector/grafana/provisioning/:/etc/grafana/provisioning/
+      - /opt/fj-collector/grafana/data/grafana:/var/lib/grafana/
+    user: "0"
