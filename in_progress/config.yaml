@@ -29,13 +29,13 @@
 # scripts mapping
 # script will be named [resource_types]-[metric].py
 # 	example:
-# 		get eternus dx metrics about disk: eternus-dx-disk.py
+# 		get eternus dx metrics about disk: eternus_dx_disk.py
 # 		get linux server cpu usage: linux-os-cpu.py
 ---
 systems:
   - name: MYCS8000    
     config:
-      - resources_types: eternus-dx
+      - resources_types: eternus_dx
         parameters:
           user: dx_usr
           host_keys: /collector/fj-collector/config/id_rsa
@@ -46,30 +46,28 @@ systems:
           - name: mem
           - name: disk
         ips:
-          - ip: 10.10.10.10
+          - ip: 10.10.10.1
             alias: DX600
-          - ip: 10.10.11.1
+          - ip: 10.10.11.2
             alias: DX200
-      - resources_types: linux-os
+      - resources_types: eternus_icp
         parameters:
-          proxy: 10.10.10.10
+          proxy: 10.10.10.3
           user: collector_usr
           host_keys: /collector/fj-collector/config/id_rsa
           known_hosts: /collector/fj-collector/config/known_hosts
           use_sudo: yes
           poll: 1
         metrics:
-          - name: cpu
-          - name: mem
-          - name: disk      
+          - name: fs      
         ips:
-          - ip: 10.10.10.10
+          - ip: 10.10.10.4
             alias: CS_IDP1
-          - ip: 10.10.11.1
+          - ip: 10.10.11.5
             alias: CS_IDP2
-      - resources_types: eternus-lt
+      - resources_types: eternus_lt
         parameters:
-          proxy: 10.10.10.10
+          proxy: 10.10.10.6
           user: tape_usr
           poll: 1
           snmp_community: TESTE_SNMP
@@ -77,10 +75,10 @@ systems:
         metrics:
           - name: temp
         ips:
-          - ip: 10.10.10.10
+          - ip: 10.10.10.7
             alias: LT1
             snmp_community: TESTE
-          - ip: 10.10.11.1
+          - ip: 10.10.11.8
             alias: LT2
             snmp_port: 2161
   - name: FARM SRV
@@ -96,7 +94,7 @@ systems:
           - name: mem
           - name: disk
         ips:
-          - ip: 10.10.10.10
+          - ip: 10.10.10.9
             alias: AF250
       - resources_types: vmware-vcenter
         parameters:
