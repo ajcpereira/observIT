@@ -45,7 +45,7 @@ configfile="config.yaml"
 # m_eternus_icp_metrics=["fs"],["func_eternus_icp_fs"]
 
 # Required parameters for function
-# p_os_cpu_mem=["param_system_name"]
+# p_os_cpu_mem=["name"]
 #
 # every function must have some parameters as optional, i.e. alias, proxy, sudo, etc
 
@@ -55,9 +55,9 @@ r_resources_types=["eternus_icp", "linux_os"]
 m_eternus_icp_metrics=["fs", "cpu_mem"],["func_eternus_icp_fs","func_os_cpu_mem"]
 m_linux_os_metrics=["cpu_mem"], ["func_os_cpu_mem"]
 
-# Mandatory parameters in 1st list and optional in 2nd list
-p_func_eternus_icp_fs=["param_system_name","param_ip", "param_poll", "param_user", "param_metric", "param_host_keys", "param_known_hosts","PLATFORM_REPO","PLATFORM_REPO_PORT","PLATFORM_REPO_PROTOCOL","PLATFORM_LOG","PLATFORM_LOGFILE"], ["param_proxy", "param_use_sudo","param_alias"]
-p_func_os_cpu_mem=["param_system_name"],["param_proxy", "param_use_sudo"]
+# Mandatory parameters and the optional parameters
+p_func_eternus_icp_fs=["poll", "user", "host_keys", "known_hosts"],["snmp_community", "snmp_port"] 
+p_func_os_cpu_mem=["poll", "user", "host_keys", "known_hosts"], ["snmp_community", "snmp_port"]
 ########## SUPPORTED RESOURCES AND METRICS ######################################
 
 ########## GLOBAL PARAMETERS ####################################################
@@ -81,8 +81,6 @@ def run_threaded(job_func):
     job_thread = threading.Thread(target=job_func)
     job_thread.start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-
-
 
 ########## FUNCTION OPEN YAML FILE AND READ IT ##################################
 def f_readglobalparametersconfigfile():
@@ -127,18 +125,7 @@ def f_readconfigfile(configdata):
         for config in system['config']:
             param_resource=config['resources_types']
             parameters = config['parameters']
-            if 'host_keys' in parameters:
-                param_host_keys=parameters['host_keys']
-            if 'user' in parameters:
-                param_user=parameters['user']
-            if 'known_hosts' in parameters:
-                param_known_hosts=parameters['known_hosts']
-            if 'poll' in parameters:
-                param_poll=parameters['poll']
-            if 'use_sudo' in parameters:
-                param_use_sudo=parameters['use_sudo']
-            if 'proxy' in parameters:
-                param_proxy=parameters['proxy']
+
             for metric in config['metrics']:
                 param_metric=metric['name']
                 for ip in config['ips']:
@@ -150,39 +137,36 @@ def f_readconfigfile(configdata):
                         if param_metric in eval("m_" + param_resource + "_metrics")[0]:
                             pos_index=eval("m_" + param_resource + "_metrics")[0].index(param_metric)
                             func_name=eval("m_" + param_resource + "_metrics")[1][pos_index]
-                            
+                            func_array="p_" + func_name
                             command=func_name + "("
-                            
-                            for i in range(0,len(eval("p_" + func_name)[0])):
+                            # Validate Mandatory Parameters
+                            for i in range(0,len(eval(func_array)[0])):
                                 try:
-                                    eval(eval("p_" + func_name)[0][i])
-                                except:
-                                    exec("{0} = {1}".format(eval("p_" + func_name)[0][i], None))
-
-                                if eval(eval("p_" + func_name)[0][i]) is None:
-                                    print(eval("p_" + func_name)[0][i] + " is not defined and is mandatory")
-                                    exit(1)
-
-                                if eval("p_" + func_name)[0][i] != "param_poll":
+                                    locals()[eval(func_array)[0][i]]=parameters[eval(func_array)[0][i]]
                                     if i > 0:
-                                        command=command + "," + eval("p_" + func_name)[0][i]
+                                        command = command + "," + eval(func_array)[0][i]
                                     else:
-                                        command=command + eval("p_" + func_name)[0][i]
-                            
-                            for i in range(0,len(eval("p_" + func_name)[1])):
-                                try:
-                                    eval(eval("p_" + func_name)[1][i])
+                                        command = command + eval(func_array)[0][i]
                                 except:
-                                    globals()[eval("p_" + func_name)[1][i]] = None
+                                    print(eval(func_array)[0][i] + " is mandatory for resource " + param_resource + " will terminate execution")
+                                    exit(1)
+                            # Validate Optional Parameters and if not in config yaml it sets to None
+                            for i in range(0,len(eval(func_array)[1])):
+                                try:
+                                    locals()[eval(func_array)[1][i]]=parameters[eval(func_array)[1][i]]
+                                    command = command + "," + eval(func_array)[1][i]
+                                except:
+                                    locals()[eval(func_array)[1][i]]=None
+                                    command = command + "," + eval(func_array)[1][i]
+                                    pass
+                            command = command + ")"
+                            #print(eval(command))
+                            #print(command)
+                            poll=None
+                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, func_eternus_icp_fs(poll))
 
-                                command=command + "," + eval("p_" + func_name)[1][i]
-
-                            command=command + ")"
-                            print(command)
-                            #schedule.every(param_poll*60).seconds.do(run_threaded, eval(command))
-                            schedule.every(param_poll*60).seconds.do(run_threaded, func_eternus_icp_fs)
                         else:
-                            print("metric not valid - %s" % param_metric)
+                            print("Metric not valid - %s" % param_metric)
                             exit (1)
                     else:
                         print("Resource not valid - %s" % param_resource)

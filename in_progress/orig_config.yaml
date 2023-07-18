@@ -35,21 +35,81 @@
 systems:
   - name: MYCS8000    
     config:
-      - resources_types: eternus_icp
+      - resources_types: eternus_dx
         parameters:
-          snmp_community: TESTE_SNMP
           user: dx_usr
           host_keys: /collector/fj-collector/config/id_rsa
           known_hosts: /collector/fj-collector/config/known_hosts
           poll: 1
         metrics:
-          - name: fs
-          - name: cpu_mem
+          - name: cpu
+          - name: mem
+          - name: disk
         ips:
           - ip: 10.10.10.1
             alias: DX600
           - ip: 10.10.11.2
             alias: DX200
+      - resources_types: eternus_icp
+        parameters:
+          proxy: 10.10.10.3
+          user: collector_usr
+          host_keys: /collector/fj-collector/config/id_rsa
+          known_hosts: /collector/fj-collector/config/known_hosts
+          use_sudo: yes
+          poll: 1
+        metrics:
+          - name: fs      
+        ips:
+          - ip: 10.10.10.4
+            alias: CS_IDP1
+          - ip: 10.10.11.5
+            alias: CS_IDP2
+      - resources_types: eternus_lt
+        parameters:
+          proxy: 10.10.10.6
+          user: tape_usr
+          poll: 1
+          snmp_community: TESTE_SNMP
+          snmp_port: 161
+        metrics:
+          - name: temp
+        ips:
+          - ip: 10.10.10.7
+            alias: LT1
+            snmp_community: TESTE
+          - ip: 10.10.11.8
+            alias: LT2
+            snmp_port: 2161
+  - name: FARM SRV
+    config:
+      - resources_types: eternus-dx
+        parameters:
+          user: dx_usr
+          host_keys: /collector/fj-collector/config/id_rsa
+          known_hosts: /collector/fj-collector/config/known_hosts
+          poll: 1
+        metrics:
+          - name: cpu
+          - name: mem
+          - name: disk
+        ips:
+          - ip: 10.10.10.9
+            alias: AF250
+      - resources_types: vmware-vcenter
+        parameters:
+          user: vcenter_user
+          host_keys: /collector/fj-collector/config/id_rsa
+          known_hosts: /collector/fj-collector/config/known_hosts
+          poll: 1
+        metrics:
+          - name: VMS_COUNT
+          - name: VMS_CPU_COUNT
+        ips:
+          - ip: 10.10.10.10
+            alias: vCenter1
+
+
 global parameters:
   repository: graphite
   repository_port: 2003
