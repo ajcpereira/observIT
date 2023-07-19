@@ -4,14 +4,18 @@ import re
 import logging
 import threading
 
-def func_eternus_icp_fs(*args, **kwargs):
+
+def func_eternus_icp_fs(*args):
+#def func_eternus_icp_fs(*args, **kwargs):
     logging.info("Running eternus_icp_fs on thread %s - %s" % (threading.current_thread().name, time.ctime()))
-    print(poll)
+    print(args)
     print("I'm running eternus_icp_fs on thread %s" % threading.current_thread())
+
+
 
 def func_os_cpu_mem(*args, **kwargs):
     logging.info("Running cpu_mem on thread %s - %s" % (threading.current_thread(), time.ctime()))
-    print(snmp_port)
+    print(args)
     print("I'm running os_cpu_mem on thread %s" % threading.current_thread())
 
 

@@ -129,42 +129,53 @@ def f_readconfigfile(configdata):
             for metric in config['metrics']:
                 param_metric=metric['name']
                 for ip in config['ips']:
-                    param_ip=ip['ip']
-                    param_alias=ip['alias']
-                    
+                    try:
+                        param_ip=ip['ip']
+                        if param_ip is None:
+                            exit(1)
+                    except:
+                        print("Setting IP/hostname/FQDN is mandatory, will terminate execution")
+                        exit(1)
+                    try:
+                        param_alias=ip['alias']
+                    except:
+                        param_alias= None
+                        pass
                     ########## VALIDATE RESOURCES AND METRICS FROM CONFIG FILE AND AGAINST OUR ARRAY ##########
                     if param_resource in r_resources_types:
                         if param_metric in eval("m_" + param_resource + "_metrics")[0]:
                             pos_index=eval("m_" + param_resource + "_metrics")[0].index(param_metric)
                             func_name=eval("m_" + param_resource + "_metrics")[1][pos_index]
                             func_array="p_" + func_name
-                            command=func_name + "("
-                            # Validate Mandatory Parameters
+                            command=[]
+                            # BEGIN Validate Mandatory Parameters
                             for i in range(0,len(eval(func_array)[0])):
                                 try:
                                     locals()[eval(func_array)[0][i]]=parameters[eval(func_array)[0][i]]
-                                    if i > 0:
-                                        command = command + "," + eval(func_array)[0][i]
-                                    else:
-                                        command = command + eval(func_array)[0][i]
+                                    if eval(func_array)[0][i] != "poll":
+                                        command.append(eval(func_array)[0][i])
                                 except:
                                     print(eval(func_array)[0][i] + " is mandatory for resource " + param_resource + " will terminate execution")
                                     exit(1)
-                            # Validate Optional Parameters and if not in config yaml it sets to None
+                            # END Validate Mandatory Parameters
+                            # BEGIN Validate Optional Parameters and if not in config yaml it sets to None
                             for i in range(0,len(eval(func_array)[1])):
                                 try:
                                     locals()[eval(func_array)[1][i]]=parameters[eval(func_array)[1][i]]
-                                    command = command + "," + eval(func_array)[1][i]
+                                    command.append(eval(func_array)[1][i])
                                 except:
                                     locals()[eval(func_array)[1][i]]=None
-                                    command = command + "," + eval(func_array)[1][i]
+                                    command.append(eval(func_array)[1][i])
                                     pass
-                            command = command + ")"
-                            #print(eval(command))
-                            #print(command)
-                            poll=None
-                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, func_eternus_icp_fs(poll))
+                            # END Validate Optional Parameters and if not in config yaml it sets to None
+                            my_args = ','.join(command)
+                            del command
 
+                            my_job=eval(func_name), eval(my_args)
+                            print(my_job)
+                            #schedule.every(locals()['poll']*60).seconds.do(eval(func_name), eval(my_args))
+                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, my_job)
+                            
                         else:
                             print("Metric not valid - %s" % param_metric)
                             exit (1)
