@@ -40,7 +40,7 @@ systems:
           user: dx_usr
           host_keys: /collector/fj-collector/config/id_rsa
           known_hosts: /collector/fj-collector/config/known_hosts
-          poll: 1
+          poll: 0
           snmp_community: TESTE_SNMP
         metrics:
           - name: fs

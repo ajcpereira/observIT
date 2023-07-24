@@ -1,7 +1,114 @@
-INFO:root:Starting YAML Processing - Wed Jul 19 11:53:34 2023
-INFO:root:Starting YAML Processing - Wed Jul 19 11:54:15 2023
-INFO:root:Starting YAML Processing - Wed Jul 19 11:55:35 2023
-INFO:root:Starting YAML Processing - Wed Jul 19 12:00:20 2023
-INFO:root:Starting YAML Processing - Wed Jul 19 12:04:10 2023
-INFO:root:Starting YAML Processing - Wed Jul 19 12:06:25 2023
-INFO:root:Starting YAML Processing - Wed Jul 19 12:06:47 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 11:29:42 2023
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-1 (func_eternus_icp_fs), started 139625229186624)> - Mon Jul 24 11:30:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-2 (func_eternus_icp_fs), started 139625229186624)> - Mon Jul 24 11:30:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 139625229186624)> - Mon Jul 24 11:30:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 139625220793920)> - Mon Jul 24 11:30:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-5 (func_eternus_icp_fs), started 139625220793920)> - Mon Jul 24 11:31:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-6 (func_eternus_icp_fs), started 139625220793920)> - Mon Jul 24 11:31:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 139625229186624)> - Mon Jul 24 11:31:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 139625229186624)> - Mon Jul 24 11:31:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-9 (func_eternus_icp_fs), started 139625229186624)> - Mon Jul 24 11:32:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-10 (func_eternus_icp_fs), started 139625220793920)> - Mon Jul 24 11:32:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-11 (func_os_cpu_mem), started 139625229186624)> - Mon Jul 24 11:32:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-12 (func_os_cpu_mem), started 139625212401216)> - Mon Jul 24 11:32:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-13 (func_eternus_icp_fs), started 139625212401216)> - Mon Jul 24 11:33:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-14 (func_eternus_icp_fs), started 139625229186624)> - Mon Jul 24 11:33:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-15 (func_os_cpu_mem), started 139625212401216)> - Mon Jul 24 11:33:42 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-16 (func_os_cpu_mem), started 139625220793920)> - Mon Jul 24 11:33:43 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-17 (func_eternus_icp_fs), started 139625220793920)> - Mon Jul 24 11:34:43 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-18 (func_eternus_icp_fs), started 139625212401216)> - Mon Jul 24 11:34:43 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-19 (func_os_cpu_mem), started 139625212401216)> - Mon Jul 24 11:34:43 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-20 (func_os_cpu_mem), started 139625220793920)> - Mon Jul 24 11:34:43 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:35:50 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 139635739805248)> - Mon Jul 24 11:36:50 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 139635731412544)> - Mon Jul 24 11:36:50 2023 with args (('user,host_keys,known_hosts,snmp_community,snmp_port',),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:38:04 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140103569630784)> - Mon Jul 24 11:39:04 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140103661610560)> - Mon Jul 24 11:39:04 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:39:50 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140500737709632)> - Mon Jul 24 11:40:50 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140500526954048)> - Mon Jul 24 11:40:50 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:42:01 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 139709862893120)> - Mon Jul 24 11:43:01 2023 with args (['user', 'host_keys', 'known_hosts', 'snmp_community', 'snmp_port'],)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 139709871285824)> - Mon Jul 24 11:43:01 2023 with args (['user', 'host_keys', 'known_hosts', 'snmp_community', 'snmp_port'],)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:44:24 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140300460742208)> - Mon Jul 24 11:45:24 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140300452349504)> - Mon Jul 24 11:45:24 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:49:23 2023
+INFO:root:Config File was changed will reload - Mon Jul 24 11:49:35 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140678475535936)> - Mon Jul 24 11:49:35 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140678483928640)> - Mon Jul 24 11:49:35 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 140678475535936)> - Mon Jul 24 11:49:36 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 140678492321344)> - Mon Jul 24 11:49:36 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-11 (func_os_cpu_mem), started 140678483928640)> - Mon Jul 24 11:49:37 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-12 (func_os_cpu_mem), started 140678483928640)> - Mon Jul 24 11:49:37 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-15 (func_os_cpu_mem), started 140678492321344)> - Mon Jul 24 11:49:38 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-16 (func_os_cpu_mem), started 140678492321344)> - Mon Jul 24 11:49:38 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-19 (func_os_cpu_mem), started 140678483928640)> - Mon Jul 24 11:49:39 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-20 (func_os_cpu_mem), started 140678475535936)> - Mon Jul 24 11:49:39 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-23 (func_os_cpu_mem), started 140678492321344)> - Mon Jul 24 11:49:40 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-24 (func_os_cpu_mem), started 140678492321344)> - Mon Jul 24 11:49:40 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-27 (func_os_cpu_mem), started 140678483928640)> - Mon Jul 24 11:49:41 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-28 (func_os_cpu_mem), started 140678475535936)> - Mon Jul 24 11:49:41 2023 with args ((('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:50:55 2023
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-1 (func_eternus_icp_fs), started 139837170214464)> - Mon Jul 24 11:50:55 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-2 (func_eternus_icp_fs), started 139837088724544)> - Mon Jul 24 11:50:55 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 139837170214464)> - Mon Jul 24 11:50:55 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 139837170214464)> - Mon Jul 24 11:50:55 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-5 (func_eternus_icp_fs), started 139837170214464)> - Mon Jul 24 11:50:56 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-6 (func_eternus_icp_fs), started 139837088724544)> - Mon Jul 24 11:50:56 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 139837080331840)> - Mon Jul 24 11:50:56 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 139837071939136)> - Mon Jul 24 11:50:56 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-9 (func_eternus_icp_fs), started 139837071939136)> - Mon Jul 24 11:50:57 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-10 (func_eternus_icp_fs), started 139837170214464)> - Mon Jul 24 11:50:57 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-11 (func_os_cpu_mem), started 139837080331840)> - Mon Jul 24 11:50:57 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-12 (func_os_cpu_mem), started 139837071939136)> - Mon Jul 24 11:50:57 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:53:18 2023
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-1 (func_eternus_icp_fs), started 140248454227520)> - Mon Jul 24 11:53:18 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-2 (func_eternus_icp_fs), started 140248454227520)> - Mon Jul 24 11:53:18 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140248445834816)> - Mon Jul 24 11:53:18 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140248454227520)> - Mon Jul 24 11:53:18 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-5 (func_eternus_icp_fs), started 140248454227520)> - Mon Jul 24 11:53:19 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-6 (func_eternus_icp_fs), started 140248454227520)> - Mon Jul 24 11:53:19 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 140248454227520)> - Mon Jul 24 11:53:19 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 140248445834816)> - Mon Jul 24 11:53:19 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:54:08 2023
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-1 (func_eternus_icp_fs), started 140517377271360)> - Mon Jul 24 11:54:08 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-2 (func_eternus_icp_fs), started 140517368878656)> - Mon Jul 24 11:54:08 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140517377271360)> - Mon Jul 24 11:54:08 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140517368878656)> - Mon Jul 24 11:54:08 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-5 (func_eternus_icp_fs), started 140517368878656)> - Mon Jul 24 11:54:09 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-6 (func_eternus_icp_fs), started 140517377271360)> - Mon Jul 24 11:54:09 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 140517360485952)> - Mon Jul 24 11:54:09 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 140517352093248)> - Mon Jul 24 11:54:09 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:54:33 2023
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-1 (func_eternus_icp_fs), started 139980221445696)> - Mon Jul 24 11:54:33 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-2 (func_eternus_icp_fs), started 139980213052992)> - Mon Jul 24 11:54:33 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 139980221445696)> - Mon Jul 24 11:54:33 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 139980213052992)> - Mon Jul 24 11:54:33 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:55:25 2023
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-1 (func_eternus_icp_fs), started 140049184192064)> - Mon Jul 24 11:55:25 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-2 (func_eternus_icp_fs), started 140049175799360)> - Mon Jul 24 11:55:25 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140049184192064)> - Mon Jul 24 11:55:25 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140049175799360)> - Mon Jul 24 11:55:25 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-5 (func_eternus_icp_fs), started 140049175799360)> - Mon Jul 24 11:55:26 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-6 (func_eternus_icp_fs), started 140049175799360)> - Mon Jul 24 11:55:26 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 140049184192064)> - Mon Jul 24 11:55:26 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 140049175799360)> - Mon Jul 24 11:55:26 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-9 (func_eternus_icp_fs), started 140049175799360)> - Mon Jul 24 11:55:27 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-10 (func_eternus_icp_fs), started 140049175799360)> - Mon Jul 24 11:55:27 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-11 (func_os_cpu_mem), started 140049184192064)> - Mon Jul 24 11:55:27 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Running cpu_mem on thread <Thread(Thread-12 (func_os_cpu_mem), started 140049184192064)> - Mon Jul 24 11:55:27 2023 with args ('user,host_keys,known_hosts,snmp_community,snmp_port',)
+INFO:root:Starting YAML Processing - Mon Jul 24 11:56:33 2023
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-1 (func_eternus_icp_fs), started 140550351840832)> - Mon Jul 24 11:56:33 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-2 (func_eternus_icp_fs), started 140550351840832)> - Mon Jul 24 11:56:33 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-3 (func_os_cpu_mem), started 140550343448128)> - Mon Jul 24 11:56:33 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-4 (func_os_cpu_mem), started 140550343448128)> - Mon Jul 24 11:56:33 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-5 (func_eternus_icp_fs), started 140550343448128)> - Mon Jul 24 11:56:34 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-6 (func_eternus_icp_fs), started 140550351840832)> - Mon Jul 24 11:56:34 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 140550120404544)> - Mon Jul 24 11:56:34 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 140550335055424)> - Mon Jul 24 11:56:34 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-9 (func_eternus_icp_fs), started 140550335055424)> - Mon Jul 24 11:56:35 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-10 (func_eternus_icp_fs), started 140550120404544)> - Mon Jul 24 11:56:35 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-11 (func_os_cpu_mem), started 140550335055424)> - Mon Jul 24 11:56:35 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-12 (func_os_cpu_mem), started 140550351840832)> - Mon Jul 24 11:56:35 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)

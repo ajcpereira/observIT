@@ -77,8 +77,8 @@ PLATFORM_LOGFILE="logs/fj-collector.log"
 #################################################################################
 
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-def run_threaded(job_func):
-    job_thread = threading.Thread(target=job_func)
+def run_threaded(job_func, *args):
+    job_thread = threading.Thread(target=job_func, args=args)
     job_thread.start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
@@ -148,6 +148,8 @@ def f_readconfigfile(configdata):
                             func_name=eval("m_" + param_resource + "_metrics")[1][pos_index]
                             func_array="p_" + func_name
                             command=[]
+                            
+                            
                             # BEGIN Validate Mandatory Parameters
                             for i in range(0,len(eval(func_array)[0])):
                                 try:
@@ -158,6 +160,8 @@ def f_readconfigfile(configdata):
                                     print(eval(func_array)[0][i] + " is mandatory for resource " + param_resource + " will terminate execution")
                                     exit(1)
                             # END Validate Mandatory Parameters
+                            
+                            
                             # BEGIN Validate Optional Parameters and if not in config yaml it sets to None
                             for i in range(0,len(eval(func_array)[1])):
                                 try:
@@ -168,13 +172,16 @@ def f_readconfigfile(configdata):
                                     command.append(eval(func_array)[1][i])
                                     pass
                             # END Validate Optional Parameters and if not in config yaml it sets to None
+
+
                             my_args = ','.join(command)
+                            
                             del command
 
-                            my_job=eval(func_name), eval(my_args)
-                            print(my_job)
-                            #schedule.every(locals()['poll']*60).seconds.do(eval(func_name), eval(my_args))
-                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, my_job)
+                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, eval(func_name), eval(my_args))
+
+                            del func_name
+                            del my_args
                             
                         else:
                             print("Metric not valid - %s" % param_metric)
