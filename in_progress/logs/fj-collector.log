@@ -112,3 +112,59 @@ INFO:root:Running eternus_icp_fs on thread <Thread(Thread-9 (func_eternus_icp_fs
 INFO:root:Running eternus_icp_fs on thread <Thread(Thread-10 (func_eternus_icp_fs), started 140550120404544)> - Mon Jul 24 11:56:35 2023 
 INFO:root:Running cpu_mem on thread <Thread(Thread-11 (func_os_cpu_mem), started 140550335055424)> - Mon Jul 24 11:56:35 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
 INFO:root:Running cpu_mem on thread <Thread(Thread-12 (func_os_cpu_mem), started 140550351840832)> - Mon Jul 24 11:56:35 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', 'TESTE_SNMP', None),)
+INFO:root:Starting YAML Processing - Mon Jul 24 14:17:20 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 14:17:55 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:03:02 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:04:32 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:04:56 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:05:07 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:05:39 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:08:03 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-1 (func_os_cpu_mem), started 139650554394176)> - Mon Jul 24 16:09:03 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-2 (func_os_cpu_mem), started 139650546001472)> - Mon Jul 24 16:09:03 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-3 (func_eternus_icp_fs), started 139650546001472)> - Mon Jul 24 16:09:03 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-4 (func_eternus_icp_fs), started 139650546001472)> - Mon Jul 24 16:09:03 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-5 (func_eternus_icp_fs), started 139650554394176)> - Mon Jul 24 16:09:03 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-6 (func_eternus_icp_fs), started 139650537608768)> - Mon Jul 24 16:09:03 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 139650537608768)> - Mon Jul 24 16:10:03 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 139650554394176)> - Mon Jul 24 16:10:03 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-10 (func_eternus_icp_fs), started 139650554394176)> - Mon Jul 24 16:10:03 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-9 (func_eternus_icp_fs), started 139650537608768)> - Mon Jul 24 16:10:03 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-11 (func_eternus_icp_fs), started 139650546001472)> - Mon Jul 24 16:10:03 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-12 (func_eternus_icp_fs), started 139650537608768)> - Mon Jul 24 16:10:03 2023 
+INFO:root:Starting YAML Processing - Mon Jul 24 16:10:53 2023
+INFO:root:Config File was changed will reload - Mon Jul 24 16:10:57 2023
+INFO:root:Config File was changed will reload - Mon Jul 24 16:11:06 2023
+INFO:root:Config File was changed will reload - Mon Jul 24 16:11:08 2023
+INFO:root:Config File was changed will reload - Mon Jul 24 16:11:11 2023
+INFO:root:Config File was changed will reload - Mon Jul 24 16:11:13 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-1 (func_os_cpu_mem), started 140558262597184)> - Mon Jul 24 16:12:14 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-2 (func_os_cpu_mem), started 140558254204480)> - Mon Jul 24 16:12:14 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-3 (func_eternus_icp_fs), started 140558254204480)> - Mon Jul 24 16:12:14 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-4 (func_eternus_icp_fs), started 140558262597184)> - Mon Jul 24 16:12:14 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-6 (func_os_cpu_mem), started 140558254204480)> - Mon Jul 24 16:12:14 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-5 (func_os_cpu_mem), started 140558173468224)> - Mon Jul 24 16:12:14 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Starting YAML Processing - Mon Jul 24 16:34:46 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:35:53 2023
+ERROR:root:host_keys is mandatory for resource eternus_icp will terminate execution Mon Jul 24 16:35:53 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:40:32 2023
+ERROR:root:host_keys is mandatory for resource eternus_icp will terminate execution - Mon Jul 24 16:40:32 2023
+INFO:root:Starting YAML Processing - Mon Jul 24 16:40:41 2023
+INFO:root:Running cpu_mem on thread <Thread(Thread-1 (func_os_cpu_mem), started 140711926167104)> - Mon Jul 24 16:41:41 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-2 (func_os_cpu_mem), started 140711917774400)> - Mon Jul 24 16:41:41 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-3 (func_eternus_icp_fs), started 140711917774400)> - Mon Jul 24 16:41:41 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-4 (func_eternus_icp_fs), started 140711926167104)> - Mon Jul 24 16:41:41 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-5 (func_os_cpu_mem), started 140711917774400)> - Mon Jul 24 16:41:41 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-6 (func_os_cpu_mem), started 140711909381696)> - Mon Jul 24 16:41:41 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-7 (func_os_cpu_mem), started 140711909381696)> - Mon Jul 24 16:42:41 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-8 (func_os_cpu_mem), started 140711917774400)> - Mon Jul 24 16:42:41 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-9 (func_eternus_icp_fs), started 140711909381696)> - Mon Jul 24 16:42:41 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-10 (func_eternus_icp_fs), started 140711909381696)> - Mon Jul 24 16:42:41 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-11 (func_os_cpu_mem), started 140711917774400)> - Mon Jul 24 16:42:41 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-12 (func_os_cpu_mem), started 140711926167104)> - Mon Jul 24 16:42:41 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-13 (func_os_cpu_mem), started 140711926167104)> - Mon Jul 24 16:43:41 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-14 (func_os_cpu_mem), started 140711917774400)> - Mon Jul 24 16:43:41 2023 with args (('dx_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-15 (func_eternus_icp_fs), started 140711917774400)> - Mon Jul 24 16:43:41 2023 
+INFO:root:Running eternus_icp_fs on thread <Thread(Thread-16 (func_eternus_icp_fs), started 140711917774400)> - Mon Jul 24 16:43:41 2023 
+INFO:root:Running cpu_mem on thread <Thread(Thread-17 (func_os_cpu_mem), started 140711917774400)> - Mon Jul 24 16:43:41 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)
+INFO:root:Running cpu_mem on thread <Thread(Thread-18 (func_os_cpu_mem), started 140711926167104)> - Mon Jul 24 16:43:41 2023 with args (('collector_usr', '/collector/fj-collector/config/id_rsa', '/collector/fj-collector/config/known_hosts', None, None),)

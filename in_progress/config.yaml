@@ -2,35 +2,30 @@
 # A system is used to group a set of devices that compose the environment for which you want to gather performance metrics 
 # For the system you define the resources that compose the system
 #
-# Available resource types are as follows:
+# Available resource types and metrics per resource as follows:
 # Servers type:
-# 	primergy, primequest
+# 	primergy
+#      cpu_mem  - CPU usage metrics & RAM usage metrics
+#      temp     - Temperature
+#      power    - Power usage
+#    primequest
 # Storage type:
-# 	eternus-dx, eternus-lt, netapp-fas
+# 	eternus_icp
+#      disk     - Filesystem/Storage usage metrics
+#    eternus-dx
+#    eternus-lt
+#    netapp-fas
 # Switch type:
 #	 san-switch-brocade
 #	 lan-switch-cisco
 # Operating System type:
-# 	linux-os, win-os, esxi-os
+# 	linux_os
+#      cpu_mem  - CPU usage metrics & RAM usage metrics
+#   win-os
+#   esxi-os
 # RESTFull API type:
 #	 vmware-vcenter 
 #
-# Available collector metrics are as follows:
-#   -name: cpu	        - CPU usage metrics
-#   -name: mem	        - RAM usage metrics
-#   -name: disk	        - Filesystem/Storage usage metrics
-#   -name: net-lan	    - Ethernet Network usage metrics
-#   -name: net-san	    - FC SAN Network usage metrics
-#   -name: temp 	      - Temperature
-#   -name: power	      - Power usage
-#   -name: vm-inventory	- Gather VM inventory data e.g: vm count, vcpus, mem, ...
-#   -name: vm-usage     - Gather VM usage data e.g: vm count, vcpus, mem, ...
-# 
-# scripts mapping
-# script will be named [resource_types]-[metric].py
-# 	example:
-# 		get eternus dx metrics about disk: eternus_dx_disk.py
-# 		get linux server cpu usage: linux-os-cpu.py
 ---
 systems:
   - name: MYCS8000    
@@ -40,16 +35,31 @@ systems:
           user: dx_usr
           host_keys: /collector/fj-collector/config/id_rsa
           known_hosts: /collector/fj-collector/config/known_hosts
-          poll: 0
-          snmp_community: TESTE_SNMP
+          poll: 1
         metrics:
-          - name: fs
           - name: cpu_mem
+          - name: fs
         ips:
           - ip: 10.10.10.1
             alias: DX600
           - ip: 10.10.11.2
             alias: DX200
+      - resources_types: linux_os
+        parameters:
+          proxy: 10.10.10.3
+          user: collector_usr
+          host_keys: /collector/fj-collector/config/id_rsa
+          known_hosts: /collector/fj-collector/config/known_hosts
+          use_sudo: yes
+          poll: 1
+        metrics:
+          - name: cpu_mem      
+        ips:
+          - ip: 10.10.10.4
+            alias: CS_IDP1
+          - ip: 10.10.11.5
+            alias: CS_IDP2
+
 global parameters:
   repository: graphite
   repository_port: 2003

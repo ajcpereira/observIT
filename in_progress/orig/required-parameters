@@ -1,7 +1,0 @@
-systems
-    name (r)
-    config
-        resource_types (r)
-        parameters (r) proxy (o) user (r) host_keys (r) know_hosts (r) poll (r)
-        metrics (r)
-        ips (r) alias (o) 

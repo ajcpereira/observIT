@@ -4,9 +4,8 @@ import time
 
 
 def netcat(graphite_srv, port, protocol, text):
-    log_stamp=time.ctime()
 
-    logging.info("Starting netcat - %s" % log_stamp)
+    logging.info("Starting netcat - %s" % time.ctime())
     logging.debug("Netcat text to send - %s" % text)
 
     if protocol == "tcp":
@@ -32,4 +31,4 @@ def netcat(graphite_srv, port, protocol, text):
         logging.error("No valid protocol selected, check config file")
         print("No valid protocol selected")
 
-    logging.info("Finished netcat - %s" % log_stamp)        
+    logging.info("Finished netcat - %s" % time.ctime())        

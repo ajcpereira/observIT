@@ -45,19 +45,20 @@ configfile="config.yaml"
 # m_eternus_icp_metrics=["fs"],["func_eternus_icp_fs"]
 
 # Required parameters for function
-# p_os_cpu_mem=["param_system_name"]
+# p_os_cpu_mem=["name"]
 #
 # every function must have some parameters as optional, i.e. alias, proxy, sudo, etc
 
-r_resources_types=["eternus_icp", "linux_os"]
+r_resources_types=["eternus_icp", "linux_os", "eternus_dx"]
 
 # Metric name in 1st list and function name in 2nd list
 m_eternus_icp_metrics=["fs", "cpu_mem"],["func_eternus_icp_fs","func_os_cpu_mem"]
 m_linux_os_metrics=["cpu_mem"], ["func_os_cpu_mem"]
+m_eternus_dx_metrics=["cpu_mem", "fs"], ["func_os_cpu_mem", "func_eternus_icp_fs"]
 
-# Mandatory parameters in 1st list and optional in 2nd list
-p_func_eternus_icp_fs=["param_system_name","param_ip", "param_poll", "param_user", "param_metric", "param_host_keys", "param_known_hosts","PLATFORM_REPO","PLATFORM_REPO_PORT","PLATFORM_REPO_PROTOCOL","PLATFORM_LOG","PLATFORM_LOGFILE"], ["param_proxy", "param_use_sudo","param_alias"]
-p_func_os_cpu_mem=["param_system_name"],["param_proxy", "param_use_sudo"]
+# Mandatory parameters and the optional parameters
+p_func_eternus_icp_fs=["poll", "user", "host_keys", "known_hosts"],["snmp_community", "snmp_port"] 
+p_func_os_cpu_mem=["poll", "user", "host_keys", "known_hosts"], ["snmp_community", "snmp_port"]
 ########## SUPPORTED RESOURCES AND METRICS ######################################
 
 ########## GLOBAL PARAMETERS ####################################################
@@ -77,12 +78,10 @@ PLATFORM_LOGFILE="logs/fj-collector.log"
 #################################################################################
 
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-def run_threaded(job_func):
-    job_thread = threading.Thread(target=job_func)
+def run_threaded(job_func, *args):
+    job_thread = threading.Thread(target=job_func, args=args)
     job_thread.start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-
-
 
 ########## FUNCTION OPEN YAML FILE AND READ IT ##################################
 def f_readglobalparametersconfigfile():
@@ -127,64 +126,72 @@ def f_readconfigfile(configdata):
         for config in system['config']:
             param_resource=config['resources_types']
             parameters = config['parameters']
-            if 'host_keys' in parameters:
-                param_host_keys=parameters['host_keys']
-            if 'user' in parameters:
-                param_user=parameters['user']
-            if 'known_hosts' in parameters:
-                param_known_hosts=parameters['known_hosts']
-            if 'poll' in parameters:
-                param_poll=parameters['poll']
-            if 'use_sudo' in parameters:
-                param_use_sudo=parameters['use_sudo']
-            if 'proxy' in parameters:
-                param_proxy=parameters['proxy']
+
             for metric in config['metrics']:
                 param_metric=metric['name']
                 for ip in config['ips']:
-                    param_ip=ip['ip']
-                    param_alias=ip['alias']
-                    
+                    try:
+                        param_ip=ip['ip']
+                        if param_ip is None:
+                            exit(1)
+                    except:
+                        logging.error("Setting IP/hostname/FQDN is mandatory, will terminate execution - %s" % time.ctime())
+                        print("Setting IP/hostname/FQDN is mandatory, will terminate execution")
+                        exit(1)
+                    try:
+                        param_alias=ip['alias']
+                    except:
+                        param_alias= None
+                        pass
                     ########## VALIDATE RESOURCES AND METRICS FROM CONFIG FILE AND AGAINST OUR ARRAY ##########
                     if param_resource in r_resources_types:
                         if param_metric in eval("m_" + param_resource + "_metrics")[0]:
                             pos_index=eval("m_" + param_resource + "_metrics")[0].index(param_metric)
                             func_name=eval("m_" + param_resource + "_metrics")[1][pos_index]
+                            func_array="p_" + func_name
+                            command=[]
                             
-                            command=func_name + "("
                             
-                            for i in range(0,len(eval("p_" + func_name)[0])):
+                            # BEGIN Validate Mandatory Parameters
+                            for i in range(0,len(eval(func_array)[0])):
                                 try:
-                                    eval(eval("p_" + func_name)[0][i])
+                                    locals()[eval(func_array)[0][i]]=parameters[eval(func_array)[0][i]]
+                                    if eval(func_array)[0][i] != "poll":
+                                        command.append(eval(func_array)[0][i])
                                 except:
-                                    exec("{0} = {1}".format(eval("p_" + func_name)[0][i], None))
-
-                                if eval(eval("p_" + func_name)[0][i]) is None:
-                                    print(eval("p_" + func_name)[0][i] + " is not defined and is mandatory")
+                                    logging.error(eval(func_array)[0][i] + " is mandatory for resource " + param_resource + " will terminate execution - %s" % time.ctime())
+                                    print(eval(func_array)[0][i] + " is mandatory for resource " + param_resource + " will terminate execution")
                                     exit(1)
-
-                                if eval("p_" + func_name)[0][i] != "param_poll":
-                                    if i > 0:
-                                        command=command + "," + eval("p_" + func_name)[0][i]
-                                    else:
-                                        command=command + eval("p_" + func_name)[0][i]
+                            # END Validate Mandatory Parameters
                             
-                            for i in range(0,len(eval("p_" + func_name)[1])):
+                            
+                            # BEGIN Validate Optional Parameters and if not in config yaml it sets to None
+                            for i in range(0,len(eval(func_array)[1])):
                                 try:
-                                    eval(eval("p_" + func_name)[1][i])
+                                    locals()[eval(func_array)[1][i]]=parameters[eval(func_array)[1][i]]
+                                    command.append(eval(func_array)[1][i])
                                 except:
-                                    globals()[eval("p_" + func_name)[1][i]] = None
+                                    locals()[eval(func_array)[1][i]]=None
+                                    command.append(eval(func_array)[1][i])
+                                    pass
+                            # END Validate Optional Parameters and if not in config yaml it sets to None
 
-                                command=command + "," + eval("p_" + func_name)[1][i]
 
-                            command=command + ")"
-                            print(command)
-                            #schedule.every(param_poll*60).seconds.do(run_threaded, eval(command))
-                            schedule.every(param_poll*60).seconds.do(run_threaded, func_eternus_icp_fs)
+                            my_args = ','.join(command)
+                            
+                            del command
+
+                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, eval(func_name), eval(my_args))
+
+                            del func_name
+                            del my_args
+
                         else:
-                            print("metric not valid - %s" % param_metric)
+                            logging.error("Metric not valid - %s - %s " % (param_metric, time.ctime()))
+                            print("Metric not valid - %s" % param_metric)
                             exit (1)
                     else:
+                        logging.error("Resource not valid - %s - %s " % (param_resource, time.ctime()))
                         print("Resource not valid - %s" % param_resource)
                         exit (1)
                     ########## VALIDATE RESOURCES AND METRICS FROM CONFIG FILE AND AGAINST OUR ARRAY ##########
@@ -218,7 +225,7 @@ if __name__ == "__main__":
         time.sleep(1)
         if orig_mtime < os.path.getmtime(configfile):
             logging.info("Config File was changed will reload - %s" % time.ctime())
-            print("Will reload")
+            print("Will reload config file")
             schedule.clear()
             configdata, orig_mtime=f_readglobalparametersconfigfile()
             f_readconfigfile(configdata)
