@@ -28,7 +28,7 @@ import sys
 import schedule
 import threading
 sys.path.append("functions")
-from functions.fs import func_eternus_icp_fs, func_os_cpu_mem
+from functions.func_eternus_icp_fs import *
 
 configfile="config.yaml"
 
@@ -47,18 +47,16 @@ configfile="config.yaml"
 # Required parameters for function
 # p_os_cpu_mem=["name"]
 #
-# every function must have some parameters as optional, i.e. alias, proxy, sudo, etc
+# every function must have some parameters as optional, i.e. bastion, sudo, etc
 
-r_resources_types=["eternus_icp", "linux_os", "eternus_dx"]
+r_resources_types=["eternus_icp"]
 
 # Metric name in 1st list and function name in 2nd list
-m_eternus_icp_metrics=["fs", "cpu_mem"],["func_eternus_icp_fs","func_os_cpu_mem"]
+m_eternus_icp_metrics=["fs"],["func_eternus_icp_fs"]
 m_linux_os_metrics=["cpu_mem"], ["func_os_cpu_mem"]
-m_eternus_dx_metrics=["cpu_mem", "fs"], ["func_os_cpu_mem", "func_eternus_icp_fs"]
 
 # Mandatory parameters and the optional parameters
-p_func_eternus_icp_fs=["poll", "user", "host_keys", "known_hosts"],["snmp_community", "snmp_port"] 
-p_func_os_cpu_mem=["poll", "user", "host_keys", "known_hosts"], ["snmp_community", "snmp_port"]
+p_func_eternus_icp_fs=["poll", "user", "host_keys", "known_hosts"],["bastion", "use_sudo"] 
 ########## SUPPORTED RESOURCES AND METRICS ######################################
 
 ########## GLOBAL PARAMETERS ####################################################
@@ -150,10 +148,12 @@ def f_readconfigfile(configdata):
                             func_name=eval("m_" + param_resource + "_metrics")[1][pos_index]
                             func_array="p_" + func_name
                             command=[]
-                            
-                            
+                            command.append("param_ip")
+                            command.append("param_system_name")
+                            command.append("param_alias")                                                        
                             # BEGIN Validate Mandatory Parameters
                             for i in range(0,len(eval(func_array)[0])):
+
                                 try:
                                     locals()[eval(func_array)[0][i]]=parameters[eval(func_array)[0][i]]
                                     if eval(func_array)[0][i] != "poll":
@@ -176,13 +176,11 @@ def f_readconfigfile(configdata):
                                     pass
                             # END Validate Optional Parameters and if not in config yaml it sets to None
 
-
-                            my_args = ','.join(command)
+                            my_args = ','.join(command) + ',' + "PLATFORM_REPO" + ',' + "PLATFORM_REPO_PORT"+ ',' + "PLATFORM_REPO_PROTOCOL"
+                            
+                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, eval(func_name), eval(my_args))
                             
                             del command
-
-                            schedule.every(locals()['poll']*60).seconds.do(run_threaded, eval(func_name), eval(my_args))
-
                             del func_name
                             del my_args
 
@@ -228,5 +226,8 @@ if __name__ == "__main__":
             print("Will reload config file")
             schedule.clear()
             configdata, orig_mtime=f_readglobalparametersconfigfile()
+            for handler in logging.root.handlers[:]:
+                logging.root.removeHandler(handler)
+            logging.basicConfig(filename=PLATFORM_LOGFILE, level=eval(PLATFORM_LOG))
             f_readconfigfile(configdata)
-        
+                    

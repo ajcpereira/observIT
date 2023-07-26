@@ -1,2 +1,4 @@
 pyyaml
 schedule
+fabric
+decorator

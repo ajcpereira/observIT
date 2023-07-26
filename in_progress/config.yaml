@@ -35,34 +35,18 @@ systems:
           user: dx_usr
           host_keys: /collector/fj-collector/config/id_rsa
           known_hosts: /collector/fj-collector/config/known_hosts
-          poll: 1
+          poll: 0
         metrics:
-          - name: cpu_mem
           - name: fs
         ips:
-          - ip: 10.10.10.1
+          - ip: 192.168.0.221
             alias: DX600
-          - ip: 10.10.11.2
+          - ip: 192.168.0.221
             alias: DX200
-      - resources_types: linux_os
-        parameters:
-          proxy: 10.10.10.3
-          user: collector_usr
-          host_keys: /collector/fj-collector/config/id_rsa
-          known_hosts: /collector/fj-collector/config/known_hosts
-          use_sudo: yes
-          poll: 1
-        metrics:
-          - name: cpu_mem      
-        ips:
-          - ip: 10.10.10.4
-            alias: CS_IDP1
-          - ip: 10.10.11.5
-            alias: CS_IDP2
 
 global parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  log: INFO
+  log: INFO # NOTSET, DEBUG, INFO, WARN, ERROR, CRITICAL
   logfile: logs/fj-collector.log
