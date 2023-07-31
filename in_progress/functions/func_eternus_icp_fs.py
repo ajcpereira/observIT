@@ -36,7 +36,23 @@ def func_eternus_icp_fs(args):
     logging.debug("Command Line 2 - %s" % CMD2)
     logging.debug("Command Line 3 - %s" % CMD3)
 
+    logging.info("Calling core function ssh on thread %s wth args %s - %s" % (threading.current_thread(),args,time.ctime()))
 
+    ssh=secure_connect.Secure_Connect(param_ip,bastion,user,host_keys)
+    mycmd="echo Runned"
+    myoutput=ssh.ssh_run(mycmd)
+    print("Will print %s" % myoutput)
+    ssh.ssh_del()
+    #ssh_connection=secure_connect.Secure_Connect()
+    #print("Calling Connection in Thread %s" % threading.current_thread())
+    #try:
+    #    ssh=secure_connect.create_single(param_ip, user, host_keys)
+    #    stdout = ssh.run("echo Runned")
+    #    secure_connect.delete_single(ssh)
+    #except Exception as msg_error:
+    #    print("Deu erro na chamada %s" % msg_error)
+            
+    logging.info("Finished core function ssh on thread %s wth args %s - %s" % (threading.current_thread(),args,time.ctime()))
 
 #    ssh.run(CMD1)
 #    ssh.run(CMD2)

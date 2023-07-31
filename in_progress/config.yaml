@@ -32,8 +32,8 @@ systems:
     config:
       - resources_types: eternus_icp
         parameters:
-          user: dx_usr
-          host_keys: /collector/fj-collector/config/id_rsa
+          user: alex
+          host_keys: /opt/fj-collector/collector/config/id_rsa
           known_hosts: /collector/fj-collector/config/known_hosts
           poll: 0
         metrics:
@@ -41,7 +41,7 @@ systems:
         ips:
           - ip: 192.168.0.221
             alias: DX600
-          - ip: 192.168.0.221
+          - ip: 192.168.0.222
             alias: DX200
 
 global parameters:

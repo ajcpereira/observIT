@@ -1,4 +1,4 @@
 pyyaml
 schedule
-fabric
+fabric2
 decorator
