@@ -1,6 +1,6 @@
 import yaml
 from typing import List, Literal, Optional
-from pydantic import model_validator, BaseModel, StrictStr, PositiveInt, conlist
+from pydantic import model_validator, BaseModel, StrictStr, PositiveInt
 
 class Ip(BaseModel):
     ip: StrictStr
