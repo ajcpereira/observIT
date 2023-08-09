@@ -1,0 +1,7 @@
+table_name_1:
+    test:
+        - count_number_rows
+        - count_columns
+table_name_2:
+    test:
+        - count_number_rows

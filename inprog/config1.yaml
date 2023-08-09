@@ -1,0 +1,29 @@
+#---
+#systems:
+#  - name: MYCS8000
+#    resources_types: eternus_icp
+#    config:
+#      parameters:
+#        user: alex
+#        host_keys: /opt/fj-collector/collector/config/id_rsa
+#        poll: 0
+#      metrics:
+#        - name: fs
+#      ips:
+#        - ip: 192.168.0.221
+#          alias: DX600
+#        - ip: 192.168.0.222
+#          alias: DX200
+#global parameters:
+#  repository: graphite
+#  repository_port: 2003
+#  repository_protocol: tcp
+#  log: INFO
+#  logfile: logs/fj-collector.log
+#
+---
+systems:
+  - name: MYCS8000
+    resources_types: fs
+    config:
+      user: alex

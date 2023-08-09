@@ -1,0 +1,22 @@
+systems:
+  - name: MYCS8000
+    resources_types: linux_os
+    config:
+      parameters:
+          user: alex
+          host_keys: a
+      metrics:
+          - name: fs
+          - name: fs
+      ips:
+          - ip: b
+            alias: teste
+          - ip: a
+          - ip: c
+
+global_parameters:
+  repository: graphite
+  repository_port: 2003
+  repository_protocol: tcp
+  log: INFO
+  logfile: logs/fj-collector.log
