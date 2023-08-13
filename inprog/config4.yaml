@@ -12,6 +12,7 @@ systems:
       ips:
           - ip: b
             alias: teste
+            ip_snmp_community: snmp
           - ip: a
           - ip: c
   - name: MYCS8001
