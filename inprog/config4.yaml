@@ -1,19 +1,34 @@
 systems:
   - name: MYCS8000
-    resources_types: linux_os
+    resources_types: eternus_icp
     config:
       parameters:
           user: alex
           host_keys: a
+          poll: 1
       metrics:
           - name: fs
-          - name: fs
+          - name: tgt
       ips:
           - ip: b
             alias: teste
           - ip: a
           - ip: c
-
+  - name: MYCS8001
+    resources_types: linux_os
+    config:
+      parameters:
+          user: usr_2
+          host_keys: a
+          poll: 1
+      metrics:
+          - name: fs
+          - name: cpu
+      ips:
+          - ip: b
+            alias: teste
+          - ip: a
+          - ip: c
 global_parameters:
   repository: graphite
   repository_port: 2003
