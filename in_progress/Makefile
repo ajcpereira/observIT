@@ -21,6 +21,7 @@ install:
 	cd repo
 	git clone https://github.com/ajcpereira/fj-collector.git
 	cd fj-collector
+	#--log-driver json-file --log-opt max-size=10m --log-opt max-file=3
 
 
 .ONESHELL:
