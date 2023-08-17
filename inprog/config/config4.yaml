@@ -7,7 +7,7 @@ systems:
           host_keys: a
           poll: 1
       metrics:
-          - name: disk
+          - name: fs
           - name: tgt
       ips:
           - ip: b

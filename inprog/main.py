@@ -10,14 +10,14 @@ def create_metric_ip_dicts(config):
     for system in config.systems:
         for metric in system.config.metrics:
             for ip in system.config.ips:
-                ip_dict = vars(ip)  # Convert ip object to a dictionary
+                ip_dict = vars(ip)
                 result_dict = {
                     "name": system.name,
                     "resources_types": system.resources_types,
                     **system.config.parameters.model_dump(),
                     "metric_name": metric.name,
                     "ip": ip.ip,
-                    **ip_dict,  # Include all attributes from ip object
+                    **ip_dict,
                     "func": AllowedMetrics.get_metric_value(system.resources_types, metric.name)
                 }
                 result_dicts.append(result_dict)
