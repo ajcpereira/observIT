@@ -2,7 +2,7 @@ import sys
 sys.path.append("functions_core")
 from functions_core.yaml_validate import read_yaml, AllowedMetrics
 
-config = read_yaml('config4.yaml')
+config = read_yaml('config/config4.yaml')
 
 def create_metric_ip_dicts(config):
     result_dicts = []
