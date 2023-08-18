@@ -1,7 +1,20 @@
+#################################################################################
+#                                                                               #
+#                       ENVIRONMENT DIVISION                                    #
+#                                                                               #
+#################################################################################
 import yaml
 from typing import List, Literal, Optional
 from pydantic import BaseModel, StrictStr, PositiveInt, Field
+from pydantic.networks import IPvAnyAddress
 
+#################################################################################
+#                                                                               #
+#                       PROCEDURE DIVISION                                      #
+#                                                                               #
+#################################################################################
+
+########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
         'eternus_icp': [['fs', 'tgt'], ['fs_name', 'tgt_name']],
@@ -13,33 +26,25 @@ class AllowedMetrics:
     def get_func_name(self, resource_type, metric_name):
     
         metrics_list = self.allowed_metrics.get(resource_type)
-
-        if metric_name in metrics_list[0]:
+        
+        try:
             if metric_name in metrics_list[0]:
                 index = metrics_list[0].index(metric_name)
-                return metrics_list[1][index]
-            else:
-                raise ValueError("Selected metric - %s - is not allowed for this resource_type - %s" % (metric_name, resource_type))
+        except TypeError:
+            print("Selected resource_type - %s - is not allowed, values can be one of the following keys - %s" % (resource_type, self.allowed_metrics.keys()))
+            exit()            
 
-
-    @classmethod
-    def get_resource_name(self, resource_type):
-    
-        metrics_list = self.allowed_metrics.get(resource_type)
-
-#        try:
         if metric_name in metrics_list[0]:
-            if metric_name in metrics_list[0]:
-                index = metrics_list[0].index(metric_name)
-                return metrics_list[1][index]
-            else:
-                raise ValueError("Selected metric - %s - is not allowed for this resource_type - %s" % (metric_name, resource_type))
-#        except:
-#            raise ValueError("Metric - %s - does not exist in allowed resource type %s" % (resource_type, self.allowed_metrics.keys()))
+            index = metrics_list[0].index(metric_name)
+            return metrics_list[1][index]
+        else:
+            print("Selected metric - %s - is not allowed for this resource_type - %s - allowed values are - %s" % (metric_name, resource_type, metrics_list[0]))
+            exit()
+########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 
-
+########## CLASS FROM PYDANTIC TO VALIDATE YAML SCHEMA ##########################
 class Ip(BaseModel):
-    ip: StrictStr
+    ip: IPvAnyAddress
     alias: Optional[StrictStr] = None
     ip_snmp_community: Optional[StrictStr] = None
 
@@ -49,7 +54,7 @@ class Parameters(BaseModel):
     poll: PositiveInt = Field(..., ge=1, le=1440)
 
 class Metrics(BaseModel):
-    name: StrictStr #Literal['fs', 'tgt', 'cpu', 'mem', 'disk', 'wcpu', 'wmem', 'wdisk']
+    name: StrictStr
 
 class Config(BaseModel):
     parameters: Parameters
@@ -58,7 +63,7 @@ class Config(BaseModel):
 
 class SystemsName(BaseModel):
     name: StrictStr
-    resources_types: StrictStr #Literal['eternus_icp', 'linux_os', 'windows_os']
+    resources_types: StrictStr
     config: Config
 
 class GlobalParameters(BaseModel):
@@ -71,9 +76,12 @@ class GlobalParameters(BaseModel):
 class ConfigFile(BaseModel):
     systems: List[SystemsName]
     global_parameters: GlobalParameters
+########## CLASS FROM PYDANTIC TO VALIDATE YAML SCHEMA ##########################
 
+########## FUNCTION READ YAML AND PASS IT TO PYDANTIC CLASS #####################
 def read_yaml(file_path: str) -> ConfigFile:
     with open(file_path, 'r') as stream:
         config = yaml.safe_load(stream)
     
     return ConfigFile(**config)
+########## FUNCTION READ YAML AND PASS IT TO PYDANTIC CLASS #####################

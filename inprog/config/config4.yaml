@@ -10,11 +10,11 @@ systems:
           - name: fs
           - name: tgt
       ips:
-          - ip: b
+          - ip: 10.10.10.222
             alias: teste
             ip_snmp_community: snmp
-          - ip: a
-          - ip: c
+          - ip: 10.10.1.2
+          - ip: 10.10.2.3
   - name: MYCS8001
     resources_types: linux_os
     config:
@@ -26,10 +26,10 @@ systems:
           - name: fs
           - name: cpu
       ips:
-          - ip: b
+          - ip: 10.10.3.4
             alias: teste
-          - ip: a
-          - ip: c
+          - ip: 10.1.5.6
+          - ip: 192.168.1.7
 global_parameters:
   repository: graphite
   repository_port: 2003
