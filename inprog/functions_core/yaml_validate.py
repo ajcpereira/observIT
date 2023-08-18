@@ -10,16 +10,33 @@ class AllowedMetrics:
     }
 
     @classmethod
-    def get_metric_value(self, resource_type, metric_name):
+    def get_func_name(self, resource_type, metric_name):
     
         metrics_list = self.allowed_metrics.get(resource_type)
 
-        if metrics_list[0]:
+        if metric_name in metrics_list[0]:
             if metric_name in metrics_list[0]:
                 index = metrics_list[0].index(metric_name)
                 return metrics_list[1][index]
             else:
                 raise ValueError("Selected metric - %s - is not allowed for this resource_type - %s" % (metric_name, resource_type))
+
+
+    @classmethod
+    def get_resource_name(self, resource_type):
+    
+        metrics_list = self.allowed_metrics.get(resource_type)
+
+#        try:
+        if metric_name in metrics_list[0]:
+            if metric_name in metrics_list[0]:
+                index = metrics_list[0].index(metric_name)
+                return metrics_list[1][index]
+            else:
+                raise ValueError("Selected metric - %s - is not allowed for this resource_type - %s" % (metric_name, resource_type))
+#        except:
+#            raise ValueError("Metric - %s - does not exist in allowed resource type %s" % (resource_type, self.allowed_metrics.keys()))
+
 
 class Ip(BaseModel):
     ip: StrictStr
@@ -32,7 +49,7 @@ class Parameters(BaseModel):
     poll: PositiveInt = Field(..., ge=1, le=1440)
 
 class Metrics(BaseModel):
-    name: Literal['fs', 'tgt', 'cpu', 'mem', 'disk', 'wcpu', 'wmem', 'wdisk']
+    name: StrictStr #Literal['fs', 'tgt', 'cpu', 'mem', 'disk', 'wcpu', 'wmem', 'wdisk']
 
 class Config(BaseModel):
     parameters: Parameters
@@ -41,7 +58,7 @@ class Config(BaseModel):
 
 class SystemsName(BaseModel):
     name: StrictStr
-    resources_types: Literal['eternus_icp', 'linux_os', 'windows_os']
+    resources_types: StrictStr #Literal['eternus_icp', 'linux_os', 'windows_os']
     config: Config
 
 class GlobalParameters(BaseModel):

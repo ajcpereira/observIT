@@ -18,7 +18,7 @@ def create_metric_ip_dicts(config):
                     "metric_name": metric.name,
                     "ip": ip.ip,
                     **ip_dict,
-                    "func": AllowedMetrics.get_metric_value(system.resources_types, metric.name)
+                    "func": AllowedMetrics.get_func_name(system.resources_types, metric.name)
                 }
                 result_dicts.append(result_dict)
 
