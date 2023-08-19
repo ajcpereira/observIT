@@ -48,7 +48,7 @@ def run_threaded(job_func, *args):
 ########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
 def create_metric_ip_dicts(config):
     result_dicts = []
-
+    global_parms = config.global_parameters
     for system in config.systems:
         for metric in system.config.metrics:
             for ip in system.config.ips:
@@ -60,11 +60,12 @@ def create_metric_ip_dicts(config):
                     "metric_name": metric.name,
                     "ip": ip.ip,
                     **ip_dict,
-                    "func": AllowedMetrics.get_func_name(system.resources_types, metric.name)
+                    "func": AllowedMetrics.get_func_name(system.resources_types, metric.name),
+                    **global_parms.model_dump()
                 }
-                
                 result_dicts.append(result_dict)
-    return result_dicts
+                
+    return result_dicts, global_parms.model_dump()
 ########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
 
 #################################################################################
@@ -75,14 +76,14 @@ def create_metric_ip_dicts(config):
 
 if __name__ == "__main__":
 
-    result_dicts = create_metric_ip_dicts(config)
-
+    result_dicts, global_parms = create_metric_ip_dicts(config)
+    
     ########## BEGIN - Start Logging Facility #######################################
-    #logging.basicConfig(filename=PLATFORM_LOGFILE, level=eval(PLATFORM_LOG))
+    logging.basicConfig(filename=global_parms['logfile'], level=global_parms['loglevel'], format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s')
     ########## END - Start Logging Facility #########################################    
 
     ########## BEGIN - Log configfile start processing ##############################
-    #logging.info("Starting YAML Processing - %s" % time.ctime())
+    logging.info("Starting YAML Processing")
     ########## END - Log configfile start processing ################################
 
     # Print the resulting dictionaries

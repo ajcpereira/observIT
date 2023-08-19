@@ -50,7 +50,7 @@ class Ip(BaseModel):
 
 class Parameters(BaseModel):
     user: StrictStr
-    host_keys: StrictStr
+    host_keys: Optional[str] = Field(None, max_length=10)
     poll: PositiveInt = Field(..., ge=1, le=1440)
 
 class Metrics(BaseModel):
@@ -70,7 +70,7 @@ class GlobalParameters(BaseModel):
     repository: StrictStr
     repository_port: PositiveInt
     repository_protocol: StrictStr
-    log: Literal['NOTSET', 'INFO', 'WARN', 'DEBUG', 'ERROR', 'CRITICAL']
+    loglevel: Literal['NOTSET', 'INFO', 'WARN', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
 
 class ConfigFile(BaseModel):

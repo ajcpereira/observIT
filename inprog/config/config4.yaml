@@ -4,7 +4,6 @@ systems:
     config:
       parameters:
           user: alex
-          host_keys: a
           poll: 1
       metrics:
           - name: fs
@@ -34,5 +33,5 @@ global_parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  log: INFO
+  loglevel: INFO
   logfile: logs/fj-collector.log
