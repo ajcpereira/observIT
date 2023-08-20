@@ -17,9 +17,9 @@ from pydantic.networks import IPvAnyAddress
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
-        'eternus_icp': [['fs', 'tgt'], ['fs_name', 'tgt_name']],
-        'linux_os': [['cpu', 'mem', 'disk', 'fs'], ['cpu_name', 'mem_name', 'disk_name', 'fs_name']],
-        'windows_os': [['wcpu', 'wmem', 'wdisk'], ['cpu_name', 'mem_name', 'disk_name']]
+        'eternus_icp': [['fs', 'tgt'], ['fs_name', 'fs_name']],
+        'linux_os': [['cpu', 'mem', 'disk', 'fs'], ['fs_name', 'fs_name', 'fs_name', 'fs_name']],
+        'windows_os': [['wcpu', 'wmem', 'wdisk'], ['fs_name', 'fs_name', 'fs_name']]
     }
 
     @classmethod

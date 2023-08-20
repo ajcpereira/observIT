@@ -21,11 +21,12 @@
 #################################################################################
 import sys
 import logging
-sys.path.append("functions_core")
+#sys.path.append("functions_core")
 from functions_core.yaml_validate import read_yaml, create_metric_ip_dicts
+from functions.fs_name import fs_name
 import os
 import threading
-
+import time
 #################################################################################
 #                                                                               #
 #                       DATA DIVISION                                           #
@@ -38,12 +39,6 @@ import threading
 #                       PROCEDURE DIVISION                                      #
 #                                                                               #
 #################################################################################
-
-########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-def run_threaded(job_func, *args):
-    job_thread = threading.Thread(target=job_func, args=args)
-    job_thread.start()
-########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
 def configfile_read():
@@ -63,8 +58,20 @@ def configfile_read():
     else:
         print("You need to specifie the configfile")
         exit(1)
-    return config
+    orig_mtime=(os.path.getmtime(sys.argv[1]))
+    return config, orig_mtime
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
+
+########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
+def run_threaded(**args):
+    print("entered run thread")
+    while True:
+        print("enter cycle")
+        time.sleep(args['poll'])
+        job_thread = threading.Thread(target=eval(args['func']), kwargs=args)
+        job_thread.start()
+
+########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 
 #################################################################################
@@ -75,7 +82,7 @@ def configfile_read():
 
 if __name__ == "__main__":
 
-    config = configfile_read()
+    config, orig_mtime = configfile_read()
     result_dicts, global_parms = create_metric_ip_dicts(config)
     
     ########## BEGIN - Start Logging Facility #######################################
@@ -86,7 +93,11 @@ if __name__ == "__main__":
     logging.info("Starting YAML Processing")
     ########## END - Log configfile start processing ################################
 
+    if orig_mtime < os.path.getmtime(sys.argv[1]):
+        print('file time changed')
+
     # Print the resulting dictionaries
     for result_dict in result_dicts:
-        print(result_dict)
-        run_threaded(result_dict['func'], result_dict)
+        threading.Thread(target=run_threaded, kwargs=result_dict).start()
+
+    
