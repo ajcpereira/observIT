@@ -7,12 +7,35 @@ import yaml
 from typing import List, Literal, Optional
 from pydantic import BaseModel, StrictStr, PositiveInt, Field
 from pydantic.networks import IPvAnyAddress
+import os
 
 #################################################################################
 #                                                                               #
 #                       PROCEDURE DIVISION                                      #
 #                                                                               #
 #################################################################################
+
+########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
+def configfile_read(cmd_parameters):
+    if len(cmd_parameters) == 2:
+        try:
+            if os.path.isfile(cmd_parameters[1]):
+                config = read_yaml(cmd_parameters[1])
+            else:
+                print('No configfile - %s' % cmd_parameters[1])
+                exit(1)
+        except Exception as msgerr:
+            print("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
+            exit(1)
+    elif len(cmd_parameters) > 2: 
+        print("Only configfile path is needed")
+        exit(1)
+    else:
+        print("You need to specifie the configfile")
+        exit(1)
+    orig_mtime=(os.path.getmtime(cmd_parameters[1]))
+    return config, orig_mtime
+########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
 
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
