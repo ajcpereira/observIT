@@ -78,6 +78,29 @@ class ConfigFile(BaseModel):
     global_parameters: GlobalParameters
 ########## CLASS FROM PYDANTIC TO VALIDATE YAML SCHEMA ##########################
 
+########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
+def create_metric_ip_dicts(config):
+    result_dicts = []
+    global_parms = config.global_parameters
+    for system in config.systems:
+        for metric in system.config.metrics:
+            for ip in system.config.ips:
+                ip_dict = vars(ip)
+                result_dict = {
+                    "name": system.name,
+                    "resources_types": system.resources_types,
+                    **system.config.parameters.model_dump(),
+                    "metric_name": metric.name,
+                    "ip": ip.ip,
+                    **ip_dict,
+                    "func": AllowedMetrics.get_func_name(system.resources_types, metric.name),
+                    **global_parms.model_dump()
+                }
+                result_dicts.append(result_dict)
+                
+    return result_dicts, global_parms.model_dump()
+########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
+
 ########## FUNCTION READ YAML AND PASS IT TO PYDANTIC CLASS #####################
 def read_yaml(file_path: str) -> ConfigFile:
     with open(file_path, 'r') as stream:

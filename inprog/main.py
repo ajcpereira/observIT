@@ -22,7 +22,9 @@
 import sys
 import logging
 sys.path.append("functions_core")
-from functions_core.yaml_validate import read_yaml, AllowedMetrics
+from functions_core.yaml_validate import read_yaml, create_metric_ip_dicts
+import os
+import threading
 
 #################################################################################
 #                                                                               #
@@ -30,7 +32,6 @@ from functions_core.yaml_validate import read_yaml, AllowedMetrics
 #                                                                               #
 #################################################################################
 
-config = read_yaml('config/config4.yaml')
 
 #################################################################################
 #                                                                               #
@@ -44,29 +45,27 @@ def run_threaded(job_func, *args):
     job_thread.start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
+########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
+def configfile_read():
+    if len(sys.argv) == 2:
+        try:
+            if os.path.isfile(sys.argv[1]):
+                config = read_yaml(sys.argv[1])
+            else:
+                print('No configfile - %s' % sys.argv[1])
+                exit(1)
+        except Exception as msgerr:
+            print("Can't handle configfile - %s - with error - %s" % (sys.argv[1],msgerr))
+            exit(1)
+    elif len(sys.argv) > 2: 
+        print("Only configfile path is needed")
+        exit(1)
+    else:
+        print("You need to specifie the configfile")
+        exit(1)
+    return config
+########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
 
-########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
-def create_metric_ip_dicts(config):
-    result_dicts = []
-    global_parms = config.global_parameters
-    for system in config.systems:
-        for metric in system.config.metrics:
-            for ip in system.config.ips:
-                ip_dict = vars(ip)
-                result_dict = {
-                    "name": system.name,
-                    "resources_types": system.resources_types,
-                    **system.config.parameters.model_dump(),
-                    "metric_name": metric.name,
-                    "ip": ip.ip,
-                    **ip_dict,
-                    "func": AllowedMetrics.get_func_name(system.resources_types, metric.name),
-                    **global_parms.model_dump()
-                }
-                result_dicts.append(result_dict)
-                
-    return result_dicts, global_parms.model_dump()
-########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
 
 #################################################################################
 #                                                                               #
@@ -76,6 +75,7 @@ def create_metric_ip_dicts(config):
 
 if __name__ == "__main__":
 
+    config = configfile_read()
     result_dicts, global_parms = create_metric_ip_dicts(config)
     
     ########## BEGIN - Start Logging Facility #######################################
@@ -89,3 +89,4 @@ if __name__ == "__main__":
     # Print the resulting dictionaries
     for result_dict in result_dicts:
         print(result_dict)
+        run_threaded(result_dict['func'], result_dict)
