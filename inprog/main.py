@@ -79,6 +79,7 @@ if __name__ == "__main__":
     event = Event()
     for result_dict in result_dicts:
         Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
+        print(result_dict)
 
     while True:
         time.sleep(1)

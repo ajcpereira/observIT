@@ -92,7 +92,7 @@ class SystemsName(BaseModel):
 class GlobalParameters(BaseModel):
     repository: StrictStr
     repository_port: PositiveInt
-    repository_protocol: StrictStr
+    repository_protocol: Literal['tcp', 'udp']
     loglevel: Literal['NOTSET', 'INFO', 'WARN', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
 
