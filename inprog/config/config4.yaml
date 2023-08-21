@@ -5,6 +5,7 @@ systems:
       parameters:
           user: alex
           poll: 1
+          use_sudo: yes
       metrics:
           - name: fs
           - name: tgt
@@ -14,6 +15,7 @@ systems:
             ip_snmp_community: snmp
           - ip: 10.10.1.2
           - ip: 10.10.2.3
+            use_sudo: no
   - name: MYCS8001
     resources_types: linux_os
     config:
