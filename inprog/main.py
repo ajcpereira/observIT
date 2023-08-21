@@ -55,6 +55,11 @@ def run_threaded(event: Event, **args) -> None:
 
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
+########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
+def launch_thread(result_dicts):
+    for result_dict in result_dicts:
+        Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
+########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
 
 #################################################################################
 #                                                                               #
@@ -77,9 +82,12 @@ if __name__ == "__main__":
 
 
     event = Event()
-    for result_dict in result_dicts:
-        Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
-        print(result_dict)
+    
+    launch_thread(result_dicts)
+
+    #for result_dict in result_dicts:
+    #    Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
+    #    print(result_dict)
 
     while True:
         time.sleep(1)
@@ -88,8 +96,15 @@ if __name__ == "__main__":
             print("will set event")
             orig_mtime = os.path.getmtime(sys.argv[1])
             event.set()
+            config, orig_mtime = configfile_read(sys.argv)
+            result_dicts, global_parms = create_metric_ip_dicts(config)
             print("will wait before relaunch")
+            for handler in logging.root.handlers[:]:
+                logging.root.removeHandler(handler)
+            logging.basicConfig(filename=global_parms['logfile'], level=global_parms['loglevel'], format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s')
             time.sleep(10)
-            for result_dict in result_dicts:
-                Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
             event.clear()
+            launch_thread(result_dicts)
+
+
+            

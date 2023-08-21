@@ -19,7 +19,7 @@ systems:
     config:
       parameters:
           user: usr_2
-          host_keys: t
+          host_keys: v
           poll: 1
       metrics:
           - name: fs
