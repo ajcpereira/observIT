@@ -1,0 +1,42 @@
+systems:
+  - name: MYCS8000
+    resources_types: eternus_icp
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+          use_sudo: yes
+          snmp_community: public
+      metrics:
+          - name: fs
+          - name: tgt
+      ips:
+          - ip: 127.0.0.1
+            alias: localhost
+            ip_snmp_community: snmp
+            ip_use_sudo: yes
+          - ip: 10.10.1.2
+          - ip: 10.10.2.3
+            ip_use_sudo: no
+  - name: MYCS8001
+    resources_types: linux_os
+    config:
+      parameters:
+          user: usr_2
+          host_keys: v
+          poll: 1
+      metrics:
+          - name: fs
+          - name: cpu
+      ips:
+          - ip: 10.10.3.4
+            alias: teste
+          - ip: 10.1.5.6
+          - ip: 192.168.1.7
+global_parameters:
+  repository: graphite
+  repository_port: 2003
+  repository_protocol: tcp
+  loglevel: INFO
+  logfile: logs/fj-collector.log
