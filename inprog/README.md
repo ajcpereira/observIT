@@ -6,7 +6,7 @@
 
 # FJ Data Collector
 
-This is an agentless data collector that populates data in Graphiteapp and since Grafana integrates with Graphite you can draw your graphs in Grafana.
+This is an aggregator for data collection that populates data in Graphiteapp and since Grafana integrates with Graphite you can draw your graphs in Grafana.
 
 The Collector is a scheduler that collects information based in a YAML file, each schedule runs on it's own thread and it's completly free:
 https://github.com/ajcpereira/fj-collector
@@ -27,7 +27,7 @@ Requires podman
 
 Requires git
 
-Internet access to github.com and docker.io
+Internet access to github.com
 
 Will install under folder /opt/fj-collector
 
@@ -35,21 +35,27 @@ Your user must have permissions in /opt and run podman
 
 ### Installation Procedure
 
-Get the Makefile and put it in any folder (i.e. /tmp/Makefile)
-
+Clone the git repository:
 
 ````
-cd /tmp
+git clone https://github.com/ajcpereira/fj-collector.git
+````
+
+Now, just run the install
+
+````
+cd fj-collector
 make install
+make startall
 ````
 
 edit /opt/fj-collector/collector/config/collector.yaml
 
-For each IP that you access through ssh you will need the private key and the know_hosts. 
-On the previous file (collector.yaml) you can specifie it's location (host_keys entry and known_hosts entry)
+For each IP that you access through ssh you will need the private key.
+On the previous file (collector.yaml) you can specifie it's location (host_keys entry)
 Be aware that since the code runs inside a container the collector.yaml uses the path inside of the container, so:
   /collector/fj-collector/config/
-  is 
+  is your
   /opt/fj-collector/collector/config/
  
 ### collector.yaml
@@ -114,4 +120,3 @@ More info can be found - https://graphite.readthedocs.io/en/latest/config-carbon
 
 ### Architecture
 ![Design](https://github.com/ajcpereira/reporting/raw/main/img/design.png)
-
