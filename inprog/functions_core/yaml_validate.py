@@ -11,30 +11,46 @@ import os
 
 #################################################################################
 #                                                                               #
+#                       DATA DIVISION                                           #
+#                                                                               #
+#################################################################################
+
+
+#################################################################################
+#                                                                               #
 #                       PROCEDURE DIVISION                                      #
 #                                                                               #
 #################################################################################
 
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
-def configfile_read(cmd_parameters):
-    if len(cmd_parameters) == 2:
+def configfile_read(cmd_parameters, configfile_default):
+    if len(cmd_parameters) == 1:
+        try:
+            if os.path.isfile(configfile_default):
+                    print("using default configfile")
+                    config = read_yaml(configfile_default)
+                    orig_mtime=(os.path.getmtime(configfile_default))
+                    configfile_running=configfile_default
+        except Exception as msgerr:
+            print("Can't handle configfile - %s - with error - %s" % (configfile_default,msgerr))
+            exit(1)            
+    elif len(cmd_parameters) == 2:
         try:
             if os.path.isfile(cmd_parameters[1]):
                 config = read_yaml(cmd_parameters[1])
+                orig_mtime=(os.path.getmtime(cmd_parameters[1]))
+                configfile_running=cmd_parameters[1]
             else:
-                print('No configfile - %s' % cmd_parameters[1])
+                print('No valid configfile - %s' % cmd_parameters[1])
                 exit(1)
         except Exception as msgerr:
             print("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
-            exit(1)
+            exit(1)        
     elif len(cmd_parameters) > 2: 
         print("Only configfile path is needed")
         exit(1)
-    else:
-        print("You need to specifie the configfile")
-        exit(1)
-    orig_mtime=(os.path.getmtime(cmd_parameters[1]))
-    return config, orig_mtime
+
+    return config, orig_mtime, configfile_running
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
 
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
@@ -70,11 +86,14 @@ class Ip(BaseModel):
     ip: IPvAnyAddress
     alias: Optional[StrictStr] = None
     ip_snmp_community: Optional[StrictStr] = None
+    ip_use_sudo: Optional[bool] = None
 
 class Parameters(BaseModel):
     user: StrictStr
-    host_keys: Optional[str] = Field(None, max_length=10)
+    host_keys: Optional[str] = Field(None, max_length=100)
     poll: PositiveInt = Field(..., ge=1, le=1440)
+    use_sudo: Optional[bool] = None
+    snmp_community:Optional[str] = Field(None, max_length=100)
 
 class Metrics(BaseModel):
     name: StrictStr

@@ -33,6 +33,7 @@ import time
 #                                                                               #
 #################################################################################
 
+configfile_default = "config/config.yaml"
 
 #################################################################################
 #                                                                               #
@@ -44,7 +45,7 @@ import time
 def run_threaded(event: Event, **args) -> None:
     while True:
         print("enter cycle")
-        time.sleep(args['poll'])
+        time.sleep(args['poll']*60)
         if event.is_set():
             print("Will exit thread")
             break
@@ -58,6 +59,7 @@ def run_threaded(event: Event, **args) -> None:
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
 def launch_thread(result_dicts):
     for result_dict in result_dicts:
+        print(result_dict)
         Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
 
@@ -69,7 +71,7 @@ def launch_thread(result_dicts):
 
 if __name__ == "__main__":
 
-    config, orig_mtime = configfile_read(sys.argv)
+    config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
     result_dicts, global_parms = create_metric_ip_dicts(config)
     
     ########## BEGIN - Start Logging Facility #######################################
@@ -85,18 +87,14 @@ if __name__ == "__main__":
     
     launch_thread(result_dicts)
 
-    #for result_dict in result_dicts:
-    #    Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
-    #    print(result_dict)
-
     while True:
         time.sleep(1)
 
-        if orig_mtime < os.path.getmtime(sys.argv[1]):
+        if orig_mtime < os.path.getmtime(configfile_running):
             print("will set event")
-            orig_mtime = os.path.getmtime(sys.argv[1])
+            orig_mtime = os.path.getmtime(configfile_running)
             event.set()
-            config, orig_mtime = configfile_read(sys.argv)
+            config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
             result_dicts, global_parms = create_metric_ip_dicts(config)
             print("will wait before relaunch")
             for handler in logging.root.handlers[:]:
