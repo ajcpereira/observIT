@@ -3,7 +3,7 @@ systems:
     resources_types: eternus_icp
     config:
       parameters:
-          user: alex
+          user: alex1
           host_keys: keys/id_rsa
           poll: 1
           use_sudo: yes
@@ -38,5 +38,5 @@ global_parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  loglevel: INFO
+  loglevel: INFOT
   logfile: logs/fj-collector.log

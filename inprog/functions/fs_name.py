@@ -1,7 +1,7 @@
 import logging
 
 def fs_name(**args):
-
+    print("*********************ENTROU***************************")
     # Get variables from args
     print(args)
     print(args['resources_types'])

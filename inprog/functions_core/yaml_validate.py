@@ -8,6 +8,8 @@ from typing import List, Literal, Optional
 from pydantic import BaseModel, StrictStr, PositiveInt, Field
 from pydantic.networks import IPvAnyAddress
 import os
+import logging
+import sys
 
 #################################################################################
 #                                                                               #
@@ -33,7 +35,7 @@ def configfile_read(cmd_parameters, configfile_default):
                     configfile_running=configfile_default
         except Exception as msgerr:
             print("Can't handle configfile - %s - with error - %s" % (configfile_default,msgerr))
-            exit(1)            
+            sys.exit()            
     elif len(cmd_parameters) == 2:
         try:
             if os.path.isfile(cmd_parameters[1]):
@@ -42,13 +44,13 @@ def configfile_read(cmd_parameters, configfile_default):
                 configfile_running=cmd_parameters[1]
             else:
                 print('No valid configfile - %s' % cmd_parameters[1])
-                exit(1)
+                sys.exit()
         except Exception as msgerr:
             print("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
-            exit(1)        
+            sys.exit()        
     elif len(cmd_parameters) > 2: 
         print("Only configfile path is needed")
-        exit(1)
+        sys.exit()
 
     return config, orig_mtime, configfile_running
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
@@ -112,7 +114,7 @@ class GlobalParameters(BaseModel):
     repository: StrictStr
     repository_port: PositiveInt
     repository_protocol: Literal['tcp', 'udp']
-    loglevel: Literal['NOTSET', 'INFO', 'WARN', 'DEBUG', 'ERROR', 'CRITICAL']
+    loglevel: Literal['NOTSET', 'INFO', 'WARNING', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
 
 class ConfigFile(BaseModel):
