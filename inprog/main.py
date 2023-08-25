@@ -19,14 +19,12 @@
 #                       ENVIRONMENT DIVISION                                    #
 #                                                                               #
 #################################################################################
-import sys
-import logging
-#sys.path.append("functions_core")
-from functions_core.yaml_validate import create_metric_ip_dicts, configfile_read
-from functions.fs_name import fs_name
-import os
+import sys, os, logging, time
 from threading import Thread, Event
-import time
+from functions_core.yaml_validate import configfile_read, create_metric_ip_dicts
+from functions import *
+
+
 #################################################################################
 #                                                                               #
 #                       DATA DIVISION                                           #
@@ -36,7 +34,6 @@ import time
 configfile_default = "config/config.yaml"
 event = Event()
 
-
 #################################################################################
 #                                                                               #
 #                       PROCEDURE DIVISION                                      #
@@ -44,20 +41,25 @@ event = Event()
 #################################################################################
 
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
-def run_threaded(event: Event, **args) -> None:
+
+def run_threaded(**args) -> None:
     while True:
-        time.sleep(args['poll']*60)
+        event.wait(timeout=args['poll']*60)
+        logging.debug("Will run_thread with %s" % args)
         if event.is_set():
+            logging.warning("Exited run_thread")
             break
-        else:
-            Thread(target=eval(args['func']), kwargs=args).start()
+        Thread(target=eval(args['func']), kwargs=args).start()
 
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
+
 def launch_thread(result_dicts):
     for result_dict in result_dicts:
-        Thread(target=run_threaded, args=(event,), kwargs=result_dict).start()
+        logging.debug("Will launch tread %s" % result_dict)
+        Thread(target=run_threaded, kwargs=result_dict).start()
+
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
 
 #################################################################################
@@ -72,11 +74,11 @@ if __name__ == "__main__":
     result_dicts, global_parms = create_metric_ip_dicts(config)
     
     ########## BEGIN - Start Logging Facility #######################################
-    logging.basicConfig(filename=global_parms['logfile'], level=global_parms['loglevel'], format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s')
+    logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
     ########## END - Start Logging Facility #########################################    
 
     ########## BEGIN - Log configfile start processing ##############################
-    logging.info("Starting YAML Processing")
+    logging.info("Starting Collector")
     ########## END - Log configfile start processing ################################
   
     launch_thread(result_dicts)
@@ -86,18 +88,28 @@ if __name__ == "__main__":
 
         if orig_mtime < os.path.getmtime(configfile_running):
             logging.info("Configfile changed, will reload")
-            orig_mtime = os.path.getmtime(configfile_running)
+
             event.set()
+            
+            orig_mtime = os.path.getmtime(configfile_running)
             config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
             result_dicts, global_parms = create_metric_ip_dicts(config)
-            print(global_parms)
+            
+            logging.debug("File changed will load %s" % result_dicts)
+
             for handler in logging.root.handlers[:]:
                 logging.root.removeHandler(handler)
-            logging.basicConfig(filename=global_parms['logfile'], level=global_parms['loglevel'], format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s')
+            try:             
+                logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
+            except Exception as msgerr:
+                logging.fatal("Failed to change logging basicConfig %s" % msgerr)
+                sys.exit()
+            
+            time.sleep(5)
             event.clear()
             launch_thread(result_dicts)
+            
             logging.info("Configfile reloaded")
-            logging.warning("warn reloaded")
 
 
             

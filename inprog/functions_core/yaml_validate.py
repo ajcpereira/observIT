@@ -34,7 +34,7 @@ def configfile_read(cmd_parameters, configfile_default):
                     orig_mtime=(os.path.getmtime(configfile_default))
                     configfile_running=configfile_default
         except Exception as msgerr:
-            print("Can't handle configfile - %s - with error - %s" % (configfile_default,msgerr))
+            logging.error("Can't handle configfile - %s - with error - %s" % (configfile_default,msgerr))
             sys.exit()            
     elif len(cmd_parameters) == 2:
         try:
@@ -43,13 +43,13 @@ def configfile_read(cmd_parameters, configfile_default):
                 orig_mtime=(os.path.getmtime(cmd_parameters[1]))
                 configfile_running=cmd_parameters[1]
             else:
-                print('No valid configfile - %s' % cmd_parameters[1])
+                logging.error('No valid configfile - %s' % cmd_parameters[1])
                 sys.exit()
         except Exception as msgerr:
-            print("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
+            logging.error("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
             sys.exit()        
     elif len(cmd_parameters) > 2: 
-        print("Only configfile path is needed")
+        logging.error("Only configfile path is needed")
         sys.exit()
 
     return config, orig_mtime, configfile_running
@@ -58,9 +58,9 @@ def configfile_read(cmd_parameters, configfile_default):
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
-        'eternus_icp': [['fs', 'tgt'], ['fs_name', 'fs_name']],
-        'linux_os': [['cpu', 'mem', 'disk', 'fs'], ['fs_name', 'fs_name', 'fs_name', 'fs_name']],
-        'windows_os': [['wcpu', 'wmem', 'wdisk'], ['fs_name', 'fs_name', 'fs_name']]
+        'eternus_icp': [['fs', 'tgt'], ['cs_iostat', 'cs_iostat']],
+        'linux_os': [['cpu', 'mem', 'disk', 'fs'], ['cs_iostat', 'cs_iostat', 'cs_iostat', 'cs_iostat']],
+        'windows_os': [['wcpu', 'wmem', 'wdisk'], ['cs_iostat', 'cs_iostat', 'cs_iostat']]
     }
 
     @classmethod
