@@ -21,9 +21,8 @@
 #################################################################################
 import sys, os, logging, time
 from threading import Thread, Event
-from functions_core.yaml_validate import configfile_read, create_metric_ip_dicts
+from functions_core.yaml_validate import *
 from functions import *
-
 
 #################################################################################
 #                                                                               #
@@ -43,13 +42,14 @@ event = Event()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 def run_threaded(**args) -> None:
+
     while True:
         event.wait(timeout=args['poll']*60)
         logging.debug("Will run_thread with %s" % args)
         if event.is_set():
             logging.warning("Exited run_thread")
             break
-        Thread(target=eval(args['func']), kwargs=args).start()
+        Thread(target=eval(args['func']+"."+args['func']), kwargs=args).start()
 
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
