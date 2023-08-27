@@ -1,6 +1,6 @@
 import time
-from functions_core.netcat import netcat
-from functions_core.secure_connect import Secure_Connect
+from functions_core.netcat import *
+from functions_core.secure_connect import *
 import re
 import logging
 
@@ -14,22 +14,39 @@ def cs_iostat(**args):
     CMD2="/usr/bin/iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
     CMD3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
     
-    logging.debug("use_sudo is set to %s and ip_use_sudo %s" % (args['use_sudo'], args['ip_use_sudo']))
+    logging.debug("Use_sudo is set to %s and ip_use_sudo %s" % (args['use_sudo'], args['ip_use_sudo']))
     
-    if use_sudo is True:
-        CMD1 = "sudo " + CMD1
-        logging.debug("Will use CMD1 with sudo - %s" % CMD1)
+    if args['use_sudo'] or args['ip_use_sudo']:
+            CMD1 = "sudo " + CMD1
+            logging.debug("Will use CMD1 with sudo - %s" % CMD1)
     
     logging.debug("Command Line 1 - %s" % CMD1)
     logging.debug("Command Line 2 - %s" % CMD2)
     logging.debug("Command Line 3 - %s" % CMD3)
 
-    logging.info("Calling core function ssh on thread %s wth args %s - %s" % (threading.current_thread(),args,time.ctime()))
+    logging.info("Calling core function ssh")
 
-    ssh=secure_connect.Secure_Connect(param_ip,bastion,user,host_keys)
+    if args['ip_bastion']:
+          bastion=args['ip_bastion']
+    elif args['use_sudo']:
+          bastion=args['bastion']
+    else:
+          bastion=None
+
+    if args['ip_host_keys']:
+          host_keys=args['ip_host_keys']
+    elif args['host_keys']:
+          host_keys=args['host_keys']
+    else:
+          host_keys=None
+
+          
+    ssh=Secure_Connect(args['ip'],bastion,args['user'],host_keys)
+    
     mycmd="echo Runned"
     myoutput=ssh.ssh_run(mycmd)
     print("Will print %s" % myoutput)
+    
     ssh.ssh_del()
     #ssh_connection=secure_connect.Secure_Connect()
     #print("Calling Connection in Thread %s" % threading.current_thread())

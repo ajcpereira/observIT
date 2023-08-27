@@ -89,6 +89,8 @@ class Ip(BaseModel):
     alias: Optional[StrictStr] = None
     ip_snmp_community: Optional[StrictStr] = None
     ip_use_sudo: Optional[bool] = None
+    ip_host_keys: Optional[str] = Field(None, max_length=100)
+    ip_bastion: Optional[IPvAnyAddress] = Field(None)
 
 class Parameters(BaseModel):
     user: StrictStr
@@ -96,6 +98,7 @@ class Parameters(BaseModel):
     poll: PositiveInt = Field(..., ge=1, le=1440)
     use_sudo: Optional[bool] = None
     snmp_community:Optional[str] = Field(None, max_length=100)
+    bastion: Optional[IPvAnyAddress] = Field(None)
 
 class Metrics(BaseModel):
     name: StrictStr
