@@ -3,23 +3,23 @@ systems:
     resources_types: eternus_icp
     config:
       parameters:
-          user: alex1
+          user: alex
           host_keys: keys/id_rsa
           poll: 1
           use_sudo: yes
           snmp_community: public
-          bastion: 172.0.0.1
+          bastion: 172.20.91.79
       metrics:
           - name: tgt
       ips:
-          - ip: 127.0.0.1
+          - ip: 172.20.91.79
             alias: localhost
-          - ip: 127.0.0.1
+          - ip: 172.20.91.79
             ip_host_keys: keys/id_rsa
-            ip_bastion: 127.0.0.1
+            ip_bastion: 172.20.91.79
 global_parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  loglevel: INFO
+  loglevel: DEBUG
   logfile: logs/fj-collector.log

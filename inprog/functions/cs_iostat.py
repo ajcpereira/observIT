@@ -1,14 +1,16 @@
 import time
 from functions_core.netcat import *
 from functions_core.secure_connect import *
-import re
-import logging
+import re, os, logging
 
 
 def cs_iostat(**args):
 
     logging.info("Starting func_eternus_icp_fs")
 
+    print(args)
+
+    print(args['ip'])
     # Command line to run remotly
     CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
     CMD2="/usr/bin/iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
@@ -16,6 +18,13 @@ def cs_iostat(**args):
     
     logging.debug("Use_sudo is set to %s and ip_use_sudo %s" % (args['use_sudo'], args['ip_use_sudo']))
     
+    if os.path.isfile("tests/cafs_iostat"):
+          CMD1 = "cat tests/cafs_iostat"
+          CMD2 = CMD1
+          CMD3 = CMD1
+          logging.info("cafs_iostat file exists, it will use it for tests")
+
+
     if args['use_sudo'] or args['ip_use_sudo']:
             CMD1 = "sudo " + CMD1
             logging.debug("Will use CMD1 with sudo - %s" % CMD1)
@@ -47,17 +56,28 @@ def cs_iostat(**args):
     myoutput=ssh.ssh_run(mycmd)
     print("Will print %s" % myoutput)
     
+    ssh.ssh_run(CMD1)
+    ssh.ssh_run(CMD2)
+    stdout = ssh.ssh_run(CMD3, hide=True)
+    timestamp = int(time.time())
+    response = stdout.stdout
+    logging.debug("Output of Command Line 3 - %s" % response)
+    logging.info("Finished ssh execution to get metrics - %s" % time.ctime())
+    for line in response.splitlines():
+        if args['alias']:
+              hostname = args['alias']
+        else:
+              hostname = hostname.replace(".","-dot-")
+        if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
+            logging.info("Starting metrics processing on FS type - %s" % time.ctime())
+            columns = line.split()
+            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['name']) + "." + str(type) + "." + hostname + "." + "fs" + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "svctm" + " " + re.sub(",",".",columns[15]) +" "+ str(timestamp) + "\n")
+            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['name']) + "." + str(type) + "." + hostname + "." + "fs" + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "%util" + " " + re.sub(",",".",columns[16]) +" "+ str(timestamp) + "\n")
+            logging.info("Finished metrics processing on FS type - %s" % time.ctime())
+
     ssh.ssh_del()
-    #ssh_connection=secure_connect.Secure_Connect()
-    #print("Calling Connection in Thread %s" % threading.current_thread())
-    #try:
-    #    ssh=secure_connect.create_single(param_ip, user, host_keys)
-    #    stdout = ssh.run("echo Runned")
-    #    secure_connect.delete_single(ssh)
-    #except Exception as msg_error:
-    #    print("Deu erro na chamada %s" % msg_error)
             
-    logging.info("Finished core function ssh on thread %s wth args %s - %s" % (threading.current_thread(),args,time.ctime()))
+    logging.info("Finished core function ssh with args %s" % args)
 
 #    ssh.run(CMD1)
 #    ssh.run(CMD2)

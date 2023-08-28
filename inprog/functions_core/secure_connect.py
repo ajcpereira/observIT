@@ -1,22 +1,32 @@
 import fabric2
 import logging
 import tempfile
+#from pydantic.networks import IPvAnyAddress
 
 class Secure_Connect():
     def __init__(self, param_ip, bastion, user, host_keys):
         
         logging.debug("Class Secure_connect Started")
+        
 
         if bastion:
             logging.debug("Class Secure_connect with bastion Started")
 
             cmd_pkey_bastion = "cat $HOME/.ssh/id_rsa"
             try:
-                ssh_bastion = fabric2.Connection(host=bastion, user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": host_keys,})
+                logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
+                #self.ssh_bastion = fabric2.Connection(host=bastion, user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": host_keys,})
+                self.ssh_bastion = fabric2.Connection(host="172.20.91.79", user="alex", port=22, connect_timeout=10, connect_kwargs={"key_filename": "keys/id_rsa",})
+                logging.debug("Got session for bastion")
+            except Exception as msgerror:
+                logging.error("Failed fabric2 - %s" % msgerror)
 
-                logging.debug("Created ssh connection with bastion with session %s" % self)
-                pkey_bastion = self.ssh.run(cmd_pkey_bastion, hide=True).stdout.strip()
-                logging.debug("Got the key to make ssh to the host")
+            try:
+                logging.debug("Created ssh connection with bastion with session %s" % self.ssh_bastion)
+                pkey_bastion = self.ssh_bastion.run(cmd_pkey_bastion, hide=True).stdout.strip()
+                logging.debug("Got the pkey to make ssh to the host")
+            except Exception as msgerror:
+                logging.error("Failed to get pkey form bastion - %s" % msgerror)
 
                 # Write the private key contents to a temporary file
                 with tempfile.NamedTemporaryFile(delete=False, buffering=- 1) as f:
@@ -24,7 +34,8 @@ class Secure_Connect():
                     private_key_file = f.name
             
                 logging.debug("Wrote the key in temp file")
-                self.ssh = fabric2.Connection(param_ip, user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": private_key_file,}, gateway=ssh_bastion)
+            try:
+                self.ssh = fabric2.Connection(param_ip, user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": private_key_file,}, gateway=self.ssh_bastion)
                 logging.debug("Created ssh connection with hostname - %s - through bastion - %s" % (param_ip, bastion))
 
                 self.ssh.open()
@@ -32,7 +43,7 @@ class Secure_Connect():
                 logging.debug("Class Secure_connect ended, will return session - %s" % self)
 
             except Exception as msgerror:
-               logging.error("Class Secure_Connect FAILED - %s" % msgerror)
+               logging.error("Class Secure_Connect with bastion FAILED - %s" % msgerror)
 
         else:
             logging.debug("Class Secure_connect without bastion Started")
@@ -47,8 +58,9 @@ class Secure_Connect():
                  logging.error("Class Secure FAILED - %s" % msgerror)
 
     def ssh_run(self, cmd):
-         stdout = self.ssh.run(cmd)
+         stdout = self.run(cmd)
          return stdout
+    
     def ssh_del(self):
          print(self)
-         self.ssh.close()
+         self.close()
