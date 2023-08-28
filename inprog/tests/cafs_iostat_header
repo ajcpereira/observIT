@@ -1,0 +1,8 @@
+Linux 4.12.14-95.32-default (VLP0)      01/02/23        _x86_64_        (12 CPU)
+
+01/02/23 17:06:04
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           7.19    0.00    4.04    1.15    0.00   87.62
+
+Device            r/s     w/s     rkB/s     wkB/s   rrqm/s   wrqm/s  %rrqm  %wrqm r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+dm-0             0.39    0.31     99.11      4.82     0.00     0.00   0.00   0.00   23.16    0.29   0.01   255.47    15.64   4.57   0.32        200     rd10L0000

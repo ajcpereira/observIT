@@ -8,9 +8,6 @@ def cs_iostat(**args):
 
     logging.info("Starting func_eternus_icp_fs")
 
-    print(args)
-
-    print(args['ip'])
     # Command line to run remotly
     CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
     CMD2="/usr/bin/iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
@@ -22,7 +19,7 @@ def cs_iostat(**args):
           CMD1 = "cat tests/cafs_iostat"
           CMD2 = CMD1
           CMD3 = CMD1
-          logging.info("cafs_iostat file exists, it will use it for tests")
+          logging.info("cafs_iostat file exists, it will be used for tests")
 
 
     if args['use_sudo'] or args['ip_use_sudo']:
@@ -49,11 +46,10 @@ def cs_iostat(**args):
     else:
           host_keys=None
 
-          
     ssh=Secure_Connect(args['ip'],bastion,args['user'],host_keys)
     
     mycmd="echo Runned"
-    myoutput=ssh.ssh_run(mycmd)
+    myoutput=ssh.run(mycmd)
     print("Will print %s" % myoutput)
     
     ssh.ssh_run(CMD1)
