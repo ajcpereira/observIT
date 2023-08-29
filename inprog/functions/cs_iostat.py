@@ -46,8 +46,14 @@ def cs_iostat(**args):
     else:
           host_keys=None
 
-    ssh=Secure_Connect(args['ip'],bastion,args['user'],host_keys)
+    try:
+        ssh=Secure_Connect(args['ip'],bastion,args['user'],host_keys)
+    except Exception as msgerror:
+        logging.error("Failed to connect to %s" % args['ip'])
+        return -1
     
+    print("This is my sesson %s" % ssh)
+
     mycmd="echo Runned"
     myoutput=ssh.run(mycmd)
     print("Will print %s" % myoutput)

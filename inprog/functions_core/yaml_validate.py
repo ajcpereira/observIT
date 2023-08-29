@@ -29,7 +29,7 @@ def configfile_read(cmd_parameters, configfile_default):
     if len(cmd_parameters) == 1:
         try:
             if os.path.isfile(configfile_default):
-                    print("using default configfile")
+                    logging.info("Using default configfile config/config.yaml")
                     config = read_yaml(configfile_default)
                     orig_mtime=(os.path.getmtime(configfile_default))
                     configfile_running=configfile_default

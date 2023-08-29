@@ -13,6 +13,7 @@ class Secure_Connect():
             logging.debug("Class Secure_connect with bastion Started")
 
             cmd_pkey_bastion = "cat $HOME/.ssh/id_rsa"
+
             try:
                 logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
                 self.ssh_bastion = fabric2.Connection(host=str(bastion), user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": host_keys,})
@@ -20,6 +21,7 @@ class Secure_Connect():
                 logging.debug("Got session for bastion")
             except Exception as msgerror:
                 logging.error("Failed fabric2 - %s" % msgerror)
+                return -1
 
             try:
                 logging.debug("Will get pkey")
@@ -31,6 +33,7 @@ class Secure_Connect():
             
             except Exception as msgerror:
                 logging.error("Failed to get pkey form bastion - %s" % msgerror)
+                return -1
 
             # Write the private key contents to a temporary file
             with tempfile.NamedTemporaryFile(delete=False, buffering=- 1) as f:
@@ -44,6 +47,7 @@ class Secure_Connect():
                 logging.debug("Created ssh connection with hostname - %s - through bastion - %s" % (param_ip, bastion))
             except Exception as msgerror:
                 logging.error("Class Secure_Connect with bastion FAILED - %s" % msgerror)
+                return -1
 
             try:
                 logging.debug("will open session")
@@ -53,6 +57,7 @@ class Secure_Connect():
 
             except Exception as msgerror:
                logging.error("Class Secure_Connect with bastion FAILED - %s" % msgerror)
+               return -1
 
         else:
             logging.debug("Class Secure_connect without bastion Started")
@@ -65,6 +70,7 @@ class Secure_Connect():
                 
             except Exception as msgerror:
                  logging.error("Class Secure FAILED - %s" % msgerror)
+                 return -1
 
     def ssh_run(self, cmd):
          print(self)
