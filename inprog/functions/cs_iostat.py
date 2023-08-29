@@ -52,7 +52,7 @@ def cs_iostat(**args):
         logging.error("Failed to connect to %s" % args['ip'])
         return -1
     
-    print("This is my sesson %s" % ssh)
+    print("This is my session %s" % ssh)
 
     mycmd="echo Runned"
     myoutput=ssh.run(mycmd)
