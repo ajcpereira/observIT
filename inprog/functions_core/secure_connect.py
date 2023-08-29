@@ -1,7 +1,7 @@
 import fabric2
 import logging
 import tempfile
-#from pydantic.networks import IPvAnyAddress
+
 
 class Secure_Connect():
     def __init__(self, param_ip, bastion, user, host_keys):
@@ -73,10 +73,8 @@ class Secure_Connect():
                  return -1
 
     def ssh_run(self, cmd):
-         print(self)
-         stdout = self.run(cmd)
+         stdout = self.ssh.run(cmd)
          return stdout
     
     def ssh_del(self):
-         print(self)
-         self.close()
+         self.ssh.close()

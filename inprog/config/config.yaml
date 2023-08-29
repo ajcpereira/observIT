@@ -6,7 +6,6 @@ systems:
           user: alex
           host_keys: keys/id_rsa
           poll: 1
-          use_sudo: yes
           snmp_community: public
           bastion: 172.30.10.223
       metrics:
