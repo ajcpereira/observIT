@@ -8,15 +8,15 @@ systems:
           poll: 1
           use_sudo: yes
           snmp_community: public
-          bastion: 172.30.10.221
+          bastion: 172.30.10.223
       metrics:
           - name: tgt
       ips:
-          - ip: 172.30.10.221
+          - ip: 172.30.10.223
             alias: localhost
-          - ip: 172.30.10.221
+          - ip: 172.30.10.223
             ip_host_keys: keys/id_rsa
-            ip_bastion: 172.30.10.221
+            ip_bastion: 172.30.10.223
 global_parameters:
   repository: graphite
   repository_port: 2003
