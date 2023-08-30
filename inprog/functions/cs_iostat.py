@@ -1,36 +1,35 @@
 import time
 from functions_core.netcat import *
 from functions_core.secure_connect import *
-import re, os, logging
+import re, os, logging, subprocess
 
 
 def cs_iostat(**args):
 
-    logging.info("Starting func_eternus_icp_fs")
+    logging.debug("Starting func_eternus_icp_fs")
 
     # Command line to run remotly
-    CMD1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
-    CMD2="/usr/bin/iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
-    CMD3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
+    cmd1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
+    cmd2="/usr/bin/iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
+    cmd3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
     
     logging.debug("Use_sudo is set to %s and ip_use_sudo %s" % (args['use_sudo'], args['ip_use_sudo']))
     
     if os.path.isfile("tests/cafs_iostat"):
-          CMD1 = "cat tests/cafs_iostat"
-          CMD2 = CMD1
-          CMD3 = CMD1
           logging.info("cafs_iostat file exists, it will be used for tests")
-
+          flag_test=True
+          cmd1 = "echo TEST"
+          cmd2 = cmd1
+          cmd3 = subprocess.run(['cat', ' tests/cafs_iostat'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+          
 
     if args['use_sudo'] or args['ip_use_sudo']:
-            CMD1 = "sudo " + CMD1
-            logging.debug("Will use CMD1 with sudo - %s" % CMD1)
+            cmd1 = "sudo " + cmd1
+            logging.debug("Will use cmd1 with sudo - %s" % cmd1)
     
-    logging.debug("Command Line 1 - %s" % CMD1)
-    logging.debug("Command Line 2 - %s" % CMD2)
-    logging.debug("Command Line 3 - %s" % CMD3)
-
-    logging.info("Calling core function ssh")
+    logging.debug("Command Line 1 - %s" % cmd1)
+    logging.debug("Command Line 2 - %s" % cmd2)
+    logging.debug("Command Line 3 - %s" % cmd3)
 
     if args['ip_bastion']:
           bastion=args['ip_bastion']
@@ -54,17 +53,21 @@ def cs_iostat(**args):
     
     logging.debug("This is my session %s" % ssh)
 
-    mycmd="echo Runned"
-    myoutput=ssh.ssh_run(mycmd)
-    print("Will print %s" % myoutput)
+    #mycmd="echo Runned"
+    #myoutput=ssh.ssh_run(mycmd)
+    #print("Will print %s" % myoutput)
     
-    ssh.ssh_run(CMD1)
-    ssh.ssh_run(CMD2)
-    stdout = ssh.ssh_run(CMD3, hide=True)
+    ssh.ssh_run(cmd1)
+    ssh.ssh_run(cmd2)
+    if flag_test:
+         stdout = cmd3
+    else:
+         stdout = ssh.ssh_run(cmd3, hide=True)
+         response = stdout.stdout
     timestamp = int(time.time())
-    response = stdout.stdout
+    
     logging.debug("Output of Command Line 3 - %s" % response)
-    logging.info("Finished ssh execution to get metrics - %s" % time.ctime())
+    
     for line in response.splitlines():
         if args['alias']:
               hostname = args['alias']
@@ -81,9 +84,9 @@ def cs_iostat(**args):
             
     logging.info("Finished core function ssh with args %s" % args)
 
-#    ssh.run(CMD1)
-#    ssh.run(CMD2)
-#    stdout = ssh.run(CMD3, hide=True)
+#    ssh.run(cmd1)
+#    ssh.run(cmd2)
+#    stdout = ssh.run(cmd3, hide=True)
 #    timestamp = int(time.time())
 #    response = stdout.stdout
 #    logging.debug("Output of Command Line 3 - %s" % response)
