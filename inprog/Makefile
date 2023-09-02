@@ -12,15 +12,15 @@ usage:
 	@echo "make remove"
 	
 .ONESHELL:
-install:
+setup:
 	podman pull docker.io/graphiteapp/graphite-statsd
 	podman pull docker.io/grafana/grafana-enterprise
 	mkdir -p /opt/fj-collector
 	cd /opt/fj-collector
-	mkdir repo
-	cd repo
-	git clone https://github.com/ajcpereira/fj-collector.git
-	cd fj-collector
+	#mkdir repo
+	#cd repo
+	#git clone https://github.com/ajcpereira/fj-collector.git
+	#cd fj-collector
 	#--log-driver json-file --log-opt max-size=10m --log-opt max-file=3
 
 
@@ -48,12 +48,17 @@ start:
 	-v /opt/fj-collector/graphite/data/conf:/opt/graphite/conf \
 	-v /opt/fj-collector/graphite/data/storage:/opt/graphite/storage \
 	-v /opt/fj-collector/graphite/data/statsd_config:/opt/statsd/config \
+	--log-opt max-size=10m --log-opt max-file=3 \
 	graphiteapp/graphite-statsd
+	podman inspect graphite -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
 
-.ONESHELL:
-all:
-	$(DOCKER_CMD) -e ANSIBLE_LOG_PATH="/ansible/log/edit.ansible.`date '+%Y%m%d_%H%M%S'`.log" \673a5e92b1ee
-		$(DOCKER_IMG) \
-		/ansible/.venv/bin/ansible-vault edit \
-		--vault-password-file=/usr/bin/ansible-vault-password \
-		/ansible/inventory/group_vars/all.yml
+	podman run -d \
+	--name grafana \
+    --restart=unless-stopped \
+    -p 3000:3000/tcp \
+    -v /opt/fj-collector/grafana/provisioning/:/etc/grafana/provisioning/ \
+    -v /opt/fj-collector/grafana/data/grafana:/var/lib/grafana/ \
+    -u 0 \
+	--log-opt max-size=10m --log-opt max-file=3 \
+	grafana/grafana-enterprise
+	sudo podman inspect grafana -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
