@@ -1,0 +1,24 @@
+systems:
+  - name: MYCS8000
+    resources_types: eternus_icp
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+          snmp_community: public
+          bastion: 172.21.69.166
+      metrics:
+          - name: tgt
+      ips:
+          - ip: 172.21.69.166
+            alias: localhost
+          - ip: 172.21.69.166
+            ip_host_keys: keys/id_rsa
+            ip_bastion: 172.21.69.166
+global_parameters:
+  repository: 10.88.0.4
+  repository_port: 2003
+  repository_protocol: tcp
+  loglevel: DEBUG
+  logfile: logs/fj-collector.log

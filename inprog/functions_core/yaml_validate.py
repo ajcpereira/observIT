@@ -60,7 +60,8 @@ class AllowedMetrics:
     allowed_metrics = {
         'eternus_icp': [['fs', 'tgt'], ['cs_iostat', 'cs_iostat']],
         'linux_os': [['cpu', 'mem', 'disk', 'fs'], ['cs_iostat', 'cs_iostat', 'cs_iostat', 'cs_iostat']],
-        'windows_os': [['wcpu', 'wmem', 'wdisk'], ['cs_iostat', 'cs_iostat', 'cs_iostat']]
+        'windows_os': [['wcpu', 'wmem', 'wdisk'], ['cs_iostat', 'cs_iostat', 'cs_iostat']],
+        'fj_ism': [['temp'], ['ism_temp']]
     }
 
     @classmethod
@@ -99,7 +100,9 @@ class Parameters(BaseModel):
     use_sudo: Optional[bool] = None
     snmp_community:Optional[str] = Field(None, max_length=100)
     bastion: Optional[IPvAnyAddress] = Field(None)
-
+    ism_password: Optional[str] = Field(None)
+    ism_port: Optional[PositiveInt] = Field(None, ge=1, le=65535)
+    ism_secure: Optional[bool] = Field(True)
 class Metrics(BaseModel):
     name: StrictStr
 
