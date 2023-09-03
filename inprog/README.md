@@ -45,8 +45,8 @@ Now, just run the install
 
 ````
 cd fj-collector
-make install
-make startall
+make setup
+make start
 ````
 
 edit /opt/fj-collector/collector/config/collector.yaml
@@ -57,42 +57,36 @@ Be aware that since the code runs inside a container the collector.yaml uses the
   /collector/fj-collector/config/
   is your
   /opt/fj-collector/collector/config/
+
+  We recommend you use relative paths:
+    host_keys: keys/id_rsa
+    logfile: logs/fj-collector.log
  
 ### collector.yaml
 ````
-solution: 
-  platform: 
-    - 
-      type: CS8000    # Only CS8000 supported atm
-      name: MYCS8000
-      resources: 
-        type: 
-          - fs  # fs=filesystem only supported for now
-        ip: 
-          - 10.0.2.15
-        user: report
-        proxy: # Leave empty if not using otherwise insert IP/FQDN/HOSTNAME
-        poll: 1 # Minute
-    - 
-      type: CS8000    # Only CS8000 supported
-      name: SecondCS8000
-      resources: 
-        type: 
-          - fs # fs=filesystem only supported for now
-        ip: 
-          - localhost
-        user: report
-        proxy: # Not supported yet
-        poll: 2 # Minutes
-
-parameters:
+systems:
+  - name: MYCS8000
+    resources_types: eternus_icp
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+          bastion: 172.21.69.166
+      metrics:
+          - name: fs
+      ips:
+          - ip: 172.21.69.166
+            alias: icp0
+          - ip: 172.21.69.166
+            ip_host_keys: keys/id_rsa
+            ip_bastion: 172.21.69.166
+global_parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  host_keys: "/collector/fj-collector/config/id_rsa" # You will have to use a private key - ssh-copy-id username@remote_host, must be done previously
-  known_hosts: "/collector/fj-collector/config/known_hosts" # If host is unknown the process will fail
-  use_sudo: no
-  log: INFO # The log level - DEBUG, INFO, WARNING, ERROR and CRITICAL
+  loglevel: INFO
+  logfile: logs/fj-collector.log
 ````  
 
 ### Metrics

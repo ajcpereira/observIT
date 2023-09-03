@@ -22,6 +22,7 @@ ADD functions functions
 ADD functions_core functions_core
 ADD install install
 ADD keys keys
+ADD logs logs
 ADD tests tests
 ADD main.py .
 
@@ -34,5 +35,7 @@ ADD install/requirements.txt install
 RUN pip3 install -r install/requirements.txt
 
 # Run the application:
-#CMD ["python3", "main.py"]
-ENTRYPOINT ["python3", "main.py", "$1"]
+CMD ["python3", "main.py"]
+#ENTRYPOINT ["python3", "main.py"]
+#ENTRYPOINT ["/usr/bin/tail", "-f", "/dev/null"]
+#CMD [ "sleep", "9999" ]

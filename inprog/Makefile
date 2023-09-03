@@ -13,16 +13,24 @@ usage:
 	
 .ONESHELL:
 setup:
+	
+	mkdir -p /opt/fj-collector/graphite/data/storage
+	mkdir -p /opt/fj-collector/graphite/data/statsd_config
+	mkdir -p /opt/fj-collector/graphite/data/conf
+	mkdir -p /opt/fj-collector/grafana/provisioning
+	mkdir -p /opt/fj-collector/grafana/data/grafana
+	mkdir -p /opt/fj-collector/collector/logs
+	mkdir -p /opt/fj-collector/collector/config
+	mkdir -p /opt/fj-collector/collector/keys
+
+	cp ./install/Dockerfile .
+	podman build . -t fj-collector:latest
+
 	podman pull docker.io/graphiteapp/graphite-statsd
 	podman pull docker.io/grafana/grafana-enterprise
-	podman build . -t fj-collector:latest
-	mkdir -p /opt/fj-collector/collector/logs
-	cd /opt/fj-collector
-	#mkdir repo
-	#cd repo
-	#git clone https://github.com/ajcpereira/fj-collector.git
-	#cd fj-collector
-	#--log-driver json-file --log-opt max-size=10m --log-opt max-file=3
+
+	cp config/config.yaml /opt/fj-collector/collector/config
+
 	podman run -d \
  	--name graphite \
  	--restart=always \
@@ -38,7 +46,7 @@ setup:
 	
 	podman run -d \
 	--name grafana \
-    --restart=unless-stopped \
+    --restart=always \
     -p 3000:3000/tcp \
     -v /opt/fj-collector/grafana/provisioning/:/etc/grafana/provisioning/ \
     -v /opt/fj-collector/grafana/data/grafana:/var/lib/grafana/ \
@@ -48,11 +56,14 @@ setup:
 	
 	podman run -d \
 	--name fj-collector \
-	--restart=unless-stopped \
-	-v /opt/fj-collector/collector/config:/collector/config \
+	--restart=always \
 	-v /opt/fj-collector/collector/logs:/collector/logs \
+	-v /opt/fj-collector/collector/config:/collector/config \
+	-v /opt/fj-collector/collector/keys:/collector/keys \
 	--log-opt max-size=10m --log-opt max-file=3 \
 	localhost/fj-collector:latest
+
+	rm Dockerfile 
 
 .ONESHELL:
 stop:
@@ -68,11 +79,13 @@ remove:
 	podman image rm docker.io/grafana/grafana-enterprise
 	podman rm fj-collector
 	podman image rm localhost/fj-collector
+	podman image rm docker.io/library/debian
 
 .ONESHELL:
 start:
 	podman start graphite
 	podman start grafana
 	podman start fj-collector
-	sudo podman inspect grafana -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
-	sudo podman inspect graphite -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
+	podman inspect grafana -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
+	podman inspect graphite -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
+	podman inspect fj-collector -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
