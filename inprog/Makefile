@@ -15,7 +15,8 @@ usage:
 setup:
 	podman pull docker.io/graphiteapp/graphite-statsd
 	podman pull docker.io/grafana/grafana-enterprise
-	mkdir -p /opt/fj-collector
+	podman build . -t fj-collector:latest
+	mkdir -p /opt/fj-collector/collector/logs
 	cd /opt/fj-collector
 	#mkdir repo
 	#cd repo
@@ -35,7 +36,6 @@ setup:
 	--log-opt max-size=10m --log-opt max-file=3 \
 	graphiteapp/graphite-statsd
 	
-
 	podman run -d \
 	--name grafana \
     --restart=unless-stopped \
@@ -46,11 +46,19 @@ setup:
 	--log-opt max-size=10m --log-opt max-file=3 \
 	grafana/grafana-enterprise
 	
+	podman run -d \
+	--name fj-collector \
+	--restart=unless-stopped \
+	-v /opt/fj-collector/collector/config:/collector/config \
+	-v /opt/fj-collector/collector/logs:/collector/logs \
+	--log-opt max-size=10m --log-opt max-file=3 \
+	localhost/fj-collector:latest
 
 .ONESHELL:
 stop:
 	podman stop graphite
-	podman stop grafana-enterprise
+	podman stop grafana
+	podman stop fj-collector
 
 .ONESHELL:
 remove:
@@ -58,10 +66,13 @@ remove:
 	podman image rm docker.io/graphiteapp/graphite-statsd
 	podman rm grafana
 	podman image rm docker.io/grafana/grafana-enterprise
+	podman rm fj-collector
+	podman image rm localhost/fj-collector
 
 .ONESHELL:
 start:
 	podman start graphite
 	podman start grafana
+	podman start fj-collector
 	sudo podman inspect grafana -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
 	sudo podman inspect graphite -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
