@@ -10,10 +10,13 @@ def ism_temp(**args):
 
     # API addresses
     login_address="https://" + str(args['ip']) + ":" + str(args['ism_port']) + "/ism/api/V2/users/login"
+    list_nodes="https://" + str(args['ip']) + ":" + str(args['ism_port']) + "/ism/api/V2/nodes"
     logging.debug(login_address)
 
     r = requests.post(login_address, json={"IsmBody": {"UserName": args['user'], "Password": str(args['ism_password'])}}, verify=args['ism_secure']).json()
 
     logging.debug("return requests %s" % r)
+
+    logging.debug(r['IsmBody']['Auth'])
             
     logging.debug("Finished func_ism_temp with args %s" % args)
