@@ -7,17 +7,17 @@ systems:
           host_keys: keys/id_rsa
           poll: 1
           snmp_community: public
-          bastion: 172.21.69.166
+          bastion: 192.168.151.26
       metrics:
           - name: tgt
       ips:
-          - ip: 172.21.69.166
+          - ip: 192.168.151.26
             alias: localhost
-          - ip: 172.21.69.166
+          - ip: 192.168.151.26
             ip_host_keys: keys/id_rsa
-            ip_bastion: 172.21.69.166
+            ip_bastion: 192.168.151.26
 global_parameters:
-  repository: 10.88.0.4
+  repository: 10.88.0.2
   repository_port: 2003
   repository_protocol: tcp
   loglevel: DEBUG

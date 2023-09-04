@@ -2,3 +2,4 @@ pyyaml
 pydantic
 fabric2
 requests
+python-dateutil

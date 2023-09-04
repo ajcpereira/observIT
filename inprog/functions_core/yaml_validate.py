@@ -100,6 +100,7 @@ class Parameters(BaseModel):
     use_sudo: Optional[bool] = None
     snmp_community:Optional[str] = Field(None, max_length=100)
     bastion: Optional[IPvAnyAddress] = Field(None)
+    ism_server: Optional[IPvAnyAddress] = Field(None)
     ism_password: Optional[str] = Field(None)
     ism_port: Optional[PositiveInt] = Field(None, ge=1, le=65535)
     ism_secure: Optional[bool] = Field(True)

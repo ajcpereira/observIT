@@ -72,7 +72,6 @@ def cs_iostat(**args):
               hostname = str(args['ip']).replace(".","-dot-")
         if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
             logging.debug("Starting metrics processing on FS type - %s" % time.ctime())
-            
             columns = line.split()
             netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[16]) + "." + str(columns[0]) + "." + str(columns[17]) + "." + "svctm" + " " + re.sub(",",".",columns[14]) +" "+ str(timestamp) + "\n")
             netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[16]) + "." + str(columns[0]) + "." + str(columns[17]) + "." + "r_await" + " " + re.sub(",",".",columns[9]) +" "+ str(timestamp) + "\n")

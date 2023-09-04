@@ -5,16 +5,21 @@ systems:
       parameters:
           user: administrator
           poll: 1
+          ism_server: 172.29.1.200
           ism_password: U2FsdGVkX1+61PH0tp9qvnoG0OyhdGyFdk7LrHgj15g=
           ism_port: 25566
           ism_secure: False
       metrics:
           - name: temp
       ips:
-          - ip: 172.29.1.200
-            alias: localhost
+          - ip: 172.29.1.56
+            alias: a005srv
+          - ip: 172.29.1.57
+            alias: a006srv
+          - ip: 172.29.1.64
+            alias: a013srv            
 global_parameters:
-  repository: graphite
+  repository: 10.88.0.2
   repository_port: 2003
   repository_protocol: tcp
   loglevel: DEBUG
