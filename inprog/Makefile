@@ -29,8 +29,11 @@ setup:
 	podman pull docker.io/graphiteapp/graphite-statsd
 	podman pull docker.io/grafana/grafana-enterprise
 
-	cp config/config.yaml /opt/fj-collector/collector/config
-
+	if [ ! -f /opt/fj-collector/collector/config/config.yaml ]
+	then
+		cp config/config.yaml /opt/fj-collector/collector/config
+	fi
+	
 	podman run -d \
  	--name graphite \
  	--restart=always \
@@ -86,6 +89,12 @@ start:
 	podman start graphite
 	podman start grafana
 	podman start fj-collector
+	podman inspect grafana -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
+	podman inspect graphite -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
+	podman inspect fj-collector -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
+
+.ONESHELL:
+addr:
 	podman inspect grafana -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
 	podman inspect graphite -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
 	podman inspect fj-collector -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'

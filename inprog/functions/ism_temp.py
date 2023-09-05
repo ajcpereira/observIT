@@ -31,6 +31,11 @@ def ism_temp(**args):
         if nodes['IpAddress'] == str(args['ip']):
             list_nodes_url = get_item_temp + str(nodes['NodeId'])
 
+            dc_name = (str(nodes['DataCenterInfo']['Name']))
+            dc_name = dc_name.replace(' ', '_')
+            dc_name = dc_name.replace('.', '_')
+            logging.debug("DC Name %s" % dc_name)
+
             temp_item = requests.get(list_nodes_url, headers={"X-Ism-Authorization": auth_key }, verify=args['ism_secure']).json()
 
             logging.debug(temp_item['IsmBody']['Items'][0]['ItemId'])
@@ -50,6 +55,6 @@ def ism_temp(**args):
             logging.debug("TimeStamp %s" % temp_hist['IsmBody']['Records'][0]['Timestamp'])
             logging.debug("Temp Value %s" % temp_hist['IsmBody']['Records'][0]['Value'])
 
-            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "temp" + "." + "rackid" + "." + str(rackid) + "." + "temperature" + " " + str(temp) + " " + str(ismtimestamp) + "\n")
-            
+            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['name']) + "." + str(args['resources_types']) + "." + dc_name + "." + hostname + "." + "temp" + "." + "rackid" + "." + str(rackid) + "." + "temperature" + " " + str(temp) + " " + str(ismtimestamp) + "\n")
+
     logging.debug("Finished func_ism_temp with args %s" % args)
