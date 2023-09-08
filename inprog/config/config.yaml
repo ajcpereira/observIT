@@ -1,25 +1,23 @@
 systems:
   - name: MYCS8000
-    resources_types: fj_ism
+    resources_types: eternus_icp
     config:
       parameters:
-          user: administrator
-          poll: 5
-          ism_server: 172.29.1.200
-          ism_password: U2FsdGVkX1+61PH0tp9qvnoG0OyhdGyFdk7LrHgj15g=
-          ism_port: 25566
-          ism_secure: False
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+          snmp_community: public
+          bastion: 192.168.151.26
       metrics:
-          - name: temp
+          - name: tgt
       ips:
-          - ip: 172.29.1.56
-            alias: a005srv
-          - ip: 172.29.1.57
-            alias: a006srv
-          - ip: 172.29.1.64
-            alias: a013srv            
+          - ip: 192.168.151.26
+            alias: localhost
+          - ip: 192.168.151.26
+            ip_host_keys: keys/id_rsa
+            ip_bastion: 192.168.151.26
 global_parameters:
-  repository: 10.88.0.11
+  repository: 10.88.0.2
   repository_port: 2003
   repository_protocol: tcp
   loglevel: DEBUG

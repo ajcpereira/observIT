@@ -7,9 +7,7 @@ import yaml
 from typing import List, Literal, Optional
 from pydantic import BaseModel, StrictStr, PositiveInt, Field
 from pydantic.networks import IPvAnyAddress
-import os
-import logging
-import sys
+import os,logging,sys
 
 #################################################################################
 #                                                                               #
@@ -48,10 +46,12 @@ def configfile_read(cmd_parameters, configfile_default):
         except Exception as msgerr:
             logging.error("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
             sys.exit()        
-    elif len(cmd_parameters) > 2: 
+    elif len(cmd_parameters) > 2:
+
         logging.error("Only configfile path is needed")
         sys.exit()
-
+    if 'config' not in locals():
+        sys.exit("No configfile could be found")
     return config, orig_mtime, configfile_running
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
 

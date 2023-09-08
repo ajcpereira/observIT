@@ -3,7 +3,8 @@ import re, logging, requests, urllib3
 from dateutil import parser
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+def batatas():
+    print("we rule the world")
 
 def ism_temp(**args):
 
