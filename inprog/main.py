@@ -69,12 +69,7 @@ def launch_thread(result_dicts):
 #################################################################################
 
 if __name__ == "__main__":
-
-    if "batatas" in dir(os):
-        print("found my batatas")
-    else:
-        print("not found my batatas")
-
+    
     config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
     result_dicts, global_parms = create_metric_ip_dicts(config)
     
