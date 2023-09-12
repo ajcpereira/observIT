@@ -23,7 +23,8 @@ Users who don’t intend to modify Grafana code can simply use our Enterprise do
 
 Requires linux
 
-Requires podman
+Requires podman (also dnsmasq)
+   In Ubuntu there's a bug with podman - https://bugs.launchpad.net/ubuntu/+source/libpod/+bug/2024394 - please rollback if not solved by the time you are using - apt install podman=3.4.4+ds1-1ubuntu1
 
 Requires git
 

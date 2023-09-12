@@ -22,6 +22,8 @@ setup:
 	mkdir -p /opt/fj-collector/collector/logs
 	mkdir -p /opt/fj-collector/collector/config
 	mkdir -p /opt/fj-collector/collector/keys
+	
+	podman network create net-fj-collector
 
 	cp ./install/Dockerfile .
 	podman build . -t fj-collector:latest
@@ -66,7 +68,10 @@ setup:
 	--log-opt max-size=10m --log-opt max-file=3 \
 	localhost/fj-collector:latest
 
-	rm Dockerfile 
+	rm Dockerfile
+	podman network connect net-fj-collector grafana
+	podman network connect net-fj-collector graphite
+	podman network connect net-fj-collector fj-collector
 
 .ONESHELL:
 stop:
@@ -83,6 +88,7 @@ remove:
 	podman rm fj-collector
 	podman image rm localhost/fj-collector
 	podman image rm docker.io/library/debian
+	podman network rm fj-collector
 
 .ONESHELL:
 start:
