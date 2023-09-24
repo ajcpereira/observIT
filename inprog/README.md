@@ -92,10 +92,7 @@ global_parameters:
 
 ### Metrics
 
-Atm we are collecting the iostat for each CS HE filesystem, so you will get filesystem, device multipath and raw device with metrics for:
-type: fs
-  - svctm
-  - %util
+Consult the README inside the folder functions
 
 ### Metrics Retention
 
