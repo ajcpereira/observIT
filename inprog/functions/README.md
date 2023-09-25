@@ -18,9 +18,14 @@ Database Structure:
   metric name
   svctm/r_await/w_await
 
+with the example config file structure would be:
+MYCS8000.eternus_icp.localhost.fs.filesystem-name.disk.svctm
+MYCS8000.eternus_icp.localhost.fs.filesystem-name.disk.r_await
+MYCS8000.eternus_icp.localhost.fs.filesystem-name.disk.w_await
+
 ### TEST ENVIRONMENT
 
-If file cafs_iostat.txt exists under the dir tests it will be used instead of real data.
+If file cafs_iostat exists under the dir tests it will be used instead of real data.
 
 ### Config File example
 
