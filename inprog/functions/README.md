@@ -20,7 +20,7 @@ Database Structure:
 
 ### TEST ENVIRONMENT
 
-If file eternus_icp exists under the dir tests it will be used instead of real data.
+If file cafs_iostat.txt exists under the dir tests it will be used instead of real data.
 
 ### Config File example
 
