@@ -9,7 +9,12 @@ import re, logging
 
 def send_data(c_params, c_values, str_timestamp, **kwargs):
 
-    str_msg_begin = kwargs['collector_root'] + "." + kwargs['name'] + "." + kwargs['resources_types'] + "." + kwargs['alias'].replace(".", "-") + "."
+    if kwargs['alias']:
+        hostname = kwargs['alias']
+    else:
+        hostname = str(kwargs['ip']).replace(".","-dot-")
+
+    str_msg_begin = kwargs['collector_root'] + "." + kwargs['name'] + "." + kwargs['resources_types'] + "." + hostname + "."
     for i in range(0, len(c_params)):
 
         try:

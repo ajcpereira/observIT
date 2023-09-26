@@ -33,6 +33,20 @@ systems:
             alias: new-localhost
             ip_host_keys: keys/id_rsa
             ip_bastion: 172.19.248.46
+  - name: ALIASTST
+    resources_types: linux_os
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+      metrics:
+          - name: cpu
+          - name: mem
+          - name: fs
+      ips:
+          - ip: 172.19.248.46
+            ip_bastion: 172.19.248.46
 global_parameters:
   repository: 10.89.0.4
   repository_port: 2003

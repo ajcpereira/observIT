@@ -33,7 +33,7 @@ def cs_iostat(**args):
 
     if args['ip_bastion']:
           bastion=str(args['ip_bastion'])
-    elif args['use_sudo']:
+    elif args['bastion']:
           bastion=str(args['bastion'])
     else:
           bastion=None
