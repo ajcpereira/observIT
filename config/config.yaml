@@ -13,6 +13,7 @@ systems:
           - ip: 172.19.248.46
             alias: localhost
           - ip: 172.19.248.46
+            alias: new-localhost
             ip_host_keys: keys/id_rsa
             ip_bastion: 172.19.248.46
   - name: MYCS8000
@@ -47,6 +48,7 @@ systems:
       ips:
           - ip: 172.19.248.46
             ip_bastion: 172.19.248.46
+            alias: localhost
 global_parameters:
   repository: 10.89.0.4
   repository_port: 2003
@@ -54,3 +56,6 @@ global_parameters:
   collector_root: fj-collector
   loglevel: INFO
   logfile: logs/fj-collector.log
+  grafana_auto_fun: yes
+  grafana_api_key: glsa_kZXQZaFS8dY2F7jPTF1kjuxmdOAAgpdD_6051d174
+  grafana_server: localhost:3000
