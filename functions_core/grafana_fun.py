@@ -1,7 +1,7 @@
 
 from grafanalib.core import *
 from grafanalib._gen import DashboardEncoder
-import json, requests
+import json, requests, logging
 from functions_core.yaml_validate import *
 
 
@@ -99,6 +99,7 @@ def create_timeseries_panel(str_title, panels_list, obj_grid_pos, unit):
         fillOpacity=25,
         unit=unit,
         gridPos=obj_grid_pos,
+        spanNulls=True,
     )
 
     return timeseries_panel
@@ -146,10 +147,10 @@ def create_bargauge_panel(str_title, panels_list, obj_grid_pos, unit):
 
 
 
-def create_panel_linux_os(system_name, resource_name, data):
+def create_panel_linux_os(system_name, resource_name, data, config):
 
     panels_list =[]
-    begin_str = "tst-collector." + system_name + "." + resource_name + "."
+    begin_str = config.global_parameters.collector_root + "." + system_name + "." + resource_name + "."
 
     for metric in data:
 
@@ -195,22 +196,52 @@ def create_panel_linux_os(system_name, resource_name, data):
                     tgt_fs_used = [Target(datasource='default', expr=str_fs_used, target=str_fs_used)]
                     tgt_fs_total = [Target(datasource='default', expr=str_fs_total, target=str_fs_total)]
                     panels_list.append(
-                        #create_timeseries_panel(host + " Filesystem", tgt_fs_used + tgt_fs_total, GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
-                        create_bargauge_panel(host + " Filesystem", tgt_fs_used + tgt_fs_total,GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
+                        create_timeseries_panel(host + " Filesystem", tgt_fs_used + tgt_fs_total, GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
+                        #create_bargauge_panel(host + " Filesystem", tgt_fs_used + tgt_fs_total,GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
+
+    return panels_list
+
+def create_panel_eternus_icp(system_name, resource_name, data, config):
+
+    panels_list =[]
+    begin_str = config.global_parameters.collector_root + "." + system_name + "." + resource_name + "."
+
+    for metric in data:
+
+        match metric['metric']:
+            case "fs":
+                
+                panels_list.append(RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=1)))
+                for host in metric['hosts']:
+
+                    icp_svctm = "aliasByNode(" + begin_str + host + ".fs.*.*.*.svctm" + ", 5, 6, 7)"
+                    icp_w_await = "aliasByNode(" + begin_str + host + ".fs.*.*.*.w_await" + ", 5, 6, 7)"
+                    icp_r_await = "aliasByNode(" + begin_str + host + ".fs.*.*.*.r_await" + ", 5, 6, 7)"
+        
+                    panels_icp_svctm=[Target(datasource='default', expr=icp_svctm, target=icp_svctm)]
+                    panels_icp_w_await=[Target(datasource='default', expr=icp_w_await, target=icp_w_await)]
+                    panels_icp_r_await=[Target(datasource='default', expr=icp_r_await, target=icp_r_await)]
+
+                    panels_list.append(
+                    create_timeseries_panel(host+" SVCTM", panels_icp_svctm, GridPos(h=7, w=12, x=0, y=1), ""))
+                    panels_list.append(
+                    create_timeseries_panel(host+" W_AWAIT", panels_icp_w_await, GridPos(h=7, w=12, x=0, y=1), ""))
+                    panels_list.append(
+                    create_timeseries_panel(host+" R_AWAIT", panels_icp_r_await, GridPos(h=7, w=12, x=0, y=1), ""))
 
     return panels_list
 
 
-def create_system_dashboard(sys):
+def create_system_dashboard(sys, config):
 
     panels=[]
 
     for res in sys['resources']:
         match res['name']:
             case "linux_os":
-                panels = panels + create_panel_linux_os(str(sys['system']), str(res['name']), res['data'])
+                panels = panels + create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], config)
             case "eternus_icp":
-                print(res['name'])
+                panels = panels + create_panel_eternus_icp(str(sys['system']), str(res['name']), res['data'], config)
 
     my_dashboard = Dashboard(
         title="System " + sys['system'] + " dashboard",
@@ -228,14 +259,17 @@ def create_system_dashboard(sys):
 
 
 
-def build_dashboards(systems):
+def build_dashboards(config):
 
-    grafana_api_key = "glsa_HpGYv397ImTmgMyg2z3K76dvtCLfbTVz_6baa303d"
-    grafana_server = "localhost:3000"
+    logging.info("Will build dashboards")
+    grafana_api_key = config.global_parameters.grafana_api_key
+    grafana_server = config.global_parameters.grafana_server
+
+    systems = build_grafana_fun_data_model(config)
 
     for sys in systems:
         print("create_system_dash(sys)", sys['system'])
-        my_dashboard = create_system_dashboard(sys)
+        my_dashboard = create_system_dashboard(sys, config)
         my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True)
         print(my_dashboard_json)
         upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
@@ -348,49 +382,4 @@ def build_grafana_fun_data_model(config):
             model_result.append({'system':system.name, 'resources':res_list})
 
     return model_result
-
-
-def run():
-
-
-    kwargs = {'name': 'MYCS8000',
-              'resources_types': 'linux_os',
-              'user': 'super',
-              'host_keys': 'keys/id_rsa',
-              'poll': 1,
-              'use_sudo': True,
-              'snmp_community': None,
-              'bastion': None,
-              'ism_server': None,
-              'ism_password': None,
-              'ism_port': None,
-              'ism_secure': True,
-              'metric_name': 'cpu',
-              'ip': '127.0.0.1',
-              'alias': 'linux01',
-              'ip_snmp_community': None,
-              'ip_use_sudo': False,
-              'ip_host_keys': None,
-              'ip_bastion': None,
-              'func': 'linux_os_srv',
-              'repository': '10.88.0.4',
-              'repository_port': 2003,
-              'repository_protocol': 'tcp',
-              'loglevel': 'DEBUG',
-              'logfile': 'logs/fj-collector.log'
-              }
-
-    configfile_default = "/home/super/fj-collector/inprog/config/config.yaml"
-    config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
-
-    #print(config)
-    #print(yaml.dump(config))
-    #exit(1)
-    model_result = build_grafana_fun_data_model(config)
-    print(model_result)
-    build_dashboards(model_result)
-
-
-
-run()
 

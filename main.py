@@ -22,6 +22,7 @@
 import sys, os, logging, time
 from threading import Thread, Event
 from functions_core.yaml_validate import *
+from functions_core.grafana_fun import *
 from functions import *
 
 #################################################################################
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     ########## END - Log configfile start processing ################################
   
     launch_thread(result_dicts)
+    build_dashboards(config)
 
     while True:
         time.sleep(1)
@@ -109,7 +111,7 @@ if __name__ == "__main__":
             time.sleep(5)
             event.clear()
             launch_thread(result_dicts)
-            
+            build_dashboards(config)
             logging.info("Configfile reloaded")
 
 

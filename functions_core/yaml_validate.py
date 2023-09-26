@@ -123,6 +123,9 @@ class GlobalParameters(BaseModel):
     loglevel: Literal['NOTSET', 'INFO', 'WARNING', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
     collector_root: StrictStr
+    grafana_auto_fun: Optional[bool] = False
+    grafana_api_key: Optional[str] = Field(None)
+    grafana_server: Optional[str] = Field(None)
 
 class ConfigFile(BaseModel):
     systems: List[SystemsName]
