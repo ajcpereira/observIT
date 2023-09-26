@@ -86,6 +86,7 @@ global_parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
+  collector_root: fj-collector
   loglevel: INFO
   logfile: logs/fj-collector.log
 ````  

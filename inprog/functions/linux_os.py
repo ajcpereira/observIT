@@ -63,7 +63,7 @@ def linux_os_fs(**args):
             send_data(cdata_info, arr_cdata_values, str(int_timestamp), **args)
 
     except Exception as msgerror:
-        logging.error("linux_os_fs: Failed to connect to %s" % args['ip'])
+        logging.error("linux_os_fs: Failed to connect to %s - %s" % (args['ip'], msgerror))
         return -1
 
 #################################################################################
@@ -228,24 +228,3 @@ def linux_os_mem(**args):
     except Exception as msgerror:
         logging.error("linux_os_mem: Failed to connect to %s" % args['ip'])
         return -1
-
-
-#################################################################################
-#                                                                               #
-#                       MAIN                                                    #
-#                                                                               #
-#################################################################################
-
-def linux_os_srv(**args):
-
-    if args['metric_name'] == "cpu":
-        linux_os_cpu(**args)
-
-    if args['metric_name'] == "mem":
-        linux_os_mem(**args)
-
-    if args['metric_name'] == "net":
-        linux_os_net(**args)
-
-    if args['metric_name'] == "fs":
-        linux_os_fs(**args)

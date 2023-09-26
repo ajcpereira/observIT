@@ -59,8 +59,7 @@ def configfile_read(cmd_parameters, configfile_default):
 class AllowedMetrics:
     allowed_metrics = {
         'eternus_icp': [['fs'], ['cs_iostat']],
-        'linux_os': [['cpu', 'mem', 'disk', 'fs'], ['cs_iostat', 'cs_iostat', 'cs_iostat', 'cs_iostat']],
-        'windows_os': [['wcpu', 'wmem', 'wdisk'], ['cs_iostat', 'cs_iostat', 'cs_iostat']],
+        'linux_os': [['cpu', 'mem', 'fs', 'net'], ['linux_os_cpu', 'linux_os_mem', 'linux_os_fs', 'linux_os_net']],
         'fj_ism': [['temp'], ['ism_temp']]
     }
 
@@ -123,6 +122,7 @@ class GlobalParameters(BaseModel):
     repository_protocol: Literal['tcp', 'udp']
     loglevel: Literal['NOTSET', 'INFO', 'WARNING', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
+    collector_root: StrictStr
 
 class ConfigFile(BaseModel):
     systems: List[SystemsName]

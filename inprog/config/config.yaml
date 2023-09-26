@@ -6,19 +6,37 @@ systems:
           user: alex
           host_keys: keys/id_rsa
           poll: 1
-          snmp_community: public
-          bastion: 192.168.151.26
+          bastion: 172.19.248.46
       metrics:
           - name: fs
       ips:
-          - ip: 192.168.151.26
+          - ip: 172.19.248.46
             alias: localhost
-          - ip: 192.168.151.26
+          - ip: 172.19.248.46
             ip_host_keys: keys/id_rsa
-            ip_bastion: 192.168.151.26
+            ip_bastion: 172.19.248.46
+  - name: MYCS8000
+    resources_types: linux_os
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+      metrics:
+          - name: cpu
+          - name: mem
+          - name: fs
+      ips:
+          - ip: 172.19.248.46
+            alias: localhost
+          - ip: 172.19.248.46
+            alias: new-localhost
+            ip_host_keys: keys/id_rsa
+            ip_bastion: 172.19.248.46
 global_parameters:
-  repository: graphite
+  repository: 10.89.0.4
   repository_port: 2003
   repository_protocol: tcp
-  loglevel: DEBUG
+  collector_root: fj-collector
+  loglevel: INFO
   logfile: logs/fj-collector.log
