@@ -19,7 +19,7 @@ systems:
           - ip: 172.29.1.64
             alias: a013srv            
 global_parameters:
-  repository: 10.88.0.11
+  repository: graphite
   repository_port: 2003
   repository_protocol: tcp
   loglevel: DEBUG

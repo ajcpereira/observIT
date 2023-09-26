@@ -58,7 +58,7 @@ def configfile_read(cmd_parameters, configfile_default):
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
-        'eternus_icp': [['fs', 'tgt'], ['cs_iostat', 'cs_iostat']],
+        'eternus_icp': [['fs'], ['cs_iostat']],
         'linux_os': [['cpu', 'mem', 'disk', 'fs'], ['cs_iostat', 'cs_iostat', 'cs_iostat', 'cs_iostat']],
         'windows_os': [['wcpu', 'wmem', 'wdisk'], ['cs_iostat', 'cs_iostat', 'cs_iostat']],
         'fj_ism': [['temp'], ['ism_temp']]

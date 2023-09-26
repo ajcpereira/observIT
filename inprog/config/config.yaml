@@ -9,7 +9,7 @@ systems:
           snmp_community: public
           bastion: 192.168.151.26
       metrics:
-          - name: tgt
+          - name: fs
       ips:
           - ip: 192.168.151.26
             alias: localhost
@@ -17,7 +17,7 @@ systems:
             ip_host_keys: keys/id_rsa
             ip_bastion: 192.168.151.26
 global_parameters:
-  repository: 10.88.0.2
+  repository: graphite
   repository_port: 2003
   repository_protocol: tcp
   loglevel: DEBUG

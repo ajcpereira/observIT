@@ -11,6 +11,7 @@ Here you will find the information for each resource type
 ### ETERNUS_ICP
 
 Protocol: ssh
+Security: The user must be created previously and we recommend a common user with permissions only to sudo the following command: /opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out
 Database Structure:
   system name
   resources_types
