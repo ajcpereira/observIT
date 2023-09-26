@@ -49,7 +49,8 @@ def run_threaded(**args) -> None:
         if event.is_set():
             logging.warning("Exited run_thread")
             break
-        Thread(target=eval(args['func']+"."+args['func']), kwargs=args).start()
+        #Thread(target=eval(args['func']+"."+args['func']), kwargs=args).start()
+        Thread(target=eval(args['resources_types']+"."+args['func']), kwargs=args).start()
 
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
