@@ -1,7 +1,0 @@
-**/.venv/*
-**/id_rsa
-**/__pycache__/
-**/archive/
-**/in_progress/logs/*
-**/logs/*
-**/keys/*
