@@ -42,13 +42,12 @@ def linux_os_fs(**args):
     # Filesystem
     # mount available used
 
-    #STR_CMD = "df | tail -n +2 | awk '{print $6, $4, $3, $2}'"
     STR_CMD = "df -x tmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
 
-    logging.info("linux_os_fs: Starting ssh execution to get linux_os_fs filesystem metrics")
+    logging.debug("linux_os_fs: Starting ssh execution to get linux_os_fs filesystem metrics")
 
-    logging.info("linux_os_fs: Connecting to remote host - %s", str(args['ip']))
-    logging.info("linux_os_fs: Executing command - %s", STR_CMD)
+    logging.debug("linux_os_fs: Connecting to remote host - %s", str(args['ip']))
+    logging.debug("linux_os_fs: Executing command - %s", STR_CMD)
 
     try:
         sshcon = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
@@ -57,8 +56,8 @@ def linux_os_fs(**args):
         sshcon.ssh_del()
 
         int_timestamp = int(time.time())
-        logging.info("linux_os_fs: Command Result - %s",  response)
-        logging.info("linux_os_fs: Finished ssh execution to get linux_os_fs metrics")
+        logging.debug("linux_os_fs: Command Result - %s",  response)
+        logging.debug("linux_os_fs: Finished ssh execution to get linux_os_fs metrics")
 
         lst_output = response.splitlines()
         for lst_output_line in lst_output :
@@ -83,13 +82,12 @@ def linux_os_net(**args):
     # Network
     # interface  rx_bytes tx_bytes
 
-    #STR_CMD = "nmcli device status | awk ' /connected/ {print $1}' | grep -f /dev/stdin /proc/net/dev | awk '{sub(/:/, \"\");print $1, $2, $10}'"
     STR_CMD = "nmcli  -t -f DEVICE con | grep -f /dev/stdin /proc/net/dev | awk '{sub(/:/, \"\");print $1, $2, $10}'"
 
-    logging.info("linux_os_net: Starting ssh execution to get linux_os_net network metrics")
+    logging.debug("linux_os_net: Starting ssh execution to get linux_os_net network metrics")
 
-    logging.info("linux_os_net: Connecting to remote host - %s", str(args['ip']))
-    logging.info("linux_os_net: Executing command - %s", STR_CMD)
+    logging.debug("linux_os_net: Connecting to remote host - %s", str(args['ip']))
+    logging.debug("linux_os_net: Executing command - %s", STR_CMD)
 
     try:
         sshcon = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
@@ -98,8 +96,8 @@ def linux_os_net(**args):
         sshcon.ssh_del()
 
         int_timestamp = int(time.time())
-        logging.info("linux_os_net: Command Result linux_os_net - %s",  response)
-        logging.info("linux_os_net: Finished ssh execution to get metrics")
+        logging.debug("linux_os_net: Command Result linux_os_net - %s",  response)
+        logging.debug("linux_os_net: Finished ssh execution to get metrics")
 
         lst_output = response.splitlines()
         for lst_output_line in lst_output :
@@ -110,7 +108,7 @@ def linux_os_net(**args):
             send_data(cdata_info, arr_cdata_values, str(int_timestamp), **args)
 
     except Exception as msgerror:
-        logging.error("linux_os_net: Failed to connect to %s" % args['ip'])
+        logging.error("linux_os_net: Failed to connect to %s -  %s" % (args['ip'], msgerror))
         return -1
 
 def get_linux_uptime(GPARAMS):
@@ -118,10 +116,10 @@ def get_linux_uptime(GPARAMS):
     #under developemnet
     STR_CMD = "awk '{print $1}' /proc/uptime"
 
-    logging.info("Starting ssh execution to get linux-os uptime metrics")
+    logging.debug("Starting ssh execution to get linux-os uptime metrics")
 
-    logging.info("Connecting to remote host - %s", GPARAMS['HOSTNAME'])
-    logging.info("Executing command - %s", STR_CMD)
+    logging.debug("Connecting to remote host - %s", GPARAMS['HOSTNAME'])
+    logging.debug("Executing command - %s", STR_CMD)
 
     sshcon = Secure_Connect(GPARAMS['HOSTNAME'], GPARAMS['SSH_BASTION'], GPARAMS['SSH_USER'], GPARAMS['SSH_USER_KEY_FILE'])
     stdout = sshcon.ssh_run(STR_CMD)
@@ -129,8 +127,8 @@ def get_linux_uptime(GPARAMS):
     sshcon.ssh_del()
 
     int_timestamp = int(time.time())
-    logging.info("Command Result - %s",  response)
-    logging.info("Finished ssh execution to get metrics")
+    logging.debug("Command Result - %s",  response)
+    logging.debug("Finished ssh execution to get metrics")
 
     arr_cdata_values = response.split()
     cdata_info = ["uptime"]
@@ -139,7 +137,7 @@ def get_linux_uptime(GPARAMS):
     logging.debug ("get_cpuload(): uptime data = %s \ %s", cdata_info,arr_cdata_values)
 
     #send_data(GPARAMS, cdata_info, arr_cdata_values, ".", str(int_timestamp))
-    logging.info("Ended collecting data")
+    logging.debug("Ended collecting data")
 
 
 
@@ -162,10 +160,10 @@ def linux_os_cpu(**args):
 
     STR_CMD = "echo $(vmstat 1 2 | tail -1 | awk '{print $15, $16}') $(cat /proc/loadavg | awk '{print $1, $2, $3}')"
 
-    logging.info("linux_os_cpu: Starting ssh execution to get linux_os_cpu metrics")
+    logging.debug("linux_os_cpu: Starting ssh execution to get linux_os_cpu metrics")
 
-    logging.info("linux_os_cpu: Connecting to remote host - %s", str(args['ip']))
-    logging.info("linux_os_cpu: Executing command - %s", STR_CMD)
+    logging.debug("linux_os_cpu: Connecting to remote host - %s", str(args['ip']))
+    logging.debug("linux_os_cpu: Executing command - %s", STR_CMD)
 
     try:
         ssh = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
@@ -190,7 +188,7 @@ def linux_os_cpu(**args):
         logging.debug("linux_os_cpu: Ended collecting data")
 
     except Exception as msgerror:
-        logging.error("linux_os_cpu: Failed to connect to %s" % args['ip'])
+        logging.error("linux_os_cpu: Failed to connect to %s - %s" % (args['ip'], msgerror))
         return -1
 
 ###################################################################################
@@ -206,10 +204,10 @@ def linux_os_mem(**args):
 
     STR_CMD = "free -m | grep Mem | awk '{print $2, $3, $4, $5, $6, $7}'"
 
-    logging.info("linux_os_mem: Starting ssh execution to get linux_os_mem metrics")
+    logging.debug("linux_os_mem: Starting ssh execution to get linux_os_mem metrics")
 
-    logging.info("linux_os_mem: Connecting to remote host - %s", str(args['ip']))
-    logging.info("linux_os_mem: Executing command - %s", STR_CMD)
+    logging.debug("linux_os_mem: Connecting to remote host - %s", str(args['ip']))
+    logging.debug("linux_os_mem: Executing command - %s", STR_CMD)
 
     try:
         ssh = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
@@ -231,5 +229,5 @@ def linux_os_mem(**args):
         logging.debug("linux_os_mem: Ended collecting data")
 
     except Exception as msgerror:
-        logging.error("linux_os_mem: Failed to connect to %s" % args['ip'])
+        logging.error("linux_os_mem: Failed to connect to %s - %s" % (args['ip'], msgerror))
         return -1
