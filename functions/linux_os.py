@@ -7,6 +7,29 @@ from functions_core.secure_connect import *
 import re, logging
 
 
+#    if args['use_sudo'] or args['ip_use_sudo']:
+#            cmd1 = "sudo " + cmd1
+#            logging.debug("Will use cmd1 with sudo - %s" % cmd1)  
+#
+#    if args['ip_bastion']:
+#          bastion=str(args['ip_bastion'])
+#    elif args['bastion']:
+#          bastion=str(args['bastion'])
+#    else:
+#          bastion=None
+#
+#    if args['ip_host_keys']:
+#          host_keys=args['ip_host_keys']
+#    elif args['host_keys']:
+#          host_keys=args['host_keys']
+#    else:
+#          host_keys=None
+
+
+
+
+
+
 def send_data(c_params, c_values, str_timestamp, **kwargs):
 
     if kwargs['alias']:
@@ -42,6 +65,21 @@ def linux_os_fs(**args):
     # Filesystem
     # mount available used
 
+
+    if args['ip_bastion']:
+          bastion=str(args['ip_bastion'])
+    elif args['bastion']:
+          bastion=str(args['bastion'])
+    else:
+          bastion=None
+
+    if args['ip_host_keys']:
+          host_keys=args['ip_host_keys']
+    elif args['host_keys']:
+          host_keys=args['host_keys']
+    else:
+          host_keys=None
+
     STR_CMD = "df -x tmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
 
     logging.debug("linux_os_fs: Starting ssh execution to get linux_os_fs filesystem metrics")
@@ -50,7 +88,7 @@ def linux_os_fs(**args):
     logging.debug("linux_os_fs: Executing command - %s", STR_CMD)
 
     try:
-        sshcon = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
+        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
         stdout = sshcon.ssh_run(STR_CMD)
         response = stdout.stdout
         sshcon.ssh_del()
@@ -82,6 +120,20 @@ def linux_os_net(**args):
     # Network
     # interface  rx_bytes tx_bytes
 
+    if args['ip_bastion']:
+          bastion=str(args['ip_bastion'])
+    elif args['bastion']:
+          bastion=str(args['bastion'])
+    else:
+          bastion=None
+
+    if args['ip_host_keys']:
+          host_keys=args['ip_host_keys']
+    elif args['host_keys']:
+          host_keys=args['host_keys']
+    else:
+          host_keys=None
+
     STR_CMD = "nmcli  -t -f DEVICE con | grep -f /dev/stdin /proc/net/dev | awk '{sub(/:/, \"\");print $1, $2, $10}'"
 
     logging.debug("linux_os_net: Starting ssh execution to get linux_os_net network metrics")
@@ -90,7 +142,7 @@ def linux_os_net(**args):
     logging.debug("linux_os_net: Executing command - %s", STR_CMD)
 
     try:
-        sshcon = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
+        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
         stdout = sshcon.ssh_run(STR_CMD)
         response = stdout.stdout
         sshcon.ssh_del()
@@ -114,6 +166,7 @@ def linux_os_net(**args):
 def get_linux_uptime(GPARAMS):
 
     #under developemnet
+    
     STR_CMD = "awk '{print $1}' /proc/uptime"
 
     logging.debug("Starting ssh execution to get linux-os uptime metrics")
@@ -155,8 +208,23 @@ def get_linux_uptime(GPARAMS):
 
 def linux_os_cpu(**args):
 
+    if args['ip_bastion']:
+          bastion=str(args['ip_bastion'])
+    elif args['bastion']:
+          bastion=str(args['bastion'])
+    else:
+          bastion=None
+
+    if args['ip_host_keys']:
+          host_keys=args['ip_host_keys']
+    elif args['host_keys']:
+          host_keys=args['host_keys']
+    else:
+          host_keys=None
+
     # Definitions/Constants
     CDATA_INFO = ["cpu.use", "cpu.iowait", "cpu.load1m", "cpu.load5m", "cpu.load15m"]
+
 
     STR_CMD = "echo $(vmstat 1 2 | tail -1 | awk '{print $15, $16}') $(cat /proc/loadavg | awk '{print $1, $2, $3}')"
 
@@ -166,7 +234,7 @@ def linux_os_cpu(**args):
     logging.debug("linux_os_cpu: Executing command - %s", STR_CMD)
 
     try:
-        ssh = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
+        ssh = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
         stdout = ssh.ssh_run(STR_CMD)
         response = stdout.stdout
         ssh.ssh_del()
@@ -199,6 +267,20 @@ def linux_os_cpu(**args):
 ###################################################################################
 def linux_os_mem(**args):
 
+    if args['ip_bastion']:
+          bastion=str(args['ip_bastion'])
+    elif args['bastion']:
+          bastion=str(args['bastion'])
+    else:
+          bastion=None
+
+    if args['ip_host_keys']:
+          host_keys=args['ip_host_keys']
+    elif args['host_keys']:
+          host_keys=args['host_keys']
+    else:
+          host_keys=None
+
     # Definitions/Constants
     CDATA_INFO = ["mem.total", "mem.used", "mem.free", "mem.shared", "mem.buff", "mem.avail"]
 
@@ -210,7 +292,7 @@ def linux_os_mem(**args):
     logging.debug("linux_os_mem: Executing command - %s", STR_CMD)
 
     try:
-        ssh = Secure_Connect(str(args['ip']), args['bastion'], args['user'], args['host_keys'])
+        ssh = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
         stdout = ssh.ssh_run(STR_CMD)
         response = stdout.stdout
         ssh.ssh_del()
