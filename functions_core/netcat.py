@@ -15,8 +15,8 @@ def netcat(graphite_srv, port, protocol, text):
         except Exception as msg_err:
             logging.error("Error connectiong to " + graphite_srv + " on port " + str(port) + " on protocol " + protocol + " with error " + str(msg_err))
             print ("Error connectiong to " + graphite_srv + " on port " + str(port) + " on protocol " + protocol + " with error " + str(msg_err))
-        finally:
             s.close()
+        s.close()
     elif protocol == "udp":
         s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
@@ -24,7 +24,7 @@ def netcat(graphite_srv, port, protocol, text):
         except Exception as msg_err:
             logging.error("Error connectiong to " + graphite_srv + " on port " + str(port) + " on protocol " + protocol + " with error " + str(msg_err))
             print ("Error connectiong to " + graphite_srv + " on port " + str(port) + " on protocol " + protocol + " with error " + str(msg_err))
-        finally:
             s.close()
+        s.close()
     else:
         logging.error("No valid protocol selected, check config file")
