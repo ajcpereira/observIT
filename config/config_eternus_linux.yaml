@@ -1,0 +1,61 @@
+systems:
+  - name: MYCS8000
+    resources_types: eternus_icp
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+          bastion: 172.22.58.55
+      metrics:
+          - name: fs
+      ips:
+          - ip: 172.22.58.55
+            alias: localhost
+          - ip: 172.22.58.55
+            alias: new-localhost
+            ip_host_keys: keys/id_rsa
+            ip_bastion: 172.22.58.55
+  - name: MYCS8000
+    resources_types: linux_os
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+      metrics:
+          - name: cpu
+          - name: mem
+          - name: fs
+      ips:
+          - ip: 172.22.58.55
+            alias: localhost
+          - ip: 172.22.58.55
+            alias: new-localhost
+            ip_host_keys: keys/id_rsa
+            ip_bastion: 172.22.58.55
+  - name: ALIASTST
+    resources_types: linux_os
+    config:
+      parameters:
+          user: alex
+          host_keys: keys/id_rsa
+          poll: 1
+      metrics:
+          - name: cpu
+          - name: mem
+          - name: fs
+      ips:
+          - ip: 172.22.58.55
+            ip_bastion: 172.22.58.55
+            alias: localhost
+global_parameters:
+  repository: 10.89.0.7
+  repository_port: 2003
+  repository_protocol: tcp
+  collector_root: fj-collector
+  loglevel: INFO
+  logfile: logs/fj-collector.log
+  grafana_auto_fun: yes
+  grafana_api_key: glsa_kZXQZaFS8dY2F7jPTF1kjuxmdOAAgpdD_6051d174
+  grafana_server: localhost:3000
