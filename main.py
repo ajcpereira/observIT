@@ -84,7 +84,9 @@ if __name__ == "__main__":
     ########## END - Log configfile start processing ################################
   
     launch_thread(result_dicts)
-    build_dashboards(config)
+    if config.global_parameters.grafana_auto_fun:
+        build_dashboards(config)
+    
 
     while True:
         time.sleep(1)
@@ -111,7 +113,8 @@ if __name__ == "__main__":
             time.sleep(5)
             event.clear()
             launch_thread(result_dicts)
-            build_dashboards(config)
+            if config.global_parameters.grafana_auto_fun:
+                build_dashboards(config)
             logging.info("Configfile reloaded")
 
 

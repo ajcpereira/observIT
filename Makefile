@@ -10,6 +10,7 @@ usage:
 	@echo "make start"
 	@echo "make stop"
 	@echo "make remove"
+	@echo "make update_addr"
 	
 .ONESHELL:
 setup:
@@ -23,10 +24,8 @@ setup:
 	mkdir -p /opt/fj-collector/collector/config
 	mkdir -p /opt/fj-collector/collector/keys
 	
-	podman network create net-fj-collector
-
 	cp ./install/Dockerfile .
-	podman build . -t fj-collector:latest
+	#podman build . -t fj-collector:latest
 
 	podman pull docker.io/graphiteapp/graphite-statsd
 	podman pull docker.io/grafana/grafana-enterprise
@@ -59,19 +58,18 @@ setup:
 	--log-opt max-size=10m --log-opt max-file=3 \
 	grafana/grafana-enterprise
 	
-	podman run -d \
-	--name fj-collector \
-	--restart=always \
-	-v /opt/fj-collector/collector/logs:/collector/logs \
-	-v /opt/fj-collector/collector/config:/collector/config \
-	-v /opt/fj-collector/collector/keys:/collector/keys \
-	--log-opt max-size=10m --log-opt max-file=3 \
-	localhost/fj-collector:latest
+	#podman run -d \
+	#--name fj-collector \
+	#--restart=always \
+	#-v /opt/fj-collector/collector/logs:/collector/logs \
+	#-v /opt/fj-collector/collector/config:/collector/config \
+	#-v /opt/fj-collector/collector/keys:/collector/keys \
+	#--log-opt max-size=10m --log-opt max-file=3 \
+	#localhost/fj-collector:latest
 
 	rm Dockerfile
-	podman network connect net-fj-collector grafana
-	podman network connect net-fj-collector graphite
-	podman network connect net-fj-collector fj-collector
+
+	$(MAKE) update_addr
 
 .ONESHELL:
 stop:
@@ -88,7 +86,6 @@ remove:
 	podman rm fj-collector
 	podman image rm localhost/fj-collector
 	podman image rm docker.io/library/debian
-	podman network rm fj-collector
 
 .ONESHELL:
 start:
@@ -100,7 +97,18 @@ start:
 	podman inspect fj-collector -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
 
 .ONESHELL:
-addr:
-	podman inspect grafana -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
-	podman inspect graphite -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
-	podman inspect fj-collector -f '{{ .NetworkSettings.IPAddress }} {{ .NetworkSettings.Ports }}'
+update_addr:
+	@$(eval MYVAR=`podman inspect graphite -f '{{ .NetworkSettings.IPAddress }}'`)
+	echo $(MYVAR)
+	if [ -f /opt/fj-collector/collector/config/config.yaml ] && [ -n $MY_VAR ]
+	then
+		sed -i "s/repository\:.*/repository\: $(MYVAR)/" /opt/fj-collector/collector/config/config.yaml
+		echo "Updated Config File"
+	fi
+	@$(eval MYVAR=`podman inspect grafana -f '{{ .NetworkSettings.IPAddress }}'`)
+	echo $(MYVAR)
+	if [ -f /opt/fj-collector/collector/config/config.yaml ] && [ -n $MY_VAR ]
+	then
+		sed -i "s/grafana_server\:.*/grafana_server\: $(MYVAR)/" /opt/fj-collector/collector/config/config.yaml
+		echo "Updated Config File"
+	fi

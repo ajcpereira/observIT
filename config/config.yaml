@@ -22,6 +22,6 @@ global_parameters:
   collector_root: eternus_new2
   loglevel: DEBUG
   logfile: logs/fj-collector.log
-  grafana_auto_fun: yes
+  grafana_auto_fun: no
   grafana_api_key: glsa_kZXQZaFS8dY2F7jPTF1kjuxmdOAAgpdD_6051d174
   grafana_server: localhost:3000
