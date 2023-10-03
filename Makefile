@@ -70,6 +70,7 @@ setup:
 	rm Dockerfile
 
 	$(MAKE) update_addr
+	$(MAKE) update_logins
 
 .ONESHELL:
 stop:
@@ -98,17 +99,47 @@ start:
 
 .ONESHELL:
 update_addr:
-	@$(eval MYVAR=`podman inspect graphite -f '{{ .NetworkSettings.IPAddress }}'`)
+	@$(eval MYVAR=`podman inspect graphite -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null`)
 	echo $(MYVAR)
-	if [ -f /opt/fj-collector/collector/config/config.yaml ] && [ -n $MY_VAR ]
+	if ([ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $MY_VAR ]])
 	then
 		sed -i "s/repository\:.*/repository\: $(MYVAR)/" /opt/fj-collector/collector/config/config.yaml
 		echo "Updated Config File"
 	fi
-	@$(eval MYVAR=`podman inspect grafana -f '{{ .NetworkSettings.IPAddress }}'`)
+	@$(eval MYVAR=`podman inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null`)
 	echo $(MYVAR)
-	if [ -f /opt/fj-collector/collector/config/config.yaml ] && [ -n $MY_VAR ]
+	if [ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $MY_VAR ]]
 	then
 		sed -i "s/grafana_server\:.*/grafana_server\: $(MYVAR)/" /opt/fj-collector/collector/config/config.yaml
 		echo "Updated Config File"
+	fi
+
+
+.SILENT:
+.ONESHELL:
+update_logins:
+	@
+	MYVAR=$$(podman inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
+	echo $$MYVAR
+	if [[ ! -z $$MYVAR ]]
+	then
+		echo "Going to reset admin password"
+		@podman exec grafana grafana cli admin reset-admin-password admin
+		echo "Going to create service account"
+		@RCURL=$$(curl -X POST http://admin:admin@$$MYVAR:3000/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"fj-collector", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
+		echo $$RCURL
+		
+		if [[ $$RCURL =~ ^[0-9] ]]
+		then
+			echo "Will create token"
+		    @TCURL=$$(curl -X POST http://admin:admin@$$MYVAR:3000/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"fj-collector"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
+			echo $$TCURL
+			if [ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $TCURL ]]
+			then
+				sed -i "s/grafana_api_key\:.*/grafana_api_key\: $$TCURL/" /opt/fj-collector/collector/config/config.yaml
+				echo "Updated Config File"
+			fi 
+		fi
+
+		echo "Reset User and created service account"
 	fi
