@@ -4,112 +4,126 @@
 
 
 
-# FJ Data Collector
+# Available Functions
 
-This is an aggregator for data collection that populates data in Graphiteapp and since Grafana integrates with Graphite you can draw your graphs in Grafana.
+Here you will find the information for each resource type
 
-The Collector is a scheduler that collects information based in a YAML file, each schedule runs on it's own thread and it's completly free:
-https://github.com/ajcpereira/fj-collector
+## ETERNUS_ICP
 
-Regarding the other 2 mention applications be aware of their licenses if you wish to use in your organization.
-Our makefile installs both but they are not part of the code of the fj-collector, so you should check your policies or maybe you already have them in your organization so you can use them:
+Protocol: ssh
+Security: The user must be created previously and we recommend a common user with permissions only to sudo the following command: /opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out
+Database Structure:
+  system name
+  resources_types
+  hostname or alias
+  metric name
+  filesytem name from CS
+  dm disk from CS
+  raw disk from CS
+  svctm/r_await/w_await
 
-Graphite - https://graphiteapp.org/ - 26/07/2023: (...) Graphite was originally designed and written by Chris Davis at Orbitz in 2006 as side project that ultimately grew to be their foundational monitoring tool. In 2008, Orbitz allowed Graphite to be released under the open source Apache 2.0 license.(...)
+with the example config file structure would be:
+MYCS8000.eternus_icp.localhost.fs.filesystem-name.dm-disk.rdisk.svctm
+MYCS8000.eternus_icp.localhost.fs.filesystem-name.dm-disk.rdisk.r_await
+MYCS8000.eternus_icp.localhost.fs.filesystem-name.dm-disk.rdisk.w_await
 
-Grafana - https://grafana.com/licensing/ - 26/07/2023: (...) On April 20, 2021, Grafana Labs announced that going forward, our core open source projects will be moving from the Apache License v2.0 to AGPLv3.
-Users who don’t intend to modify Grafana code can simply use our Enterprise download. This is a free-to-use, proprietary-licensed, compiled binary that matches the features of the AGPL version, and can be upgraded to take advantage of all the commercial features in Grafana Enterprise (Enterprise plugins, advanced security, reporting, support, and more) with the purchase of a license key. (...)
+### TEST ENVIRONMENT
 
-### Requirements
+If file cafs_iostat exists under the dir tests it will be used instead of real data.
 
-Requires linux
+### Config File example
 
-Requires podman (also dnsmasq)
-   In Ubuntu there's a bug with podman - https://bugs.launchpad.net/ubuntu/+source/libpod/+bug/2024394 - please rollback if not solved by the time you are using - apt install podman=3.4.4+ds1-1ubuntu1
-
-Requires git
-
-Internet access to github.com
-
-Will install under folder /opt/fj-collector
-
-Your user must have permissions in /opt and run podman
-
-### Installation Procedure
-
-Clone the git repository:
-
-````
-git clone https://github.com/ajcpereira/fj-collector.git
-````
-
-Now, just run the install
-
-````
-cd fj-collector
-make setup
-make start
-````
-
-edit /opt/fj-collector/collector/config/collector.yaml
-
-For each IP that you access through ssh you will need the private key.
-On the previous file (collector.yaml) you can specifie it's location (host_keys entry)
-Be aware that since the code runs inside a container the collector.yaml uses the path inside of the container, so:
-  /collector/fj-collector/config/
-  is your
-  /opt/fj-collector/collector/config/
-
-  We recommend you use relative paths:
-    host_keys: keys/id_rsa
-    logfile: logs/fj-collector.log
- 
-### collector.yaml
 ````
 systems:
   - name: MYCS8000
     resources_types: eternus_icp
     config:
       parameters:
-          user: alex
+          user: myuser
           host_keys: keys/id_rsa
           poll: 1
-          bastion: 172.21.69.166
+          use_sudo: yes
+          bastion: 127.0.0.1
       metrics:
           - name: fs
       ips:
-          - ip: 172.21.69.166
-            alias: icp0
-          - ip: 172.21.69.166
-            ip_host_keys: keys/id_rsa
-            ip_bastion: 172.21.69.166
+          - ip: 127.0.0.1
+            alias: localhost
+            ip_use_sudo: yes
+            ip_bastion: 127.0.0.1
+          - ip: 10.10.1.2
+          - ip: 10.10.2.3
+            ip_use_sudo: no
+            ip_host_keys: keys/mykey
+````
+
+## LINUX_OS
+
+Protocol: ssh<br>
+Security: A user with access to the remote server, no root privileges needed
+Database Structure:<br>
+
+
+with the example config file structure would be:<br>
+#### CPU metrics
+tst-collector.LAB.linux_os.linux01.cpu.use<br>
+tst-collector.LAB.linux_os.linux01.cpu.iowait<br>
+tst-collector.LAB.linux_os.linux01.cpu.load1m<br>
+tst-collector.LAB.linux_os.linux01.cpu.load5m<br>
+tst-collector.LAB.linux_os.linux01.cpu.load15m<br>
+#### Memory metrics
+tst-collector.LAB.linux_os.linux01.mem.total<br>
+tst-collector.LAB.linux_os.linux01.mem.used<br>
+tst-collector.LAB.linux_os.linux01.mem.free<br>
+tst-collector.LAB.linux_os.linux01.mem.shared<br>
+tst-collector.LAB.linux_os.linux01.mem.buff<br>
+tst-collector.LAB.linux_os.linux01.mem.avail<br>
+#### Filesystem metrics
+For each filesystem collects the following values in GB:<br>
+tst-collector.LAB.linux_os.linux01.fs.{filesystem name}.available<br>
+tst-collector.LAB.linux_os.linux01.fs.{filesystem name}.used<br>
+tst-collector.LAB.linux_os.linux01.fs.{filesystem name}.total<br>
+
+#### Network metrics
+collects for each network interface in status connected values in Mbp<br>
+
+tst-collector.LAB.linux_os.linux01.net.{iface}.rx_mbp<br>
+tst-collector.LAB.linux_os.linux01.net.{iface}.tx_mbp<br>
+
+{iface} is the interface name.<br>
+
+### TEST ENVIRONMENT
+
+No test data is available at the moment
+
+### Config File example
+
+````
+systems:
+  - name: LAB
+    resources_types: linux_os
+    config:
+      parameters:
+          user: super
+          host_keys: keys/id_rsa
+          poll: 1
+      metrics:
+          - name: cpu
+          - name: mem
+          - name: fs
+          - name: net
+      ips:
+          - ip: 127.0.0.1
+            alias: linux01
+          - ip: 127.0.0.1
 global_parameters:
-  repository: graphite
+  repository: 10.89.0.5
   repository_port: 2003
   repository_protocol: tcp
-  collector_root: fj-collector
-  loglevel: INFO
+  collector_root: tst-collector
+  loglevel: DEBUG
   logfile: logs/fj-collector.log
-````  
-
-### Metrics
-
-Consult the README inside the folder functions
-
-### Metrics Retention
-
-You MUST edit the /opt/fj-collector/graphite/data/conf/storage-schemas.conf to change retentions according to your needs:
-
+  grafana_auto_fun: yes
+  grafana_api_key: *****
+  grafana_server: localhost:3000
 ````
-[default_1min_for_1day]
-pattern = .*
-retentions = 10s:6d,1m:12d,10m:1800d
-````
-
-Changing this file will not affect already-created .wsp files. Use whisper-resize.py to change those.
-
-The retentions line is saying that each datapoint represents 10 seconds, and we want to keep enough datapoints so that they add up to 6 hours of data, for 1 minute will keep 6 days and finally for 10 minutes will keep for 1800 days. It will properly downsample metrics (averaging by default) as thresholds for retention are crossed.
-
-More info can be found - https://graphite.readthedocs.io/en/latest/config-carbon.html
-
-### Architecture
-![Design](https://github.com/ajcpereira/reporting/raw/main/img/design.png)
