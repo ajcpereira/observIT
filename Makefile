@@ -11,6 +11,8 @@ usage:
 	@echo "make stop"
 	@echo "make remove"
 	@echo "make update_addr"
+	@echo "make update_logins"
+	@echo "make build_collector"
 	
 .ONESHELL:
 setup:
@@ -25,7 +27,7 @@ setup:
 	mkdir -p /opt/fj-collector/collector/keys
 	
 	cp ./install/Dockerfile .
-	#podman build . -t fj-collector:latest
+	podman build . -t fj-collector:latest
 
 	podman pull docker.io/graphiteapp/graphite-statsd
 	podman pull docker.io/grafana/grafana-enterprise
@@ -47,7 +49,7 @@ setup:
 	-v /opt/fj-collector/graphite/data/statsd_config:/opt/statsd/config \
 	--log-opt max-size=10m --log-opt max-file=3 \
 	graphiteapp/graphite-statsd
-	
+
 	podman run -d \
 	--name grafana \
     --restart=always \
@@ -58,19 +60,36 @@ setup:
 	--log-opt max-size=10m --log-opt max-file=3 \
 	grafana/grafana-enterprise
 	
-	#podman run -d \
-	#--name fj-collector \
-	#--restart=always \
-	#-v /opt/fj-collector/collector/logs:/collector/logs \
-	#-v /opt/fj-collector/collector/config:/collector/config \
-	#-v /opt/fj-collector/collector/keys:/collector/keys \
-	#--log-opt max-size=10m --log-opt max-file=3 \
-	#localhost/fj-collector:latest
+	podman run -d \
+	--name fj-collector \
+	--restart=always \
+	-v /opt/fj-collector/collector/logs:/collector/logs \
+	-v /opt/fj-collector/collector/config:/collector/config \
+	-v /opt/fj-collector/collector/keys:/collector/keys \
+	--log-opt max-size=10m --log-opt max-file=3 \
+	localhost/fj-collector:latest
 
 	rm Dockerfile
 
+	if [ -f /opt/fj-collector/graphite/data/conf/carbon.conf ]
+	then
+		sed -i "s/MAX_UPDATES_PER_SECOND.*/MAX_UPDATES_PER_SECOND \= 5000/" /opt/fj-collector/graphite/data/conf/carbon.conf
+		sed -i "s/MAX_CREATES_PER_MINUTE.*/MAX_CREATES_PER_MINUTE \= 5000/" /opt/fj-collector/graphite/data/conf/carbon.conf
+		echo "Updated Graphite Config File"
+	fi
+
+	podman stop graphite
+	podman start graphite
+
+	echo "PAUSE BEFORE CHANGE CONFIG"
+
+	sleep 60
+
 	$(MAKE) update_addr
 	$(MAKE) update_logins
+
+	#podman stop fj-collector
+	#podman start fj-collector
 
 .ONESHELL:
 stop:
@@ -110,7 +129,7 @@ update_addr:
 	echo $(MYVAR)
 	if [ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $MY_VAR ]]
 	then
-		sed -i "s/grafana_server\:.*/grafana_server\: $(MYVAR)/" /opt/fj-collector/collector/config/config.yaml
+		sed -i "s/grafana_server\:.*/grafana_server\: $(MYVAR):3000/" /opt/fj-collector/collector/config/config.yaml
 		echo "Updated Config File"
 	fi
 
@@ -143,3 +162,21 @@ update_logins:
 
 		echo "Reset User and created service account"
 	fi
+
+.ONESHELL:
+build_collector:
+
+	cp ./install/Dockerfile .
+	podman build . -t fj-collector:latest
+
+
+	podman run -d \
+	--name fj-collector \
+	--restart=always \
+	-v /opt/fj-collector/collector/logs:/collector/logs \
+	-v /opt/fj-collector/collector/config:/collector/config \
+	-v /opt/fj-collector/collector/keys:/collector/keys \
+	--log-opt max-size=10m --log-opt max-file=3 \
+	localhost/fj-collector:latest
+
+	rm Dockerfile
