@@ -78,6 +78,13 @@ setup:
 		echo "Updated Graphite Config File"
 	fi
 
+	if [ -f /opt/fj-collector/graphite/data/conf/storage-schemas.conf ]
+	then
+		sed -i "s/retentions = 10s:6h,1m:6d,10m:1800d/retentions = 1m:6d,5m:30d,15m:1800d/" /opt/fj-collector/graphite/data/conf/storage-schemas.conf
+		echo "Updated Graphite Schema File"
+	fi
+
+
 	podman stop graphite
 	podman start graphite
 
@@ -88,8 +95,8 @@ setup:
 	$(MAKE) update_addr
 	$(MAKE) update_logins
 
-	#podman stop fj-collector
-	#podman start fj-collector
+	podman stop fj-collector
+	podman start fj-collector
 
 .ONESHELL:
 stop:
