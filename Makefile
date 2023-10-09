@@ -12,7 +12,10 @@ usage:
 	@echo "make remove"
 	@echo "make update_addr"
 	@echo "make update_logins"
+	@echo "make update_theme"
+	@echo "make update_datasource"
 	@echo "make build_collector"
+
 	
 .ONESHELL:
 setup:
@@ -88,12 +91,14 @@ setup:
 	podman stop graphite
 	podman start graphite
 
-	echo "PAUSE BEFORE CHANGE CONFIG"
+	echo "PAUSE BEFORE CHANGE CONFIG (60 secs)"
 
 	sleep 60
 
 	$(MAKE) update_addr
 	$(MAKE) update_logins
+	$(MAKE) update_datasource
+	$(MAKE) update_theme
 
 	podman stop fj-collector
 	podman start fj-collector
@@ -169,6 +174,36 @@ update_logins:
 
 		echo "Reset User and created service account"
 	fi
+
+.ONESHELL:
+update_theme:
+	@
+	MYVAR=$$(podman inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
+	RCURL=$$(curl -X PUT http://admin:admin@$$MYVAR:3000/api/org/preferences -H "Content-Type: application/json" -d '{ "theme": "light" }' 2>/dev/null)
+
+	if [ "$$RCURL" == "{\"message\":\"Preferences updated\"}" ]
+	then
+		echo "Light Grafana default theme updated sucessfully"
+	else
+		echo "Error updating grafana default theme: $$RCURL"
+	fi
+
+.ONESHELL:
+update_datasource:
+	@
+	MYVAR=$$(podman inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
+	MYGRAPHITE=$$(podman inspect graphite -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
+
+	RCURL=$$(curl -X POST http://admin:admin@$$MYVAR:3000/api/datasources -H "Content-Type: application/json" -d '{ "name":"Graphite", "type":"graphite", "url":"http://'$$MYGRAPHITE'", "access":"proxy", "isdefault":true }' 2>/dev/null)
+	TEST=$$(grep 'Datasource added' <<< $$RCURL)
+
+	if [ -z "$$TEST" ]
+	then
+		echo "Error creating grafana default datasource: $$RCURL"
+	else
+		echo "Created Graphite datasource (http://'$$MYGRAPHITE') in Grafana"
+	fi
+
 
 .ONESHELL:
 build_collector:
