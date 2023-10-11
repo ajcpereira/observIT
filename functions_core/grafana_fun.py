@@ -141,8 +141,8 @@ def create_panel_linux_os(system_name, resource_name, data, config):
                     hostname = host.replace("-dot-", ".")
                     str_net_rx = "aliasSub(aliasByNode(derivative(" + begin_str + host + ".net.*.rx_mbp), 3, 5), '-dot-', '.')"
                     str_net_tx = "aliasSub(aliasByNode(derivative(" + begin_str + host + ".net.*.tx_mbp), 3, 5), '-dot-', '.')"
-                    tgt_net_rx = [Target(datasource='default', expr=str_net_tx, target=str_net_tx)]
-                    tgt_net_tx = [Target(datasource='default', expr=str_net_rx, target=str_net_rx)]
+                    tgt_net_rx = [Target(datasource='default', expr=str_net_rx, target=str_net_rx)]
+                    tgt_net_tx = [Target(datasource='default', expr=str_net_tx, target=str_net_tx)]
                     panels_list.append(create_timeseries_panel(hostname + " Network Outbound", tgt_net_tx,
                                                                GridPos(h=7, w=12, x=0, y=4), "MBs"))
                     panels_list.append(create_timeseries_panel(hostname + " Network Inbound", tgt_net_rx,

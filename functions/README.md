@@ -10,17 +10,17 @@ Here you will find the information for each resource type
 
 ## ETERNUS_ICP
 
-Protocol: ssh
-Security: The user must be created previously and we recommend a common user with permissions only to sudo the following command: /opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out
-Database Structure:
-  system name
-  resources_types
-  hostname or alias
-  metric name
-  filesytem name from CS
-  dm disk from CS
-  raw disk from CS
-  svctm/r_await/w_await
+Protocol: ssh<br>
+Security: The user must be created previously and we recommend a common user with permissions only to sudo the following command: /opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out<br>
+Database Structure:<br>
+  system name<br>
+  resources_types<br>
+  hostname or alias<br>
+  metric name<br>
+  filesytem name from CS<br>
+  dm disk from CS<br>
+  raw disk from CS<br>
+  svctm/r_await/w_await<br>
 
 with the example config file structure would be:
 MYCS8000.eternus_icp.localhost.fs.filesystem-name.dm-disk.rdisk.svctm
@@ -60,8 +60,15 @@ systems:
 ## LINUX_OS
 
 Protocol: ssh<br>
-Security: A user with access to the remote server, no root privileges needed
+Security: A user with access to the remote server, no root privileges needed<br>
 Database Structure:<br>
+collector_root<br>
+system<br>
+resource_type<br>
+host ip or alias<br>
+metric category [cpu, mem, fs, net] <br>
+monitored resource if any [fs name, net iface] <br>
+metric name (depends of metric category)<br>
 
 
 with the example config file structure would be:<br>
