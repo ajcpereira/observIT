@@ -1,55 +1,7 @@
-
 from grafanalib.core import *
 from grafanalib._gen import DashboardEncoder
 import json, requests, logging
 from functions_core.yaml_validate import *
-
-
-def cp_linux_os_srv_cpu_load(**kwargs):
-    str_cpu_load = "aliasByNode(tst-collector" + "." + kwargs['name'] + "." + kwargs[
-        'resources_types'] + ".*.cpu.load5m, 3)"
-
-    timeseries_panel = TimeSeries(
-        title="CPU load (5m)",
-        dataSource='default',
-        targets=[
-            Target(
-                datasource='default',
-                expr=str_cpu_load,
-                target=str_cpu_load,
-            ),
-        ],
-        drawStyle='line',
-        lineInterpolation='smooth',
-        gradientMode='hue',
-        fillOpacity=25,
-        gridPos=GridPos(h=7, w=12, x=12, y=2),
-    )
-
-    print(timeseries_panel)
-    return timeseries_panel
-
-
-def panel_linux_os_cpu(**kwargs):
-    data = []
-
-    for host in kwargs:
-        str_cpu_use = "aliasByNode(" + kwargs['collector'] + ".cpu.use, 3)"
-        data = data.append("Target(datasource='default', expr=" + str_cpu_use + ", target=" + str_cpu_use + "),")
-
-    timeseries_panel = TimeSeries(
-        title="CPU utilization (%)",
-        dataSource='default',
-        targets=data,
-        drawStyle='line',
-        lineInterpolation='smooth',
-        gradientMode='hue',
-        fillOpacity=25,
-        gridPos=GridPos(h=7, w=12, x=0, y=2),
-    )
-    print(timeseries_panel)
-
-    return timeseries_panel
 
 
 def get_dashboard_json(dashboard, overwrite=False, message="Updated by grafanlib"):
@@ -82,13 +34,12 @@ def upload_to_grafana(json, server, api_key, verify=True):
     try:
         r = requests.post(f"http://{server}/api/dashboards/db", data=json, headers=headers, verify=verify)
     except:
-        logging.error("Unable to create dashboard in grafana!" )
-        #print(f"{r.status_code} - {r.content}")
-
+        logging.error("Unable to create dashboard in grafana!")
+        logging.error("Status code = %s", r.status_code)
+        logging.error("Response = %s", r.content)
 
 
 def create_timeseries_panel(str_title, panels_list, obj_grid_pos, unit):
-
     timeseries_panel = TimeSeries(
         title=str_title,
         dataSource='default',
@@ -100,34 +51,31 @@ def create_timeseries_panel(str_title, panels_list, obj_grid_pos, unit):
         unit=unit,
         gridPos=obj_grid_pos,
         spanNulls=True,
+
     )
 
     return timeseries_panel
 
 
 def create_stat_panel(str_title, panels_list, obj_grid_pos, unit):
-
     stat_panel = Stat(
         title=str_title,
         dataSource='default',
         targets=panels_list,
         gridPos=obj_grid_pos,
-        #unit=unit,
+        # unit=unit,
     )
 
     return stat_panel
 
 
 def create_bargauge_panel(str_title, panels_list, obj_grid_pos, unit):
+    # falta actualizar as propriedades de acordo com o json gravado no desktop
 
-    #falta actualizar as propriedades de acordo com o json gravado no desktop
+    tst = {"fieldConfig": {
+        "overrides": [{"matcher": {"id": "byName", "options": "Value"}, "properties": [{"id": "max"}]}]}}
 
-
-    tst = {"fieldConfig": {"overrides": [{"matcher": {"id": "byName","options": "Value"},"properties": [{"id": "max"}]}]}}
-    #tst = {"fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}}, "overrides": [{"matcher": {"id": "byName","options": "Value"},"properties": [{"id": "max"}]}]}
-    print(tst)
-
-    #tst = {"fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},}
+    # tst = {"fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},}
 
     bargauge_panel = BarGauge(
         title=str_title,
@@ -141,19 +89,16 @@ def create_bargauge_panel(str_title, panels_list, obj_grid_pos, unit):
         min=0,
         extraJson=tst,
     )
-    print(bargauge_panel.to_json_data())
 
     return bargauge_panel
 
 
-
 def create_panel_linux_os(system_name, resource_name, data, config):
-
     # todo:
     #       done: review targts to use aliassub to cope with ip addresses, to show them properly in grafana
     #       change graph for filesystem
 
-    panels_list =[]
+    panels_list = []
     begin_str = config.global_parameters.collector_root + "." + system_name + "." + resource_name + "."
 
     for metric in data:
@@ -166,12 +111,16 @@ def create_panel_linux_os(system_name, resource_name, data, config):
                 for host in metric['hosts']:
                     str_cpu_use = "aliasSub(aliasByNode(" + begin_str + host + ".cpu.use, 3), '-dot-', '.')"
                     str_cpu_load = "aliasSub(aliasByNode(" + begin_str + host + ".cpu.load5m, 3), '-dot-', '.')"
-                    panels_target_list_cpu_use.append(Target(datasource='default', expr=str_cpu_use, target=str_cpu_use))
-                    panels_target_list_cpu_load.append(Target(datasource='default', expr=str_cpu_load, target=str_cpu_load))
+                    panels_target_list_cpu_use.append(
+                        Target(datasource='default', expr=str_cpu_use, target=str_cpu_use))
+                    panels_target_list_cpu_load.append(
+                        Target(datasource='default', expr=str_cpu_load, target=str_cpu_load))
                 panels_list.append(
-                    create_timeseries_panel("CPU utilization (%)", panels_target_list_cpu_use, GridPos(h=7, w=12, x=0, y=1), ""))
+                    create_timeseries_panel("CPU utilization (%)", panels_target_list_cpu_use,
+                                            GridPos(h=7, w=12, x=0, y=1), ""))
                 panels_list.append(
-                    create_timeseries_panel("CPU Average Load (5 min)", panels_target_list_cpu_load, GridPos(h=7, w=12, x=12, y=1), ""))
+                    create_timeseries_panel("CPU Average Load (5 min)", panels_target_list_cpu_load,
+                                            GridPos(h=7, w=12, x=12, y=1), ""))
             case "mem":
                 panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
                 xpos = 0
@@ -180,22 +129,27 @@ def create_panel_linux_os(system_name, resource_name, data, config):
                     hostname = host.replace("-dot-", ".")
                     str_mem_total = "aliasSub(aliasByNode(" + begin_str + host + ".mem.total, 5), '-dot-', '.')"
                     str_mem_used = "aliasSub(aliasByNode(" + begin_str + host + ".mem.used, 5), '-dot-', '.')"
-                    panels_target_list_mem.append(Target(datasource='default', expr=str_mem_total, target=str_mem_total))
+                    panels_target_list_mem.append(
+                        Target(datasource='default', expr=str_mem_total, target=str_mem_total))
                     panels_target_list_mem.append(Target(datasource='default', expr=str_mem_used, target=str_mem_used))
-                    panels_list.append(create_bargauge_panel(hostname + " Memory Usage", panels_target_list_mem,GridPos(h=7, w=3, x=xpos, y=2), unit="decmbytes"))
-                    xpos=xpos+6
+                    panels_list.append(create_bargauge_panel(hostname + " Memory Usage", panels_target_list_mem,
+                                                             GridPos(h=7, w=3, x=xpos, y=2), unit="decmbytes"))
+                    xpos = xpos + 6
             case "net":
                 panels_list.append(RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=4)))
                 for host in metric['hosts']:
                     hostname = host.replace("-dot-", ".")
                     str_net_rx = "aliasSub(aliasByNode(derivative(" + begin_str + host + ".net.*.rx_mbp), 3, 5), '-dot-', '.')"
                     str_net_tx = "aliasSub(aliasByNode(derivative(" + begin_str + host + ".net.*.tx_mbp), 3, 5), '-dot-', '.')"
-                    tgt_net_rx = [Target(datasource='default', expr=str_net_tx, target=str_net_tx)]
-                    tgt_net_tx = [Target(datasource='default', expr=str_net_rx, target=str_net_rx)]
-                    panels_list.append(create_timeseries_panel(hostname + " Network Outbound", tgt_net_tx, GridPos(h=7, w=12, x=0, y=4), "MBs"))
-                    panels_list.append(create_timeseries_panel(hostname + " Network Inbound", tgt_net_rx, GridPos(h=7, w=12, x=12, y=4), "MBs"))
+                    tgt_net_rx = [Target(datasource='default', expr=str_net_rx, target=str_net_rx)]
+                    tgt_net_tx = [Target(datasource='default', expr=str_net_tx, target=str_net_tx)]
+                    panels_list.append(create_timeseries_panel(hostname + " Network Outbound", tgt_net_tx,
+                                                               GridPos(h=7, w=12, x=0, y=4), "MBs"))
+                    panels_list.append(create_timeseries_panel(hostname + " Network Inbound", tgt_net_rx,
+                                                               GridPos(h=7, w=12, x=12, y=4), "MBs"))
             case "fs":
-                panels_list.append(RowPanel(title=resource_name + ': File System', gridPos=GridPos(h=1, w=24, x=0, y=3)))
+                panels_list.append(
+                    RowPanel(title=resource_name + ': File System', gridPos=GridPos(h=1, w=24, x=0, y=3)))
                 for host in metric['hosts']:
                     hostname = host.replace("-dot-", ".")
                     str_fs_used = "aliasSub(aliasByNode(aliasSub(" + begin_str + host + ".fs.*.used, '_dash_', '/'), 5, 6),'-dot-', '.')"
@@ -203,46 +157,48 @@ def create_panel_linux_os(system_name, resource_name, data, config):
                     tgt_fs_used = [Target(datasource='default', expr=str_fs_used, target=str_fs_used)]
                     tgt_fs_total = [Target(datasource='default', expr=str_fs_total, target=str_fs_total)]
                     panels_list.append(
-                        create_timeseries_panel(hostname + " Filesystem", tgt_fs_used + tgt_fs_total, GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
-                        #create_bargauge_panel(host + " Filesystem", tgt_fs_used + tgt_fs_total,GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
+                        create_timeseries_panel(hostname + " Filesystem", tgt_fs_used + tgt_fs_total,
+                                                GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
+                    # create_bargauge_panel(host + " Filesystem", tgt_fs_used + tgt_fs_total,GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
 
     return panels_list
 
-def create_panel_eternus_icp(system_name, resource_name, data, config):
 
-    panels_list =[]
+def create_panel_eternus_icp(system_name, resource_name, data, config):
+    panels_list = []
     begin_str = config.global_parameters.collector_root + "." + system_name + "." + resource_name + "."
 
     for metric in data:
 
         match metric['metric']:
             case "fs":
-                
-                panels_list.append(RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=5)))
-                for host in metric['hosts']:
 
+                panels_list.append(
+                    RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=5)))
+                for host in metric['hosts']:
                     hostname = host.replace("-dot-", ".")
 
                     icp_svctm = "aliasByNode(aliasSub(" + begin_str + host + ".fs.*.*.*.svctm, '-dot-', '.') , 5, 6, 7)"
                     icp_w_await = "aliasByNode(aliasSub(" + begin_str + host + ".fs.*.*.*.w_await, '-dot-', '.') , 5, 6, 7)"
                     icp_r_await = "aliasByNode(aliasSub(" + begin_str + host + ".fs.*.*.*.r_await, '-dot-', '.') , 5, 6, 7)"
-        
-                    panels_icp_svctm=[Target(datasource='default', expr=icp_svctm, target=icp_svctm)]
-                    panels_icp_w_await=[Target(datasource='default', expr=icp_w_await, target=icp_w_await)]
-                    panels_icp_r_await=[Target(datasource='default', expr=icp_r_await, target=icp_r_await)]
+
+                    panels_icp_svctm = [Target(datasource='default', expr=icp_svctm, target=icp_svctm)]
+                    panels_icp_w_await = [Target(datasource='default', expr=icp_w_await, target=icp_w_await)]
+                    panels_icp_r_await = [Target(datasource='default', expr=icp_r_await, target=icp_r_await)]
 
                     panels_list.append(
-                    create_timeseries_panel(hostname + " SVCTM", panels_icp_svctm, GridPos(h=7, w=8, x=0, y=5), ""))
+                        create_timeseries_panel(hostname + " SVCTM", panels_icp_svctm, GridPos(h=7, w=8, x=0, y=5), ""))
                     panels_list.append(
-                    create_timeseries_panel(hostname + " W_AWAIT", panels_icp_w_await, GridPos(h=7, w=8, x=8, y=5), ""))
+                        create_timeseries_panel(hostname + " W_AWAIT", panels_icp_w_await, GridPos(h=7, w=8, x=8, y=5),
+                                                ""))
                     panels_list.append(
-                    create_timeseries_panel(hostname + " R_AWAIT", panels_icp_r_await, GridPos(h=7, w=8, x=16, y=5), ""))
+                        create_timeseries_panel(hostname + " R_AWAIT", panels_icp_r_await, GridPos(h=7, w=8, x=16, y=5),
+                                                ""))
 
     return panels_list
 
 
 def create_system_dashboard(sys, config):
-
     panels = []
 
     for res in sys['resources']:
@@ -261,31 +217,28 @@ def create_system_dashboard(sys, config):
         timezone="browser",
         panels=panels,
 
-     ).auto_panel_ids()
-
+    ).auto_panel_ids()
 
     return my_dashboard
 
 
-
 def build_dashboards(config):
+    # Dashboards will not be overwrited anymore
 
-    logging.info("Will build dashboards")
+    logging.debug("Will build dashboards")
     grafana_api_key = config.global_parameters.grafana_api_key
     grafana_server = config.global_parameters.grafana_server
 
     systems = build_grafana_fun_data_model(config)
 
     for sys in systems:
-        print("create_system_dash(sys)", sys['system'])
         my_dashboard = create_system_dashboard(sys, config)
-        my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True,message="Updated by fj-collector")
-        print(my_dashboard_json)
+        my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=False, message="Updated by fj-collector")
+        logging.debug("Created dashboard %s", my_dashboard_json)
         upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
 
 
 def build_grafana_fun_data_model(config):
-
     def check_if_metric_exists(system_name, resource_name, metric_name, lst):
         metrics_lst = []
         b_exists = False
@@ -335,7 +288,6 @@ def build_grafana_fun_data_model(config):
 
         return lst
 
-
     def add_resource(system_name, dict, model):
 
         local_model = model
@@ -349,8 +301,7 @@ def build_grafana_fun_data_model(config):
 
         return local_model
 
-
-    logging.debug( build_grafana_fun_data_model.__name__ + ": Config data is - %s", config)
+    logging.debug(build_grafana_fun_data_model.__name__ + ": Config data is - %s", config)
     model_result = []
 
     try:
@@ -363,33 +314,40 @@ def build_grafana_fun_data_model(config):
                     if not ip.alias == None:
                         hostname = ip.alias
                     else:
-                        print("IP Address", ip.ip)
                         hostname = str(ip.ip).replace(".", "-dot-")
                     host_list.append(hostname)
 
-                met_exists, met_hosts_lst = check_if_metric_exists(system.name, system.resources_types, metric.name, model_result)
-                logging.debug(build_grafana_fun_data_model.__name__ + ": Existing metric %s and hosts %s",metric.name , met_hosts_lst)
-                logging.debug(build_grafana_fun_data_model.__name__ + ": Adding metric %s and hosts %s",metric.name , host_list)
+                met_exists, met_hosts_lst = check_if_metric_exists(system.name, system.resources_types, metric.name,
+                                                                   model_result)
+                logging.debug(build_grafana_fun_data_model.__name__ + ": Existing metric %s and hosts %s", metric.name,
+                              met_hosts_lst)
+                logging.debug(build_grafana_fun_data_model.__name__ + ": Adding metric %s and hosts %s", metric.name,
+                              host_list)
                 if met_exists:
                     metric_dict = {'metric': metric.name, 'hosts': met_hosts_lst + host_list}
-                    model_result = my_update_resource_list(system.name, system.resources_types, metric.name, model_result, metric_dict)
+                    model_result = my_update_resource_list(system.name, system.resources_types, metric.name,
+                                                           model_result, metric_dict)
                 else:
                     metric_list.append({'metric': metric.name, 'hosts': host_list})
-                logging.debug(build_grafana_fun_data_model.__name__ + ": Metrics exist %s and metrics list is %s", met_exists, metric_list)
+                logging.debug(build_grafana_fun_data_model.__name__ + ": Metrics exist %s and metrics list is %s",
+                              met_exists, metric_list)
             res_exists = check_if_resource_exists(system.name, system.resources_types, model_result)
             if not res_exists:
-                logging.debug(build_grafana_fun_data_model.__name__ + ": Resource %s do not exists but system %s exists",system.resources_types, system.name)
-                res_list.append({'name':system.resources_types, 'data': metric_list})
+                logging.debug(
+                    build_grafana_fun_data_model.__name__ + ": Resource %s do not exists but system %s exists",
+                    system.resources_types, system.name)
+                res_list.append({'name': system.resources_types, 'data': metric_list})
             if check_if_system_exists(system.name, model_result):
                 logging.debug(build_grafana_fun_data_model.__name__ + ": System exists - %s", model_result)
-                model_result = add_resource(system.name, {'name':system.resources_types, 'data': metric_list}, model_result)
+                model_result = add_resource(system.name, {'name': system.resources_types, 'data': metric_list},
+                                            model_result)
             else:
-                model_result.append({'system':system.name, 'resources':res_list})
+                model_result.append({'system': system.name, 'resources': res_list})
     except Exception as msgerror:
-        logging.error(build_grafana_fun_data_model.__name__ + ": Unexpected error creating grafana_fun data model - %s" % msgerror)
+        logging.error(
+            build_grafana_fun_data_model.__name__ + ": Unexpected error creating grafana_fun data model - %s" % msgerror)
         return -1
 
     logging.debug(build_grafana_fun_data_model.__name__ + ": grafana_fun data model is - %s", model_result)
 
     return model_result
-
