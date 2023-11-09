@@ -1,4 +1,0 @@
-pyyaml
-schedule
-fabric2
-decorator

@@ -13,6 +13,8 @@ def cs_iostat(**args):
     cmd3="awk \'NR==FNR{a[$1]=$0; next} $3 in a{print a[$3],$0}\' /tmp/stats_iostat.out /tmp/stats_nsd.out | awk '{print $18\" \"$1\" \"$2\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\" \"$8 \" \"$9\" \"$10\" \"$11\" \"$12\" \"$13\" \"$14\" \"$15\" \"$16\" \"$17}' | sort"
     
     logging.debug("Use_sudo is set to %s and ip_use_sudo %s" % (args['use_sudo'], args['ip_use_sudo']))
+
+    flag_test=None
     
     if os.path.isfile("tests/cafs_iostat"):
           logging.info("cafs_iostat file exists, it will be used for tests")
@@ -73,9 +75,9 @@ def cs_iostat(**args):
         if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
             logging.debug("Starting metrics processing on FS type - %s" % time.ctime())
             columns = line.split()
-            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[16]) + "." + str(columns[0]) + "." + str(columns[17]) + "." + "svctm" + " " + re.sub(",",".",columns[14]) +" "+ str(timestamp) + "\n")
-            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[16]) + "." + str(columns[0]) + "." + str(columns[17]) + "." + "r_await" + " " + re.sub(",",".",columns[9]) +" "+ str(timestamp) + "\n")
-            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[16]) + "." + str(columns[0]) + "." + str(columns[17]) + "." + "w_await" + " " + re.sub(",",".",columns[10]) +" "+ str(timestamp) + "\n")
+            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "svctm" + " " + re.sub(",",".",columns[15]) +" "+ str(timestamp) + "\n")
+            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "r_await" + " " + re.sub(",",".",columns[10]) +" "+ str(timestamp) + "\n")
+            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "w_await" + " " + re.sub(",",".",columns[11]) +" "+ str(timestamp) + "\n")
             logging.debug("Finished metrics processing on FS type - %s" % time.ctime())
 
     ssh.ssh_del()

@@ -16,7 +16,7 @@ systems:
             ip_host_keys: keys/id_rsa
             ip_bastion: 172.22.58.55
 global_parameters:
-  repository: 10.89.0.7
+  repository: gaphite
   repository_port: 2003
   repository_protocol: tcp
   collector_root: eternus_new2
@@ -24,4 +24,4 @@ global_parameters:
   logfile: logs/fj-collector.log
   grafana_auto_fun: no
   grafana_api_key: glsa_kZXQZaFS8dY2F7jPTF1kjuxmdOAAgpdD_6051d174
-  grafana_server: localhost:3000
+  grafana_server: grafana:3000

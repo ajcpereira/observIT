@@ -73,7 +73,7 @@ class Secure_Connect():
                  return -1
 
     def ssh_run(self, cmd):
-         stdout = self.ssh.run(cmd, hide=True)
+         stdout = self.ssh.run(cmd, hide=True, timeout=50)
          return stdout
     
     def ssh_del(self):

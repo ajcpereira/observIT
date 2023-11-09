@@ -23,16 +23,27 @@ Users who don’t intend to modify Grafana code can simply use our Enterprise do
 
 Requires linux
 
-Requires podman (also dnsmasq)
-   In Ubuntu there's a bug with podman - https://bugs.launchpad.net/ubuntu/+source/libpod/+bug/2024394 - please rollback if not solved by the time you are using - apt install podman=3.4.4+ds1-1ubuntu1
+Requires docker
 
 Requires git
+
+Requires curl
 
 Internet access to github.com
 
 Will install under folder /opt/fj-collector
 
-Your user must have permissions in /opt and run podman
+The setup will need to be run with root so it can change the files to fjcollector
+
+### Pre-Setup
+
+Requires user 'fjcollector'
+
+Every system you need to ssh make sure you generate a private key and in the destination you use the public key in the authorized keys.
+
+We recommend to you have a look in the functions Readme
+
+If your network needs a proxy you need to setup in you shell session but also inside the Dockerfile 'install/Dockerfile', the lines are commented, so, just uncomment it and insert your IP.
 
 ### Installation Procedure
 
@@ -46,8 +57,7 @@ Now, just run the install
 
 ````
 cd fj-collector
-make setup
-make start
+sudo make setup
 ````
 
 edit /opt/fj-collector/collector/config/collector.yaml
