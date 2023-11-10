@@ -157,7 +157,7 @@ update_datasource:
 build_collector:
 
 	cp ./install/Dockerfile .
-	docker --http-proxy http://10.220.3.113:8080 build . -t fj-collector:latest
+	docker build . -t fj-collector:latest
 
 
 	docker compose start fj-collector
