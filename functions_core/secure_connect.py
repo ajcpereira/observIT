@@ -8,6 +8,7 @@ class Secure_Connect():
         
         logging.debug("Class Secure_connect Started")
         
+        self.bastion = bastion
 
         if bastion:
             logging.debug("Class Secure_connect with bastion Started")
@@ -77,4 +78,11 @@ class Secure_Connect():
          return stdout
     
     def ssh_del(self):
+         logging.debug("Will close ssh sessions on Class Secure_connect")
          self.ssh.close()
+         del self.ssh
+         logging.debug("Closed session on Class Secure_connect")
+         if self.bastion:
+            self.ssh_bastion.close()
+            del self.ssh_bastion
+            logging.debug("Closed bastion session on Class Secure_connect")
