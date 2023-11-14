@@ -80,7 +80,7 @@ def linux_os_fs(**args):
     else:
           host_keys=None
 
-    STR_CMD = "df -x tmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
+    STR_CMD = "df -x tmpfs -x devtmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
 
     logging.debug("linux_os_fs: Starting ssh execution to get linux_os_fs filesystem metrics")
 
