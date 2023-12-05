@@ -29,6 +29,10 @@ setup:
 	mkdir -p /opt/fj-collector/collector/keys
 	mkdir -p /opt/fj-collector/collector/tests
 
+	mkdir -p /opt/fj-collector/influxdb/influxdb
+	mkdir -p /opt/fj-collector/influxdb/influxdb2
+	mkdir -p /opt/fj-collector/influxdb/influxdb2-config
+
 	chown -R  fjcollector:fjcollector /opt/fj-collector
 	
 	cp ./install/Dockerfile .

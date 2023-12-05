@@ -5,3 +5,4 @@
 **/in_progress/logs/*
 **/logs/*
 **/keys/*
+**/.mypy_cache

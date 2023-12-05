@@ -23,7 +23,7 @@ services:
     ports:
     - "18125:8125/udp"
     - "12003:2003/tcp"
-    - "80:80/tcp"
+    - "8081:8081/tcp"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /opt/fj-collector/graphite/data/conf:/opt/graphite/conf
@@ -42,11 +42,29 @@ services:
     image: "grafana/grafana-enterprise:latest"
     restart: unless-stopped
     ports:
-    - "3000:3000/tcp"
+    - "8080:8080/tcp"
     volumes:
       - /opt/fj-collector/grafana/provisioning/:/etc/grafana/provisioning/
       - /opt/fj-collector/grafana/data/grafana:/var/lib/grafana/
     user: "0"
+    environment:
+      - ENV HTTP_PROXY="http\://10.220.3.113\:8080"
+      - ENV HTTPS_PROXY="https\://10.220.3.113\:8080"
+      - ENV FTP_PROXY="ftp\://10.220.3.113\:8080"
+    logging:
+       options:
+         max-size: "10m"
+         max-file: 3
+
+  influxdb:
+    image: "influxdb:latest"
+    restart: unless-stopped
+    ports:
+    - "8086:8086/tcp"
+    volumes:
+      - /opt/fj-collector/influxdb/influxdb:/var/lib/influxdb
+      - /opt/fj-collector/influxdb/influxdb2:/var/lib/influxdb2
+      - /opt/fj-collector/influxdb/influxdb2-config:/etc/influxdb
     environment:
       - ENV HTTP_PROXY="http\://10.220.3.113\:8080"
       - ENV HTTPS_PROXY="https\://10.220.3.113\:8080"

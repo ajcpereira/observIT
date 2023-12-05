@@ -1,0 +1,5 @@
+influx config create --config-name <config-name> \
+  --host-url https://us-west-2-1.aws.cloud2.influxdata.com \
+  --org <your-org> \
+  --token <your-auth-token> \
+  --active

@@ -24,4 +24,4 @@ global_parameters:
   logfile: logs/fj-collector.log
   grafana_auto_fun: no
   grafana_api_key: glsa_kZXQZaFS8dY2F7jPTF1kjuxmdOAAgpdD_6051d174
-  grafana_server: grafana:3000
+  grafana_server: grafana:8080
