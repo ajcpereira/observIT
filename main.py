@@ -100,7 +100,7 @@ if __name__ == "__main__":
             config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
             result_dicts, global_parms = create_metric_ip_dicts(config)
             
-            logging.debug("File changed will load %s" % result_dicts)
+            logging.debug("Configfile changed, will reload with %s" % result_dicts)
 
             for handler in logging.root.handlers[:]:
                 logging.root.removeHandler(handler)
@@ -116,6 +116,7 @@ if __name__ == "__main__":
             if config.global_parameters.grafana_auto_fun:
                 build_dashboards(config)
             logging.info("Configfile reloaded")
+            logging.debug("Configfile reloaded")
 
 
             

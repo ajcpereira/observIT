@@ -67,9 +67,9 @@ setup:
 	docker compose stop graphite
 	docker compose start graphite
 
-	echo "WILL PAUSE BEFORE CHANGE CONFIGFILE (60 secs)"
+	echo "WILL PAUSE BEFORE CHANGE CONFIGFILE (30 secs)"
 
-	sleep 60
+	sleep 30
 
 	$(MAKE) update_logins
 	$(MAKE) update_datasource
@@ -88,6 +88,7 @@ remove:
 	docker image rm graphiteapp/graphite-statsd
 	docker image rm grafana/grafana-enterprise
 	docker image rm fj-collector
+	docker image rm influxdb
 
 .ONESHELL:
 start:
@@ -106,13 +107,13 @@ update_logins:
 		echo "Going to reset admin password"
 		@docker exec fj-collector-grafana-1 grafana cli admin reset-admin-password admin
 		echo "Going to create service account"
-		@RCURL=$$(curl -X POST http://admin:admin@$$MYVAR:3000/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"fj-collector", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
+		@RCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"fj-collector", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
 		echo $$RCURL
 		
 		if [[ $$RCURL =~ ^[0-9] ]]
 		then
 			echo "Will create token"
-		    @TCURL=$$(curl -X POST http://admin:admin@$$MYVAR:3000/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"fj-collector"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
+		    @TCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"fj-collector"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
 			echo $$TCURL
 			if [ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $TCURL ]]
 			then
@@ -129,7 +130,7 @@ update_theme:
 	@
 	#MYVAR=$$(docker inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
 	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
-	RCURL=$$(curl -X PUT http://admin:admin@$$MYVAR:3000/api/org/preferences -H "Content-Type: application/json" -d '{ "theme": "light" }' 2>/dev/null)
+	RCURL=$$(curl -X PUT http://admin:admin@localhost/api/org/preferences -H "Content-Type: application/json" -d '{ "theme": "light" }' 2>/dev/null)
 
 	if [ "$$RCURL" == "{\"message\":\"Preferences updated\"}" ]
 	then
@@ -146,7 +147,7 @@ update_datasource:
 	#MYGRAPHITE=$$(docker inspect graphite -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
 	#MYGRAPHITE=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-graphite-1 2> /dev/null)
 	MYGRAPHITE="graphite"
-	RCURL=$$(curl -X POST http://admin:admin@$$MYVAR:3000/api/datasources -H "Content-Type: application/json" -d '{ "name":"Graphite", "type":"graphite", "url":"http://'$$MYGRAPHITE'", "access":"proxy", "isdefault":true }' 2>/dev/null)
+	RCURL=$$(curl -X POST http://admin:admin@localhost/api/datasources -H "Content-Type: application/json" -d '{ "name":"Graphite", "type":"graphite", "url":"http://'$$MYGRAPHITE'", "access":"proxy", "isdefault":true }' 2>/dev/null)
 	TEST=$$(grep 'Datasource added' <<< $$RCURL)
 
 	if [ -z "$$TEST" ]
