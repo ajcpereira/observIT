@@ -19,9 +19,11 @@ global_parameters:
   repository: graphite
   repository_port: 2003
   repository_protocol: tcp
-  collector_root: eternus_new2
+  repository_org: fj-collector
+  collector_root: ETERNUS
   loglevel: DEBUG
   logfile: logs/fj-collector.log
   grafana_auto_fun: yes
   grafana_api_key: glsa_kZXQZaFS8dY2F7jPTF1kjuxmdOAAgpdD_6051d174
+  influxdb_api_key: hhhhhhh
   grafana_server: grafana

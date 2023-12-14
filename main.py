@@ -59,7 +59,7 @@ def run_threaded(**args) -> None:
 
 def launch_thread(result_dicts):
     for result_dict in result_dicts:
-        logging.debug("Will launch tread %s" % result_dict)
+        logging.debug("Will launch thread %s" % result_dict)
         Thread(target=run_threaded, kwargs=result_dict).start()
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
@@ -71,18 +71,22 @@ def launch_thread(result_dicts):
 #################################################################################
 
 if __name__ == "__main__":
-    
+
+    ########## BEGIN FUNCTIONS IN YAML_VALIDATE  ################################    
     config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
     result_dicts, global_parms = create_metric_ip_dicts(config)
-    
-    ########## BEGIN - Start Logging Facility #######################################
-    logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
-    ########## END - Start Logging Facility #########################################    
+    ########## END FUNCTIONS IN YAML_VALIDATE  ##################################    
 
-    ########## BEGIN - Log configfile start processing ##############################
+
+    ########## BEGIN - Start Logging Facility ###################################
+    logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
+    ########## END - Start Logging Facility #####################################    
+
+    ########## BEGIN - Log configfile start processing ##########################
     logging.info("Starting Collector")
-    ########## END - Log configfile start processing ################################
-  
+    ########## END - Log configfile start processing ############################
+
+
     launch_thread(result_dicts)
     if config.global_parameters.grafana_auto_fun:
         build_dashboards(config)

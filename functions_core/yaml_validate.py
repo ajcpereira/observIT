@@ -47,11 +47,12 @@ def configfile_read(cmd_parameters, configfile_default):
             logging.error("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
             sys.exit()        
     elif len(cmd_parameters) > 2:
-
-        logging.error("Only configfile path is needed")
+        logging.error("Only configfile path can be passed as parameter")
         sys.exit()
+
     if 'config' not in locals():
         sys.exit("No configfile could be found")
+        
     return config, orig_mtime, configfile_running
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
 
@@ -117,14 +118,16 @@ class SystemsName(BaseModel):
     config: Config
 
 class GlobalParameters(BaseModel):
-    repository: StrictStr
+    repository: Literal['graphite', 'influxdb']
     repository_port: PositiveInt
     repository_protocol: Literal['tcp', 'udp']
+    repository_org: StrictStr
     loglevel: Literal['NOTSET', 'INFO', 'WARNING', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
     collector_root: StrictStr
     grafana_auto_fun: Optional[bool] = False
     grafana_api_key: Optional[str] = Field(None)
+    influxdb_api_key: Optional[str] = Field(None)
     grafana_server: Optional[str] = Field(None)
 
 class ConfigFile(BaseModel):
