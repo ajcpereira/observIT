@@ -31,7 +31,7 @@ from functions import *
 #                                                                               #
 #################################################################################
 
-configfile_default = "config/config.yaml"
+configfile = "config/config.yaml"
 event = Event()
 
 #################################################################################
@@ -73,7 +73,7 @@ def launch_thread(result_dicts):
 if __name__ == "__main__":
 
     ########## BEGIN FUNCTIONS IN YAML_VALIDATE  ################################    
-    config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
+    config, orig_mtime, configfile_running = configfile_read(configfile)
     result_dicts, global_parms = create_metric_ip_dicts(config)
     ########## END FUNCTIONS IN YAML_VALIDATE  ##################################    
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
 
     launch_thread(result_dicts)
-    if config.global_parameters.grafana_auto_fun:
+    if config.global_parameters.auto_fungraph:
         build_dashboards(config)
     
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
             event.set()
             
             orig_mtime = os.path.getmtime(configfile_running)
-            config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
+            config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile)
             result_dicts, global_parms = create_metric_ip_dicts(config)
             
             logging.debug("Configfile changed, will reload with %s" % result_dicts)
@@ -117,10 +117,7 @@ if __name__ == "__main__":
             time.sleep(5)
             event.clear()
             launch_thread(result_dicts)
-            if config.global_parameters.grafana_auto_fun:
+            if config.global_parameters.auto_fungraph:
                 build_dashboards(config)
             logging.info("Configfile reloaded")
             logging.debug("Configfile reloaded")
-
-
-            

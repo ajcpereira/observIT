@@ -99,31 +99,37 @@ start:
 .ONESHELL:
 update_logins:
 	@
-	#MYVAR=$$(docker inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
-	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
+	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-influxdb-1 2> /dev/null)
 	echo $$MYVAR
 	if [[ ! -z $$MYVAR ]]
 	then
-		echo "Going to reset admin password"
-		@docker exec fj-collector-grafana-1 grafana cli admin reset-admin-password admin
-		echo "Going to create service account"
-		@RCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"fj-collector", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
-		echo $$RCURL
-		
-		if [[ $$RCURL =~ ^[0-9] ]]
+		echo "Going to create setup for influxdb"
+		@docker exec fj-collector-influxdb-1 influx setup --org fjcollector --bucket fjcollector --username admin --password admin123 --retention 157w --force
+		@TOKEN=$$(docker exec fj-collector-influxdb-1 influx auth ls | grep fjcollector | cut -f3)
+		echo $$TOKEN
+
+		if [[ -z $$TOKEN ]]
 		then
 			echo "Will create token"
-		    @TCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"fj-collector"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
-			echo $$TCURL
-			if [ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $TCURL ]]
+			@TOKEN=$$(docker exec fj-collector-influxdb-1 influx auth create -o fjcollector --all-access --description "fjcollector" | grep fjcollector | cut -f3)
+			if [[ ! -z $$TOKEN ]]
 			then
-				sed -i "s/grafana_api_key\:.*/grafana_api_key\: $$TCURL/" /opt/fj-collector/collector/config/config.yaml
-				echo "Updated Config File"
-			fi 
+				sed -i "s/repository_api_key\:.*/repository_api_key\: $$TOKEN/" /opt/fj-collector/collector/config/config.yaml
+			else
+				echo "Failed to create a new token, solution will fail, manual intervention needed"
+			fi
+		else
+			echo "Token already exists in influxdb"
 		fi
-
-		echo "Reset User and created service account"
+	else
+	   	echo "Failed to find the influxdb container IP"
 	fi
+
+	echo "Setup and token update to influxdb section is finished"
+	echo "###########################################"
+	echo "# Please change the default admin pwd     #"
+	echo "#       admin:admin123                    #"
+	echo "###########################################"
 
 .ONESHELL:
 update_theme:
