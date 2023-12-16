@@ -23,4 +23,5 @@ global_parameters:
   loglevel: DEBUG
   logfile: logs/fj-collector.log
   auto_fungraph: yes
+  grafana_api_key: hhhhh
   grafana_server: grafana

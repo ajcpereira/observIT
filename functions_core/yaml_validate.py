@@ -108,6 +108,7 @@ class GlobalParameters(BaseModel):
     loglevel: Literal['NOTSET', 'INFO', 'WARNING', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
     auto_fungraph: Optional[bool] = False
+    grafana_api_key: StrictStr
     grafana_server: Optional[str] = Field('grafana')
 
 class ConfigFile(BaseModel):
