@@ -19,9 +19,6 @@ usage:
 .ONESHELL:
 setup:
 	
-	mkdir -p /opt/fj-collector/graphite/data/storage
-	mkdir -p /opt/fj-collector/graphite/data/statsd_config
-	mkdir -p /opt/fj-collector/graphite/data/conf
 	mkdir -p /opt/fj-collector/grafana/provisioning
 	mkdir -p /opt/fj-collector/grafana/data/grafana
 	mkdir -p /opt/fj-collector/collector/logs
@@ -49,24 +46,6 @@ setup:
 
 	rm Dockerfile
 
-	if [ -f /opt/fj-collector/graphite/data/conf/carbon.conf ]
-	then
-		sed -i "s/MAX_UPDATES_PER_SECOND.*/MAX_UPDATES_PER_SECOND \= 5000/" /opt/fj-collector/graphite/data/conf/carbon.conf
-		sed -i "s/MAX_CREATES_PER_MINUTE.*/MAX_CREATES_PER_MINUTE \= 5000/" /opt/fj-collector/graphite/data/conf/carbon.conf
-		echo "Updated Graphite Config File"
-	fi
-
-
-	if [ -f /opt/fj-collector/graphite/data/conf/storage-schemas.conf ]
-	then
-		sed -i "s/retentions = 10s:6h,1m:6d,10m:1800d/retentions = 1m:6d,5m:30d,15m:1800d/" /opt/fj-collector/graphite/data/conf/storage-schemas.conf
-		echo "Updated Graphite Schema File"
-	fi
-
-
-	docker compose stop graphite
-	docker compose start graphite
-
 	echo "WILL PAUSE BEFORE CHANGE CONFIGFILE (30 secs)"
 
 	sleep 30
@@ -85,10 +64,11 @@ stop:
 .ONESHELL:
 remove:
 	docker compose rm
-	docker image rm graphiteapp/graphite-statsd
 	docker image rm grafana/grafana-enterprise
 	docker image rm fj-collector
 	docker image rm influxdb
+	rm /opt/fj-collector/influxdb/influxdb2/influxd.bolt
+	rm /opt/fj-collector/influxdb/influxdb2/influxd.sqlite
 
 .ONESHELL:
 start:
@@ -184,19 +164,25 @@ update_theme:
 .ONESHELL:
 update_datasource:
 	@
-	#MYVAR=$$(docker inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
 	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
-	#MYGRAPHITE=$$(docker inspect graphite -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
-	#MYGRAPHITE=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-graphite-1 2> /dev/null)
-	MYGRAPHITE="graphite"
-	RCURL=$$(curl -X POST http://admin:admin@localhost/api/datasources -H "Content-Type: application/json" -d '{ "name":"Graphite", "type":"graphite", "url":"http://'$$MYGRAPHITE'", "access":"proxy", "isdefault":true }' 2>/dev/null)
-	TEST=$$(grep 'Datasource added' <<< $$RCURL)
+	MYINFLUX="influxdb:8086"
 
+
+	@TOKEN=$$(docker exec fj-collector-influxdb-1 influx auth ls | grep fjcollector | cut -f3)
+	echo $$TOKEN
+
+	if [[ ! -z $$TOKEN ]]
+	then
+		RCURL=$$(curl -X POST http://admin:admin@localhost/api/datasources -H "Content-Type: application/json" -d '{"name": "InfluxDB","type": "influxdb","access": "proxy","url": "http://localhost:8086","jsonData": {"dbName": "fjcollector","httpMode": "GET","httpHeaderName1": "Authorization"},"secureJsonData": {"httpHeaderValue1": "Token '$$TOKEN'"},"isDefault": true}' 2>/dev/null)
+		TEST=$$(grep 'Datasource added' <<< $$RCURL)
+	else
+		echo "No Token was found, please check if the setup of the Influxdb was finished sucessfully"
+	fi
 	if [ -z "$$TEST" ]
 	then
 		echo "Error creating grafana default datasource: $$RCURL"
 	else
-		echo "Created Graphite datasource (http://'$$MYGRAPHITE') in Grafana"
+		echo "Created Influxdb datasource (http://'$$MYINFLUX') in Grafana"
 	fi
 
 

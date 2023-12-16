@@ -19,9 +19,9 @@ global_parameters:
   repository: influxdb
   repository_port: 8086
   repository_protocol: tcp
-  repository_api_key: hhhhhhh
+  repository_api_key: itwillbeatoken
   loglevel: DEBUG
   logfile: logs/fj-collector.log
   auto_fungraph: yes
-  grafana_api_key: hhhhh
+  grafana_api_key: itwillbeatoken
   grafana_server: grafana
