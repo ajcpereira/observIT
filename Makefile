@@ -160,7 +160,7 @@ update_datasource:
 
 	if [[ ! -z $$TOKEN ]]
 	then
-		RCURL=$$(curl -X POST http://admin:admin@localhost/api/datasources -H "Content-Type: application/json" -d '{"name": "InfluxDB","type": "influxdb","access": "proxy","url": "http://localhost:8086","jsonData": {"dbName": "fjcollector","httpMode": "GET","httpHeaderName1": "Authorization"},"secureJsonData": {"httpHeaderValue1": "Token '$$TOKEN'"},"isDefault": true}' 2>/dev/null)
+		RCURL=$$(curl -X POST http://admin:admin@localhost/api/datasources -H "Content-Type: application/json" -d '{"name": "InfluxDB","type": "influxdb","access": "proxy","url": "http://influxdb:8086","jsonData": {"dbName": "fjcollector","httpMode": "GET","httpHeaderName1": "Authorization"},"secureJsonData": {"httpHeaderValue1": "Token '$$TOKEN'"},"isDefault": true}' 2>/dev/null)
 		TEST=$$(grep 'Datasource added' <<< $$RCURL)
 	else
 		echo "No Token was found, please check if the setup of the Influxdb was finished sucessfully"
