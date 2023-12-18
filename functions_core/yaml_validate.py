@@ -42,8 +42,8 @@ def configfile_read(configfile):
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
-        'eternus_icp': [['fs_io','fs'], ['eternus_icp.eternus_icp_fs_io','linux_os.linux_os_fs']],
-        'linux_os': [['cpu', 'mem', 'fs', 'net'], ['linux_os_cpu', 'linux_os_mem', 'linux_os_fs', 'linux_os_net']],
+        'eternus_icp': [['fs_io','fs', 'cpu', 'mem'], ['eternus_icp.eternus_icp_fs_io','linux_os.linux_os_fs','linux_os.linux_os_cpu', 'linux_os.linux_os_mem']],
+        'linux_os': [['cpu', 'mem', 'fs', 'net'], ['linux_os.linux_os_cpu', 'linux_os.linux_os_mem', 'linux_os.linux_os_fs', 'linux_os.linux_os_net']],
         'fj_ism': [['temp'], ['ism_temp']]
     }
 
