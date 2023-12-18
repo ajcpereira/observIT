@@ -42,7 +42,7 @@ def configfile_read(configfile):
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
-        'eternus_icp': [['fs'], ['cs_iostat']],
+        'eternus_icp': [['fs_io','fs'], ['eternus_icp.eternus_icp_fs_io','linux_os.linux_os_fs']],
         'linux_os': [['cpu', 'mem', 'fs', 'net'], ['linux_os_cpu', 'linux_os_mem', 'linux_os_fs', 'linux_os_net']],
         'fj_ism': [['temp'], ['ism_temp']]
     }
@@ -132,10 +132,12 @@ def create_metric_ip_dicts(config):
                     "ip": ip.ip,
                     **ip_dict,
                     "func": AllowedMetrics.get_func_name(system.resources_types, metric.name),
-                    **global_parms.model_dump()
+                    **global_parms.model_dump(),
+                    "repo_org": "fjcollector",
+                    "repo_bucket": "fjcollector"
                 }
                 result_dicts.append(result_dict)
-                
+              
     return result_dicts, global_parms.model_dump()
 ########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
 

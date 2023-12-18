@@ -7,7 +7,7 @@ systems:
           host_keys: keys/id_rsa
           poll: 1
       metrics:
-          - name: fs
+          - name: fs_io
       ips:
           - ip: 127.0.0.1
             alias: localhost

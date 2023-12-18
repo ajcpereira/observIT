@@ -19,6 +19,9 @@ Graphite - https://graphiteapp.org/ - 26/07/2023: (...) Graphite was originally 
 Grafana - https://grafana.com/licensing/ - 26/07/2023: (...) On April 20, 2021, Grafana Labs announced that going forward, our core open source projects will be moving from the Apache License v2.0 to AGPLv3.
 Users who don’t intend to modify Grafana code can simply use our Enterprise download. This is a free-to-use, proprietary-licensed, compiled binary that matches the features of the AGPL version, and can be upgraded to take advantage of all the commercial features in Grafana Enterprise (Enterprise plugins, advanced security, reporting, support, and more) with the purchase of a license key. (...)
 
+Influxdb - https://www.influxdata.com/ - 18/12/2023: https://github.com/influxdata/influxdb/blob/master/LICENSE (...) MIT License
+Copyright (c) 2018 InfluxData (...)
+
 ### Requirements
 
 Requires linux

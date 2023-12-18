@@ -48,11 +48,11 @@ def run_threaded(**args) -> None:
         event.wait(timeout=args['poll']*60)
         logging.debug("Will run_thread with %s" % args)
         if event.is_set():
-            logging.warning("Exited run_thread")
+            logging.debug("#### Exited run_thread ####")
             break
         #Thread(target=eval(args['func']+"."+args['func']), kwargs=args).start()
-        Thread(target=eval(args['resources_types']+"."+args['func']), kwargs=args).start()
-
+        #Thread(target=eval(args['resources_types']+"."+args['func']), kwargs=args).start()
+        Thread(target=eval(args['func']), kwargs=args).start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
@@ -83,11 +83,13 @@ if __name__ == "__main__":
     ########## END - Start Logging Facility #####################################    
 
     ########## BEGIN - Log configfile start processing ##########################
-    logging.info("Starting Collector")
+    logging.info("################ Starting Collector ################")
     ########## END - Log configfile start processing ############################
 
+    logging.debug("Will print the dict that will be used: %s" % result_dicts)
 
     launch_thread(result_dicts)
+
     if config.global_parameters.auto_fungraph:
         build_dashboards(config)
     

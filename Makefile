@@ -79,70 +79,57 @@ start:
 .ONESHELL:
 update_logins:
 	@
-	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
-	echo $$MYVAR
-	if [[ ! -z $$MYVAR ]]
+	echo "Going to reset admin password for grafana"
+	@docker exec fj-collector-grafana-1 grafana cli admin reset-admin-password admin
+	echo "##########################################################"
+	echo "# Reset User and created service account for grafana     #"
+	echo "# Please change the admin password we only               #"
+	echo "# require the API token                                  #"
+	echo "##########################################################"
+	echo "Going to create service account for grafana"
+	@RCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"fj-collector", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
+	echo $$RCURL
+	
+	if [[ $$RCURL =~ ^[0-9] ]]
 	then
-		echo "Going to reset admin password for grafana"
-		@docker exec fj-collector-grafana-1 grafana cli admin reset-admin-password admin
-		echo "##########################################################"
-		echo "# Reseted User and created service account for grafana   #"
-		echo "# Please change the admin password we only               #"
-		echo "# require the API token                                  #"
-		echo "##########################################################"
-		echo "Going to create service account for grafana"
-		@RCURL=$$(curl -X POST http://admin:admin@$$MYVAR/api/serviceaccounts -H "Content-Type: application/json" -d '{"name":"fj-collector", "role":"Admin"}' 2>/dev/null | cut -d ":"  -f 2 | cut -d "," -f 1);
-		echo $$RCURL
-		
-		if [[ $$RCURL =~ ^[0-9] ]]
+		echo "Will create token"
+	    @TCURL=$$(curl -X POST http://admin:admin@localhost/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"fj-collector"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
+		echo $$TCURL
+		if [ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $TCURL ]]
 		then
-			echo "Will create token"
-		    @TCURL=$$(curl -X POST http://admin:admin@$$MYVAR/api/serviceaccounts/$$RCURL/tokens -H "Content-Type: application/json" -d '{"name":"fj-collector"}' 2>/dev/null | cut -d "," -f 3| cut -d ":" -f 2 | tr -d \} | tr -d \");
-			echo $$TCURL
-			if [ -f /opt/fj-collector/collector/config/config.yaml ] && [[ ! -z $TCURL ]]
-			then
-				sed -i "s/grafana_api_key\:.*/grafana_api_key\: $$TCURL/" /opt/fj-collector/collector/config/config.yaml
-				echo "Updated Config File with grafana api key"
-			else
-				echo "Failed to find the config file or get the token"
-			fi
+			sed -i "s/grafana_api_key\:.*/grafana_api_key\: $$TCURL/" /opt/fj-collector/collector/config/config.yaml
+			echo "Updated Config File with grafana api key"
 		else
-			echo "Service account likely already exists, no changes made"
+			echo "Failed to find the config file or get the token"
 		fi
 	else
-		echo "Failed to find the grafana container IP"
+		echo "Service account likely already exists, no changes made"
 	fi
+
 
 	echo "Setup and token update to grafana section is finished"
 
-	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-influxdb-1 2> /dev/null)
-	echo $$MYVAR
-	if [[ ! -z $$MYVAR ]]
-	then
-		echo "Going to create setup for influxdb"
-		@docker exec fj-collector-influxdb-1 influx setup --org fjcollector --bucket fjcollector --username admin --password admin123 --retention 157w --force
-		@TOKEN=$$(docker exec fj-collector-influxdb-1 influx auth ls | grep fjcollector | cut -f3)
-		echo $$TOKEN
 
-		if [[ -z $$TOKEN ]]
+	echo "Going to create setup for influxdb"
+	@docker exec fj-collector-influxdb-1 influx setup --org fjcollector --bucket fjcollector --username admin --password admin123 --retention 157w --force
+	@TOKEN=$$(docker exec fj-collector-influxdb-1 influx auth ls | grep fjcollector | cut -f3)
+	echo $$TOKEN
+	if [[ -z $$TOKEN ]]
+	then
+		echo "Will create token"
+		@TOKEN=$$(docker exec fj-collector-influxdb-1 influx auth create -o fjcollector --all-access --description "fjcollector" | grep fjcollector | cut -f3)
+		if [[ ! -z $$TOKEN ]]
 		then
-			echo "Will create token"
-			@TOKEN=$$(docker exec fj-collector-influxdb-1 influx auth create -o fjcollector --all-access --description "fjcollector" | grep fjcollector | cut -f3)
-			if [[ ! -z $$TOKEN ]]
-			then
-				sed -i "s/repository_api_key\:.*/repository_api_key\: $$TOKEN/" /opt/fj-collector/collector/config/config.yaml
-				echo "##############################################"
-				echo "# Please change the default admin pwd        #"
-				echo "# admin:admin123 we only required API token  #"
-				echo "##############################################"
-			else
-				echo "Failed to create a new token, solution will fail, manual intervention needed"
-			fi
+			sed -i "s/repository_api_key\:.*/repository_api_key\: $$TOKEN/" /opt/fj-collector/collector/config/config.yaml
+			echo "##############################################"
+			echo "# Please change the default admin pwd        #"
+			echo "# admin:admin123 we only required API token  #"
+			echo "##############################################"
 		else
-			echo "Token already exists in influxdb"
+			echo "Failed to create a new token, solution will fail, manual intervention needed"
 		fi
 	else
-	   	echo "Failed to find the influxdb container IP"
+		echo "Token already exists in influxdb"
 	fi
 
 	echo "Setup and token update to influxdb section is finished"
@@ -151,7 +138,7 @@ update_logins:
 update_theme:
 	@
 	#MYVAR=$$(docker inspect grafana -f '{{ .NetworkSettings.IPAddress }}' 2> /dev/null)
-	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
+	#MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
 	RCURL=$$(curl -X PUT http://admin:admin@localhost/api/org/preferences -H "Content-Type: application/json" -d '{ "theme": "light" }' 2>/dev/null)
 
 	if [ "$$RCURL" == "{\"message\":\"Preferences updated\"}" ]
@@ -164,7 +151,7 @@ update_theme:
 .ONESHELL:
 update_datasource:
 	@
-	MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
+	#MYVAR=$$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' fj-collector-grafana-1 2> /dev/null)
 	MYINFLUX="influxdb:8086"
 
 
@@ -189,9 +176,14 @@ update_datasource:
 .ONESHELL:
 build_collector:
 
-	cp ./install/Dockerfile .
-	docker build . -t fj-collector:latest
+	docker compose stop fj-collector
 
+	docker compose images rm fj-collector-fj-collector-1
+
+	cp ./install/Dockerfile .
+	
+	docker build . -t fj-collector:latest
+	docker compose create fj-collector
 
 	docker compose start fj-collector
 
