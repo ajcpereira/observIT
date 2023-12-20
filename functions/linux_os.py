@@ -20,10 +20,6 @@ import re, logging
 def linux_os_cpu(**args):
     # Definitions/Constants
 
-    #INFLUX_URL = "http://localhost:8086"
-    #INFLUX_TOKEN = "fg6a6l2mXZxG_PyBfoZtP327tkVxymBYESbgj-ylFqSaFUkVbVcR8yJ4CCwzKczdc__SWY2tFZDgPQwRdyx0Jw=="
-    #INFLUX_ORG = "fjs"
-    #INFLUX_BUCKET = "dev"
 
     bastion = check_bastion(args['ip_bastion'], args['bastion'])
     host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
@@ -86,11 +82,6 @@ def linux_os_cpu(**args):
 #       "mem.total", "mem.used", "mem.free", "mem.shared", "mem.buff", "mem.avail"
 ###################################################################################
 def linux_os_mem(**args):
-    # Definitions/Constants
-    INFLUX_URL = "http://localhost:8086"
-    INFLUX_TOKEN = "fg6a6l2mXZxG_PyBfoZtP327tkVxymBYESbgj-ylFqSaFUkVbVcR8yJ4CCwzKczdc__SWY2tFZDgPQwRdyx0Jw=="
-    INFLUX_ORG = "fjs"
-    INFLUX_BUCKET = "dev"
 
     bastion = check_bastion(args['ip_bastion'], args['bastion'])
     host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
@@ -152,11 +143,6 @@ def linux_os_mem(**args):
 #
 #################################################################################
 def linux_os_fs(**args):
-    # Definitions/Constants
-    INFLUX_URL = "http://localhost:8086"
-    INFLUX_TOKEN = "fg6a6l2mXZxG_PyBfoZtP327tkVxymBYESbgj-ylFqSaFUkVbVcR8yJ4CCwzKczdc__SWY2tFZDgPQwRdyx0Jw=="
-    INFLUX_ORG = "fjs"
-    INFLUX_BUCKET = "dev"
 
     bastion = check_bastion(args['ip_bastion'], args['bastion'])
     host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
@@ -221,12 +207,6 @@ def linux_os_fs(**args):
 def linux_os_net(**args):
     # Network
     # interface  rx_bytes tx_bytes
-
-    # Definitions/Constants
-    INFLUX_URL = "http://localhost:8086"
-    INFLUX_TOKEN = "fg6a6l2mXZxG_PyBfoZtP327tkVxymBYESbgj-ylFqSaFUkVbVcR8yJ4CCwzKczdc__SWY2tFZDgPQwRdyx0Jw=="
-    INFLUX_ORG = "fjs"
-    INFLUX_BUCKET = "dev"
 
     bastion = check_bastion(args['ip_bastion'], args['bastion'])
     host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])

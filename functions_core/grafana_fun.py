@@ -1,4 +1,5 @@
 from grafanalib.core import *
+from grafanalib.influxdb import *
 from grafanalib._gen import DashboardEncoder
 import json, requests, logging
 from functions_core.yaml_validate import *
@@ -39,174 +40,16 @@ def upload_to_grafana(json, server, api_key, verify=True):
         logging.error("Response = %s", r.content)
 
 
-def create_timeseries_panel(str_title, panels_list, obj_grid_pos, unit):
-    timeseries_panel = TimeSeries(
-        title=str_title,
-        dataSource='default',
-        targets=panels_list,
-        drawStyle='line',
-        lineInterpolation='smooth',
-        gradientMode='hue',
-        fillOpacity=25,
-        unit=unit,
-        gridPos=obj_grid_pos,
-        spanNulls=True,
-
-    )
-
-    return timeseries_panel
-
-
-def create_stat_panel(str_title, panels_list, obj_grid_pos, unit):
-    stat_panel = Stat(
-        title=str_title,
-        dataSource='default',
-        targets=panels_list,
-        gridPos=obj_grid_pos,
-        # unit=unit,
-    )
-
-    return stat_panel
-
-
-def create_bargauge_panel(str_title, panels_list, obj_grid_pos, unit):
-    # falta actualizar as propriedades de acordo com o json gravado no desktop
-
-    tst = {"fieldConfig": {
-        "overrides": [{"matcher": {"id": "byName", "options": "Value"}, "properties": [{"id": "max"}]}]}}
-
-    # tst = {"fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}}},}
-
-    bargauge_panel = BarGauge(
-        title=str_title,
-        dataSource='default',
-        targets=panels_list,
-        orientation='vertical',
-        displayMode='basic',
-        calc='lastNotNull',
-        format=unit,
-        gridPos=obj_grid_pos,
-        min=0,
-        extraJson=tst,
-    )
-
-    return bargauge_panel
-
-
-def create_panel_linux_os(system_name, resource_name, data, config):
-    # todo:
-    #       done: review targts to use aliassub to cope with ip addresses, to show them properly in grafana
-    #       change graph for filesystem
-
-    panels_list = []
-    begin_str = config.global_parameters.collector_root + "." + system_name + "." + resource_name + "."
-
-    for metric in data:
-
-        match metric['metric']:
-            case "cpu":
-                panels_target_list_cpu_use = []
-                panels_target_list_cpu_load = []
-                panels_list.append(RowPanel(title=resource_name + ': CPU', gridPos=GridPos(h=1, w=24, x=0, y=1)))
-                for host in metric['hosts']:
-                    str_cpu_use = "aliasSub(aliasByNode(" + begin_str + host + ".cpu.use, 3), '-dot-', '.')"
-                    str_cpu_load = "aliasSub(aliasByNode(" + begin_str + host + ".cpu.load5m, 3), '-dot-', '.')"
-                    panels_target_list_cpu_use.append(
-                        Target(datasource='default', expr=str_cpu_use, target=str_cpu_use))
-                    panels_target_list_cpu_load.append(
-                        Target(datasource='default', expr=str_cpu_load, target=str_cpu_load))
-                panels_list.append(
-                    create_timeseries_panel("CPU utilization (%)", panels_target_list_cpu_use,
-                                            GridPos(h=7, w=12, x=0, y=1), ""))
-                panels_list.append(
-                    create_timeseries_panel("CPU Average Load (5 min)", panels_target_list_cpu_load,
-                                            GridPos(h=7, w=12, x=12, y=1), ""))
-            case "mem":
-                panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
-                xpos = 0
-                for host in metric['hosts']:
-                    panels_target_list_mem = []
-                    hostname = host.replace("-dot-", ".")
-                    str_mem_total = "aliasSub(aliasByNode(" + begin_str + host + ".mem.total, 5), '-dot-', '.')"
-                    str_mem_used = "aliasSub(aliasByNode(" + begin_str + host + ".mem.used, 5), '-dot-', '.')"
-                    panels_target_list_mem.append(
-                        Target(datasource='default', expr=str_mem_total, target=str_mem_total))
-                    panels_target_list_mem.append(Target(datasource='default', expr=str_mem_used, target=str_mem_used))
-                    panels_list.append(create_bargauge_panel(hostname + " Memory Usage", panels_target_list_mem,
-                                                             GridPos(h=7, w=3, x=xpos, y=2), unit="decmbytes"))
-                    xpos = xpos + 6
-            case "net":
-                panels_list.append(RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=4)))
-                for host in metric['hosts']:
-                    hostname = host.replace("-dot-", ".")
-                    str_net_rx = "aliasSub(aliasByNode(derivative(" + begin_str + host + ".net.*.rx_mbp), 3, 5), '-dot-', '.')"
-                    str_net_tx = "aliasSub(aliasByNode(derivative(" + begin_str + host + ".net.*.tx_mbp), 3, 5), '-dot-', '.')"
-                    tgt_net_rx = [Target(datasource='default', expr=str_net_rx, target=str_net_rx)]
-                    tgt_net_tx = [Target(datasource='default', expr=str_net_tx, target=str_net_tx)]
-                    panels_list.append(create_timeseries_panel(hostname + " Network Outbound", tgt_net_tx,
-                                                               GridPos(h=7, w=12, x=0, y=4), "MBs"))
-                    panels_list.append(create_timeseries_panel(hostname + " Network Inbound", tgt_net_rx,
-                                                               GridPos(h=7, w=12, x=12, y=4), "MBs"))
-            case "fs":
-                panels_list.append(
-                    RowPanel(title=resource_name + ': File System', gridPos=GridPos(h=1, w=24, x=0, y=3)))
-                for host in metric['hosts']:
-                    hostname = host.replace("-dot-", ".")
-                    str_fs_used = "aliasSub(aliasByNode(aliasSub(" + begin_str + host + ".fs.*.used, '_dash_', '/'), 5, 6),'-dot-', '.')"
-                    str_fs_total = "aliasSub(aliasByNode(aliasSub(" + begin_str + host + ".fs.*.total, '_dash_', '/'), 5, 6), '-dot-', '.')"
-                    tgt_fs_used = [Target(datasource='default', expr=str_fs_used, target=str_fs_used)]
-                    tgt_fs_total = [Target(datasource='default', expr=str_fs_total, target=str_fs_total)]
-                    panels_list.append(
-                        create_timeseries_panel(hostname + " Filesystem", tgt_fs_used + tgt_fs_total,
-                                                GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
-                    # create_bargauge_panel(host + " Filesystem", tgt_fs_used + tgt_fs_total,GridPos(h=7, w=24, x=0, y=3), "decgbytes"))
-
-    return panels_list
-
-
-def create_panel_eternus_icp(system_name, resource_name, data, config):
-    panels_list = []
-    begin_str = config.global_parameters.collector_root + "." + system_name + "." + resource_name + "."
-
-    for metric in data:
-
-        match metric['metric']:
-            case "fs":
-
-                panels_list.append(
-                    RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=5)))
-                for host in metric['hosts']:
-                    hostname = host.replace("-dot-", ".")
-
-                    icp_svctm = "aliasByNode(aliasSub(" + begin_str + host + ".fs.*.*.*.svctm, '-dot-', '.') , 5, 6, 7)"
-                    icp_w_await = "aliasByNode(aliasSub(" + begin_str + host + ".fs.*.*.*.w_await, '-dot-', '.') , 5, 6, 7)"
-                    icp_r_await = "aliasByNode(aliasSub(" + begin_str + host + ".fs.*.*.*.r_await, '-dot-', '.') , 5, 6, 7)"
-
-                    panels_icp_svctm = [Target(datasource='default', expr=icp_svctm, target=icp_svctm)]
-                    panels_icp_w_await = [Target(datasource='default', expr=icp_w_await, target=icp_w_await)]
-                    panels_icp_r_await = [Target(datasource='default', expr=icp_r_await, target=icp_r_await)]
-
-                    panels_list.append(
-                        create_timeseries_panel(hostname + " SVCTM", panels_icp_svctm, GridPos(h=7, w=8, x=0, y=5), ""))
-                    panels_list.append(
-                        create_timeseries_panel(hostname + " W_AWAIT", panels_icp_w_await, GridPos(h=7, w=8, x=8, y=5),
-                                                ""))
-                    panels_list.append(
-                        create_timeseries_panel(hostname + " R_AWAIT", panels_icp_r_await, GridPos(h=7, w=8, x=16, y=5),
-                                                ""))
-
-    return panels_list
-
-
 def create_system_dashboard(sys, config):
+
     panels = []
 
     for res in sys['resources']:
         match res['name']:
             case "linux_os":
-                panels = panels + create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], config)
+                panels = panels + create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], sys['poll'])
             case "eternus_icp":
-                panels = panels + create_panel_eternus_icp(str(sys['system']), str(res['name']), res['data'], config)
+                panels = panels + create_panel_eternus_icp(str(sys['system']), str(res['name']), res['data'], sys['poll'])
 
     my_dashboard = Dashboard(
         title="System " + sys['system'] + " dashboard",
@@ -222,6 +65,13 @@ def create_system_dashboard(sys, config):
     return my_dashboard
 
 
+##########################################################################################################################
+#
+# function: build_dashboards
+#
+# This function builds a grafana dashboard based on the monitored items, configured on the config.yaml file.
+##########################################################################################################################
+
 def build_dashboards(config):
     # Dashboards will not be overwrited anymore
 
@@ -233,9 +83,17 @@ def build_dashboards(config):
 
     for sys in systems:
         my_dashboard = create_system_dashboard(sys, config)
-        my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=False, message="Updated by fj-collector")
+        my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True, message="Updated by fj-collector")
         logging.debug("Created dashboard %s", my_dashboard_json)
         upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
+
+
+##########################################################################################################################
+#
+# function: build_grafana_fun_data_model
+#
+# This function builds a dictionary with the data model for creating the graphs
+##########################################################################################################################
 
 
 def build_grafana_fun_data_model(config):
@@ -314,7 +172,7 @@ def build_grafana_fun_data_model(config):
                     if not ip.alias == None:
                         hostname = ip.alias
                     else:
-                        hostname = str(ip.ip).replace(".", "-dot-")
+                        hostname = str(ip.ip)
                     host_list.append(hostname)
 
                 met_exists, met_hosts_lst = check_if_metric_exists(system.name, system.resources_types, metric.name,
@@ -342,7 +200,7 @@ def build_grafana_fun_data_model(config):
                 model_result = add_resource(system.name, {'name': system.resources_types, 'data': metric_list},
                                             model_result)
             else:
-                model_result.append({'system': system.name, 'resources': res_list})
+                model_result.append({'system': system.name, 'resources': res_list, 'poll': system.config.parameters.poll})
     except Exception as msgerror:
         logging.error(
             build_grafana_fun_data_model.__name__ + ": Unexpected error creating grafana_fun data model - %s" % msgerror)
@@ -351,3 +209,440 @@ def build_grafana_fun_data_model(config):
     logging.debug(build_grafana_fun_data_model.__name__ + ": grafana_fun data model is - %s", model_result)
 
     return model_result
+
+
+##########################################################################################################################
+#
+# Resource Type: linux_os
+#
+##########################################################################################################################
+
+
+def create_panel_linux_os(system_name, resource_name, data, poll):
+    # todo:
+
+    panels_list = []
+
+    for metric in data:
+        match metric['metric']:
+            case "cpu":
+                panels_list.append(RowPanel(title=resource_name + ': CPU', gridPos=GridPos(h=1, w=24, x=0, y=0)))
+
+                panels_target_list_cpu_use = []
+                for host in metric['hosts']:
+                    panels_target_list_cpu_use = panels_target_list_cpu_use + [InfluxDBTarget(
+                        query="SELECT \"use\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag", alias="$tag_host").to_json_data()]
+
+                panels_list.append(TimeSeries(
+                    title="CPU utilization (%)",
+                    dataSource='default',
+                    targets=panels_target_list_cpu_use,
+                    drawStyle='line',
+                    lineInterpolation='smooth',
+                    gradientMode='hue',
+                    fillOpacity=25,
+                    unit="percent",
+                    gridPos=GridPos(h=7, w=12, x=0, y=1),
+                    spanNulls=True,
+                    legendPlacement="right",
+                    legendDisplayMode="table"
+                ))
+
+                panels_target_list_cpu_load = []
+                for host in metric['hosts']:
+                    panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
+                        query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"host\"::tag", alias="$tag_host")]
+
+                panels_list.append(TimeSeries(
+                    title="CPU Average Load (5 min)",
+                    dataSource='default',
+                    targets=panels_target_list_cpu_load,
+                    drawStyle='line',
+                    lineInterpolation='smooth',
+                    gradientMode='hue',
+                    fillOpacity=25,
+                    unit="",
+                    gridPos=GridPos(h=7, w=12, x=12, y=1),
+                    spanNulls=True,
+                    legendPlacement="right",
+                    legendDisplayMode="table"
+                ))
+            case "mem":
+
+                panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
+
+                target_mem = [InfluxDBTarget(
+                    query="SELECT  (last(total)-last(avail)) as \"Used\", last(\"avail\") as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag",
+                    format="table")]
+
+                panels_list.append(BarChart(
+                    title="Memory Usage",
+                    dataSource='default',
+                    targets=target_mem,
+                    drawStyle='line',
+                    lineInterpolation='smooth',
+                    gradientMode='hue',
+                    fillOpacity=25,
+                    unit="decmbytes",
+                    gridPos=GridPos(h=7, w=24, x=0, y=3),
+                    spanNulls=True,
+                    legendPlacement="right",
+                    legendDisplayMode="table",
+                    stacking={'mode': "normal"},
+                    tooltipMode="multi",
+                    #timeFrom=str(poll)+"m",
+                ))
+
+            case "fs":
+                panels_list.append(
+                    RowPanel(title=resource_name + ': File System', gridPos=GridPos(h=1, w=24, x=0, y=4)))
+
+                for host in metric['hosts']:
+
+                    target_fs = [InfluxDBTarget(
+                        query="SELECT last(\"used\") as Used, (last(\"total\")-last(\"used\")) as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY time DESC",
+                        format="table")]
+
+                    panels_list.append(BarChart(
+                        title= host + " Filesystem",
+                        dataSource='default',
+                        targets=target_fs,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="deckbytes",
+                        gridPos=GridPos(h=7, w=24, x=0, y=5),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table",
+                        stacking={'mode': "normal"},
+                        tooltipMode="multi",
+                        #timeFrom=str(poll)+"m",
+                    ))
+
+            case "net":
+                panels_list.append(RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=6)))
+                for host in metric['hosts']:
+
+                    target_net_outbound = [InfluxDBTarget(
+                        query="SELECT derivative(\"tx_bytes\", " + str(poll) + "m) FROM \"net\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"if\"::tag",
+                        alias="$tag_if")]
+
+                    panels_list.append(TimeSeries(
+                        title= host + " Network Outbound",
+                        dataSource='default',
+                        targets=target_net_outbound,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="binBps",
+                        gridPos=GridPos(h=7, w=12, x=0, y=7),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table"
+                    ))
+
+                    target_net_inbound = [InfluxDBTarget(
+                        query="SELECT derivative(\"rx_bytes\"," + str(poll)+"m) FROM \"net\" WHERE (\"host\"::tag = '" + host +"') AND $timeFilter GROUP BY \"if\"::tag",
+                        alias="$tag_if")]
+
+                    panels_list.append(TimeSeries(
+                        title=host + " Network Inbound",
+                        dataSource='default',
+                        targets=target_net_inbound,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="binBps",
+                        gridPos=GridPos(h=7, w=12, x=12, y=7),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table"
+                    ))
+
+    return panels_list
+
+##########################################################################################################################
+#
+# Resource Type: eternus_icp
+#
+##########################################################################################################################
+
+def create_panel_eternus_icp(system_name, resource_name, data, poll):
+
+    panels_list = []
+
+    for metric in data:
+        match metric['metric']:
+            case "fs_io":
+                panels_list.append(
+                    RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=8)))
+
+                for host in metric['hosts']:
+
+                    panels_target_list = [InfluxDBTarget(
+                        query="SELECT \"svctm\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+                        alias="$tag_fs $tag_dm $tag_rawdev")]
+
+                    panels_list.append(TimeSeries(
+                        title= host + " SVCTM",
+                        dataSource='default',
+                        targets=panels_target_list,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="ms",
+                        gridPos=GridPos(h=7, w=24, x=0, y=9),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table"
+                    ))
+
+                    panels_target_list = [InfluxDBTarget(
+                                        query="SELECT \"r_await\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+                                        alias="$tag_fs $tag_dm $tag_rawdev")]
+
+                    panels_list.append(TimeSeries(
+                        title= host + " R_AWAIT",
+                        dataSource='default',
+                        targets=panels_target_list,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="ms",
+                        gridPos=GridPos(h=7, w=24, x=0, y=10),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table"
+                    ))
+
+                    panels_target_list = [InfluxDBTarget(
+                        query="SELECT \"w_await\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+                        alias="$tag_fs $tag_dm $tag_rawdev")]
+
+                    panels_list.append(TimeSeries(
+                        title=host + " W_AWAIT",
+                        dataSource='default',
+                        targets=panels_target_list,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="ms",
+                        gridPos=GridPos(h=7, w=24, x=0, y=11),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table"
+                    ))
+            case "cpu":
+                panels_list.append(RowPanel(title=resource_name + ': CPU', gridPos=GridPos(h=1, w=24, x=0, y=0)))
+
+                panels_target_list_cpu_use = [InfluxDBTarget(
+                    query="SELECT \"use\" FROM \"cpu\" WHERE $timeFilter GROUP BY \"host\"::tag", alias="$tag_host").to_json_data()]
+
+                panels_target_list_cpu_use = []
+
+                for host in metric['hosts']:
+                    panels_target_list_cpu_use = panels_target_list_cpu_use + [InfluxDBTarget(
+                        query="SELECT \"use\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"host\"::tag",
+                        alias="$tag_host").to_json_data()]
+
+                panels_list.append(TimeSeries(
+                    title="CPU utilization (%)",
+                    dataSource='default',
+                    targets=panels_target_list_cpu_use,
+                    drawStyle='line',
+                    lineInterpolation='smooth',
+                    gradientMode='hue',
+                    fillOpacity=25,
+                    unit="percent",
+                    gridPos=GridPos(h=7, w=12, x=0, y=1),
+                    spanNulls=True,
+                    legendPlacement="right",
+                    legendDisplayMode="table"
+                ))
+
+                panels_target_list_cpu_load = []
+                for host in metric['hosts']:
+                    panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
+                        query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"host\"::tag",
+                        alias="$tag_host")]
+
+                panels_list.append(TimeSeries(
+                    title="CPU Average Load (5 min)",
+                    dataSource='default',
+                    targets=panels_target_list_cpu_load,
+                    drawStyle='line',
+                    lineInterpolation='smooth',
+                    gradientMode='hue',
+                    fillOpacity=25,
+                    unit="",
+                    gridPos=GridPos(h=7, w=12, x=12, y=1),
+                    spanNulls=True,
+                    legendPlacement="right",
+                    legendDisplayMode="table"
+                ))
+            case "mem":
+
+                panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
+
+                target_mem = [InfluxDBTarget(
+                    query="SELECT  (last(total)-last(avail)) as \"Used\", last(\"avail\") as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag",
+                    format="table")]
+
+                panels_list.append(BarChart(
+                    title="Memory Usage",
+                    dataSource='default',
+                    targets=target_mem,
+                    drawStyle='line',
+                    lineInterpolation='smooth',
+                    gradientMode='hue',
+                    fillOpacity=25,
+                    unit="decmbytes",
+                    gridPos=GridPos(h=7, w=24, x=0, y=3),
+                    spanNulls=True,
+                    legendPlacement="right",
+                    legendDisplayMode="table",
+                    stacking={'mode': "normal"},
+                    tooltipMode="multi",
+                    #timeFrom=str(poll)+"m",
+                ))
+
+            case "fs":
+                panels_list.append(
+                    RowPanel(title=resource_name + ': File System', gridPos=GridPos(h=1, w=24, x=0, y=4)))
+
+                for host in metric['hosts']:
+
+                    target_fs = [InfluxDBTarget(
+                        query="SELECT last(\"used\") as Used, (last(\"total\")-last(\"used\")) as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY time DESC",
+                        format="table")]
+
+                    panels_list.append(BarChart(
+                        title= host + " Filesystem",
+                        dataSource='default',
+                        targets=target_fs,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="deckbytes",
+                        gridPos=GridPos(h=7, w=24, x=0, y=5),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table",
+                        stacking={'mode': "normal"},
+                        tooltipMode="multi",
+                        #timeFrom=str(poll)+"m",
+                    ))
+
+            case "net":
+                panels_list.append(RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=6)))
+                for host in metric['hosts']:
+
+                    target_net_outbound = [InfluxDBTarget(
+                        query="SELECT derivative(\"tx_bytes\", " + str(poll) + "m) FROM \"net\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"if\"::tag",
+                        alias="$tag_if")]
+
+                    panels_list.append(TimeSeries(
+                        title= host + " Network Outbound",
+                        dataSource='default',
+                        targets=target_net_outbound,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="binBps",
+                        gridPos=GridPos(h=7, w=12, x=0, y=7),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table"
+                    ))
+
+                    target_net_inbound = [InfluxDBTarget(
+                        query="SELECT derivative(\"rx_bytes\"," + str(poll)+"m) FROM \"net\" WHERE (\"host\"::tag = '" + host +"') AND $timeFilter GROUP BY \"if\"::tag",
+                        alias="$tag_if")]
+
+                    panels_list.append(TimeSeries(
+                        title=host + " Network Inbound",
+                        dataSource='default',
+                        targets=target_net_inbound,
+                        drawStyle='line',
+                        lineInterpolation='smooth',
+                        gradientMode='hue',
+                        fillOpacity=25,
+                        unit="binBps",
+                        gridPos=GridPos(h=7, w=12, x=12, y=7),
+                        spanNulls=True,
+                        legendPlacement="right",
+                        legendDisplayMode="table"
+                    ))
+
+
+
+    return panels_list
+
+
+
+
+# Grafanalib doesn't have a class to manipulate BarChart
+# this is a new class, based on TimeSeries class, to create BarChart graphs
+
+class BarChart(TimeSeries):
+
+    def to_json_data(self):
+        return self.panel_json(
+            {
+                'fieldConfig': {
+                    'defaults': {
+                        'color': {
+                            'mode': self.colorMode
+                        },
+                        'custom': {
+                            'axisPlacement': self.axisPlacement,
+                            'axisLabel': self.axisLabel,
+                            'drawStyle': self.drawStyle,
+                            'lineInterpolation': self.lineInterpolation,
+                            'barAlignment': self.barAlignment,
+                            'lineWidth': self.lineWidth,
+                            'fillOpacity': self.fillOpacity,
+                            'gradientMode': self.gradientMode,
+                            'spanNulls': self.spanNulls,
+                            'showPoints': self.showPoints,
+                            'pointSize': self.pointSize,
+                            'scaleDistribution': {
+                                'type': self.scaleDistributionType,
+                                'log': self.scaleDistributionLog
+                            },
+                            'hideFrom': {
+                                'tooltip': False,
+                                'viz': False,
+                                'legend': False
+                            },
+                            'thresholdsStyle': {
+                                'mode': self.thresholdsStyleMode
+                            },
+                        },
+                        'mappings': self.mappings,
+                        'unit': self.unit
+                    },
+                    'overrides': self.overrides
+                },
+                'options': {
+                    'stacking': self.stacking,
+                    'legend': {
+                        'displayMode': self.legendDisplayMode,
+                        'placement': self.legendPlacement,
+                        'calcs': self.legendCalcs
+                    },
+                    'tooltip': {
+                        'mode': self.tooltipMode
+                    }
+                },
+                'type': "barchart",
+            })
