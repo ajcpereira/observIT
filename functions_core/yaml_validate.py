@@ -23,43 +23,27 @@ import os,logging,sys
 #################################################################################
 
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
-def configfile_read(cmd_parameters, configfile_default):
-    if len(cmd_parameters) == 1:
-        try:
-            if os.path.isfile(configfile_default):
-                    logging.info("Using default configfile config/config.yaml")
-                    config = read_yaml(configfile_default)
-                    orig_mtime=(os.path.getmtime(configfile_default))
-                    configfile_running=configfile_default
-        except Exception as msgerr:
-            logging.error("Can't handle configfile - %s - with error - %s" % (configfile_default,msgerr))
-            sys.exit()            
-    elif len(cmd_parameters) == 2:
-        try:
-            if os.path.isfile(cmd_parameters[1]):
-                config = read_yaml(cmd_parameters[1])
-                orig_mtime=(os.path.getmtime(cmd_parameters[1]))
-                configfile_running=cmd_parameters[1]
-            else:
-                logging.error('No valid configfile - %s' % cmd_parameters[1])
-                sys.exit()
-        except Exception as msgerr:
-            logging.error("Can't handle configfile - %s - with error - %s" % (cmd_parameters[1],msgerr))
-            sys.exit()        
-    elif len(cmd_parameters) > 2:
+def configfile_read(configfile):
+    try:
+        if os.path.isfile(configfile):
+            logging.debug("Using default configfile config/config.yaml")
+            config = read_yaml(configfile)
+            orig_mtime=(os.path.getmtime(configfile))
+    except Exception as msgerr:
+            logging.error("Can't handle configfile - %s - with error - %s" % (configfile,msgerr))
+            sys.exit()
 
-        logging.error("Only configfile path is needed")
-        sys.exit()
     if 'config' not in locals():
         sys.exit("No configfile could be found")
-    return config, orig_mtime, configfile_running
+        
+    return config, orig_mtime, configfile
 ########## FUNCTION GET AND CHECK CONFIG FILE  ##################################
 
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
-        'eternus_icp': [['fs'], ['cs_iostat']],
-        'linux_os': [['cpu', 'mem', 'fs', 'net'], ['linux_os_cpu', 'linux_os_mem', 'linux_os_fs', 'linux_os_net']],
+        'eternus_icp': [['fs_io','fs', 'cpu', 'mem'], ['eternus_icp.eternus_icp_fs_io','linux_os.linux_os_fs','linux_os.linux_os_cpu', 'linux_os.linux_os_mem']],
+        'linux_os': [['cpu', 'mem', 'fs', 'net'], ['linux_os.linux_os_cpu', 'linux_os.linux_os_mem', 'linux_os.linux_os_fs', 'linux_os.linux_os_net']],
         'fj_ism': [['temp'], ['ism_temp']]
     }
 
@@ -117,15 +101,15 @@ class SystemsName(BaseModel):
     config: Config
 
 class GlobalParameters(BaseModel):
-    repository: StrictStr
+    repository: Literal['influxdb']
     repository_port: PositiveInt
-    repository_protocol: Literal['tcp', 'udp']
+    repository_protocol: Literal['tcp']
+    repository_api_key: Optional[str] = Field(None)
     loglevel: Literal['NOTSET', 'INFO', 'WARNING', 'DEBUG', 'ERROR', 'CRITICAL']
     logfile: StrictStr
-    collector_root: StrictStr
-    grafana_auto_fun: Optional[bool] = False
-    grafana_api_key: Optional[str] = Field(None)
-    grafana_server: Optional[str] = Field(None)
+    auto_fungraph: Optional[bool] = False
+    grafana_api_key: StrictStr
+    grafana_server: Optional[str] = Field('grafana')
 
 class ConfigFile(BaseModel):
     systems: List[SystemsName]
@@ -148,10 +132,12 @@ def create_metric_ip_dicts(config):
                     "ip": ip.ip,
                     **ip_dict,
                     "func": AllowedMetrics.get_func_name(system.resources_types, metric.name),
-                    **global_parms.model_dump()
+                    **global_parms.model_dump(),
+                    "repo_org": "fjcollector",
+                    "repo_bucket": "fjcollector"
                 }
                 result_dicts.append(result_dict)
-                
+              
     return result_dicts, global_parms.model_dump()
 ########## FUNCTION VALIDATES YAML AND RETURNS DICT #############################
 

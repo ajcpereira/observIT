@@ -7,21 +7,21 @@ systems:
           host_keys: keys/id_rsa
           poll: 1
       metrics:
-          - name: fs
+          - name: fs_io
       ips:
-          - ip: 172.22.58.55
+          - ip: 127.0.0.1
             alias: localhost
-          - ip: 172.22.58.55
+          - ip: 127.0.0.1
             alias: new-localhost
             ip_host_keys: keys/id_rsa
-            ip_bastion: 172.22.58.55
+            ip_bastion: 127.0.0.1
 global_parameters:
-  repository: gaphite
-  repository_port: 2003
+  repository: influxdb
+  repository_port: 8086
   repository_protocol: tcp
-  collector_root: eternus_new2
+  repository_api_key: itwillbeatoken
   loglevel: DEBUG
   logfile: logs/fj-collector.log
-  grafana_auto_fun: no
-  grafana_api_key: glsa_kZXQZaFS8dY2F7jPTF1kjuxmdOAAgpdD_6051d174
-  grafana_server: grafana:3000
+  auto_fungraph: yes
+  grafana_api_key: itwillbeatoken
+  grafana_server: grafana

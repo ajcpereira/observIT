@@ -1,198 +1,9 @@
-# Script name: linux-os-srv.py
-# Script purpose:
-#   Script to collect cpu and mem data from a linux host
+import time
 
 from functions_core.netcat import *
 from functions_core.secure_connect import *
+from functions_core.send_influxdb import *
 import re, logging
-
-
-#    if args['use_sudo'] or args['ip_use_sudo']:
-#            cmd1 = "sudo " + cmd1
-#            logging.debug("Will use cmd1 with sudo - %s" % cmd1)  
-#
-#    if args['ip_bastion']:
-#          bastion=str(args['ip_bastion'])
-#    elif args['bastion']:
-#          bastion=str(args['bastion'])
-#    else:
-#          bastion=None
-#
-#    if args['ip_host_keys']:
-#          host_keys=args['ip_host_keys']
-#    elif args['host_keys']:
-#          host_keys=args['host_keys']
-#    else:
-#          host_keys=None
-
-
-
-
-
-
-def send_data(c_params, c_values, str_timestamp, **kwargs):
-
-    if kwargs['alias']:
-        hostname = kwargs['alias']
-    else:
-        hostname = str(kwargs['ip']).replace(".","-dot-")
-
-    str_msg_begin = kwargs['collector_root'] + "." + kwargs['name'] + "." + kwargs['resources_types'] + "." + hostname + "."
-    for i in range(0, len(c_params)):
-
-        try:
-            str_data = str_msg_begin + c_params[i] + " " + str(c_values[i]) + " " + str_timestamp + "\n"
-            netcat(str(kwargs['repository']), int(kwargs['repository_port']), kwargs['repository_protocol'], str_data)
-            logging.debug("Data sent to repository: %s", str_data)
-        except Exception as msgerror:
-            logging.error("Failed to send data to repository %s:%s/%s" % kwargs['repository'], kwargs['repository_port'],kwargs['repository_protocol'] )
-            return -1
-
-
-
-#################################################################################
-#
-#  linux_os_fs()
-#   collects for each filesystem values in GB:
-#       "fs.{mount}.available", "fs.{mount}.used", "fs.{mount}.total"
-
-#
-#################################################################################
-def linux_os_fs(**args):
-
-    # list_data = ["fs.mount", "fs.available", "fs.used", "fs.total"]
-
-    # Filesystem
-    # mount available used
-
-
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    STR_CMD = "df -x tmpfs -x devtmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
-
-    logging.debug("linux_os_fs: Starting ssh execution to get linux_os_fs filesystem metrics")
-
-    logging.debug("linux_os_fs: Connecting to remote host - %s", str(args['ip']))
-    logging.debug("linux_os_fs: Executing command - %s", STR_CMD)
-
-    try:
-        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
-        stdout = sshcon.ssh_run(STR_CMD)
-        response = stdout.stdout
-        sshcon.ssh_del()
-
-        int_timestamp = int(time.time())
-        logging.debug("linux_os_fs: Command Result - %s",  response)
-        logging.debug("linux_os_fs: Finished ssh execution to get linux_os_fs metrics")
-
-        lst_output = response.splitlines()
-        for lst_output_line in lst_output :
-            list_line = str(lst_output_line).split()
-            cdata_info = ["fs."+ re.sub("/", "_dash_", list_line[0])+"."+"available", "fs."+re.sub("/", "_dash_", list_line[0])+"."+"used", "fs."+re.sub("/", "_dash_", list_line[0])+"."+"total"]
-            arr_cdata_values = [int(list_line[1])/1024/1024, int(list_line[2])/1024/1024, int(list_line[3])/1024/1024]
-            send_data(cdata_info, arr_cdata_values, str(int_timestamp), **args)
-
-    except Exception as msgerror:
-        logging.error("linux_os_fs: Failed to connect to %s - %s" % (args['ip'], msgerror))
-        return -1
-
-#################################################################################
-#
-#  linux_os_net()
-#   collects for each network interface in status connected values in Mbp:
-#       "net.{iface}.rx_mbp", "net.{iface}.tx_mbp"
-#
-#################################################################################
-def linux_os_net(**args):
-
-    # Network
-    # interface  rx_bytes tx_bytes
-
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    STR_CMD = "nmcli  -t -f DEVICE con | grep -f /dev/stdin /proc/net/dev | awk '{sub(/:/, \"\");print $1, $2, $10}'"
-
-    logging.debug("linux_os_net: Starting ssh execution to get linux_os_net network metrics")
-
-    logging.debug("linux_os_net: Connecting to remote host - %s", str(args['ip']))
-    logging.debug("linux_os_net: Executing command - %s", STR_CMD)
-
-    try:
-        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
-        stdout = sshcon.ssh_run(STR_CMD)
-        response = stdout.stdout
-        sshcon.ssh_del()
-
-        int_timestamp = int(time.time())
-        logging.debug("linux_os_net: Command Result linux_os_net - %s",  response)
-        logging.debug("linux_os_net: Finished ssh execution to get metrics")
-
-        lst_output = response.splitlines()
-        for lst_output_line in lst_output :
-            list_line = str(lst_output_line).split()
-            cdata_info = ["net." + list_line[0] + "." + "rx_mbp", "net." + list_line[0] + "." + "tx_mbp"]
-            arr_cdata_values = [int(list_line[1])/1024/1024, int(list_line[2])/1024/1024]
-            logging.debug ("get_linux_net: network data = %s | %s", cdata_info,arr_cdata_values)
-            send_data(cdata_info, arr_cdata_values, str(int_timestamp), **args)
-
-    except Exception as msgerror:
-        logging.error("linux_os_net: Failed to connect to %s -  %s" % (args['ip'], msgerror))
-        return -1
-
-def get_linux_uptime(GPARAMS):
-
-    #under developemnet
-    
-    STR_CMD = "awk '{print $1}' /proc/uptime"
-
-    logging.debug("Starting ssh execution to get linux-os uptime metrics")
-
-    logging.debug("Connecting to remote host - %s", GPARAMS['HOSTNAME'])
-    logging.debug("Executing command - %s", STR_CMD)
-
-    sshcon = Secure_Connect(GPARAMS['HOSTNAME'], GPARAMS['SSH_BASTION'], GPARAMS['SSH_USER'], GPARAMS['SSH_USER_KEY_FILE'])
-    stdout = sshcon.ssh_run(STR_CMD)
-    response =stdout.stdout
-    sshcon.ssh_del()
-
-    int_timestamp = int(time.time())
-    logging.debug("Command Result - %s",  response)
-    logging.debug("Finished ssh execution to get metrics")
-
-    arr_cdata_values = response.split()
-    cdata_info = ["uptime"]
-    arr_cdata_values[0]=int(arr_cdata_values[0])/86400
-
-    logging.debug ("get_cpuload(): uptime data = %s \ %s", cdata_info,arr_cdata_values)
-
-    #send_data(GPARAMS, cdata_info, arr_cdata_values, ".", str(int_timestamp))
-    logging.debug("Ended collecting data")
-
-
 
 
 #################################################################################
@@ -207,57 +18,62 @@ def get_linux_uptime(GPARAMS):
 #################################################################################
 
 def linux_os_cpu(**args):
-
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
     # Definitions/Constants
-    CDATA_INFO = ["cpu.use", "cpu.iowait", "cpu.load1m", "cpu.load5m", "cpu.load15m"]
 
 
+    bastion = check_bastion(args['ip_bastion'], args['bastion'])
+    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
+    hostname = check_alias(args['alias'], args['ip'])
+
+    #unix bash command to be executed
     STR_CMD = "echo $(vmstat 1 2 | tail -1 | awk '{print $15, $16}') $(cat /proc/loadavg | awk '{print $1, $2, $3}')"
 
-    logging.debug("linux_os_cpu: Starting ssh execution to get linux_os_cpu metrics")
-
-    logging.debug("linux_os_cpu: Connecting to remote host - %s", str(args['ip']))
-    logging.debug("linux_os_cpu: Executing command - %s", STR_CMD)
-
     try:
+        logging.debug("linux_os_cpu: Starting ssh execution to get linux_os_cpu metrics")
+
+        logging.debug("linux_os_cpu: Connecting to remote host - %s", str(args['ip']))
+        logging.debug("linux_os_cpu: Executing command - %s", STR_CMD)
+
         ssh = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
         stdout = ssh.ssh_run(STR_CMD)
         response = stdout.stdout
         ssh.ssh_del()
 
+        # int_timestamp = int(time.time_ns())
         int_timestamp = int(time.time())
         logging.debug("linux_os_cpu: Command Result - %s", response)
         logging.debug("linux_os_cpu: Finished ssh execution to get metrics")
 
-        arr_cdata_values = response.split()
+        field = response.split()
 
-        # convert cpu free to use
-        arr_cdata_values[0] = str(100 - int(arr_cdata_values[0]))
+        # convert cpu free to in use
+        field[0] = 100 - int(field[0])
 
-        logging.debug("linux_os_cpu: Values array %s", CDATA_INFO)
-        logging.debug("linux_os_cpu: Collected values array %s", arr_cdata_values)
+        # Build dictionary data to influx
+        record = [
+            {"measurement": "cpu",
+             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname},
+             "fields": {"use": int(field[0]), "iowait": int(field[1]), "load1m": float(field[2]), "load5m": float(field[3]),
+                        "load15m": float(field[4])},
+             "time": int_timestamp
+             }
+        ]
 
-        send_data(CDATA_INFO, arr_cdata_values, str(int_timestamp), **args)
+        logging.debug("linux_os_cpu: Data to be sent to influxdb %s", record)
+
+        print("linux_os_cpu: Data to be sent to influxdb ",
+              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
+
+        # Send Data to InfluxDB
+        send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
 
         logging.debug("linux_os_cpu: Ended collecting data")
 
+    #
     except Exception as msgerror:
-        logging.error("linux_os_cpu: Failed to connect to %s - %s" % (args['ip'], msgerror))
+        logging.error("linux_os_cpu: Failed to collect data from %s with error %s" % (args['ip'], msgerror))
         return -1
+
 
 ###################################################################################
 #
@@ -267,23 +83,11 @@ def linux_os_cpu(**args):
 ###################################################################################
 def linux_os_mem(**args):
 
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
+    bastion = check_bastion(args['ip_bastion'], args['bastion'])
+    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
+    hostname = check_alias(args['alias'], args['ip'])
 
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    # Definitions/Constants
-    CDATA_INFO = ["mem.total", "mem.used", "mem.free", "mem.shared", "mem.buff", "mem.avail"]
-
+    # unix bash command to be executed
     STR_CMD = "free -m | grep Mem | awk '{print $2, $3, $4, $5, $6, $7}'"
 
     logging.debug("linux_os_mem: Starting ssh execution to get linux_os_mem metrics")
@@ -301,15 +105,192 @@ def linux_os_mem(**args):
         logging.debug("linux_os_mem: Command Result - %s", response)
         logging.debug("linux_os_mem: Finished ssh execution to get metrics")
 
-        arr_cdata_values = response.split()
+        field = response.split()
 
-        logging.debug("linux_os_mem: Values array %s", CDATA_INFO)
-        logging.debug("linux_os_mem: Collected values array %s", arr_cdata_values)
+        # Build dictionary data to influx
+        # ["mem.total", "mem.used", "mem.free", "mem.shared", "mem.buff", "mem.avail"]
 
-        send_data(CDATA_INFO, arr_cdata_values, str(int_timestamp), **args  )
+        record = [
+            {"measurement": "mem",
+             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname},
+             "fields": {"total": float(field[0]), "used": float(field[1]), "free": float(field[2]),
+                        "shared": float(field[3]), "buff": float(field[4]), "avail": float(field[5])},
+             "time": int_timestamp
+             }
+        ]
+
+        logging.debug("linux_os_mem: Data to be sent to influxdb %s", record)
+
+        print("linux_os_mem: Data to be sent to influxdb ",
+              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
+
+        # Send Data to InfluxDB
+        send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
 
         logging.debug("linux_os_mem: Ended collecting data")
 
     except Exception as msgerror:
-        logging.error("linux_os_mem: Failed to connect to %s - %s" % (args['ip'], msgerror))
+        logging.error("linux_os_mem: Failed to collect data from %s with error %s" % (args['ip'], msgerror))
         return -1
+
+
+#################################################################################
+#
+#  linux_os_fs()
+#   collects for each filesystem values in KB:
+#       "fs.{mount}.available", "fs.{mount}.used", "fs.{mount}.total"
+
+#
+#################################################################################
+def linux_os_fs(**args):
+
+    bastion = check_bastion(args['ip_bastion'], args['bastion'])
+    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
+    hostname = check_alias(args['alias'], args['ip'])
+
+    # unix bash command to be executed
+    STR_CMD = "df -x tmpfs -x devtmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
+
+    logging.debug("linux_os_fs: Starting ssh execution to get linux_os_fs filesystem metrics")
+
+    logging.debug("linux_os_fs: Connecting to remote host - %s", str(args['ip']))
+    logging.debug("linux_os_fs: Executing command - %s", STR_CMD)
+
+    try:
+        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
+        stdout = sshcon.ssh_run(STR_CMD)
+        response = stdout.stdout
+        sshcon.ssh_del()
+
+        int_timestamp = int(time.time())
+        logging.debug("linux_os_fs: Command Result - %s", response)
+        logging.debug("linux_os_fs: Finished ssh execution to get linux_os_fs metrics")
+
+        fields = response.splitlines()
+        record = []
+
+        # ["fs.mount", "fs.available", "fs.used", "fs.total"] / values in KB
+
+        for line in fields:
+            field = str(line).split()
+            record = record + [
+                {"measurement": "fs",
+                 "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
+                          "mount": field[0]},
+                 "fields": {"available": float(field[1]), "used": float(field[2]), "total": float(field[3])},
+                 "time": int_timestamp
+                 }
+            ]
+
+        logging.debug("linux_os_fs: Data to be sent to influxdb %s", record)
+
+        print("linux_os_fs: Data to be sent to influxdb ",
+              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
+
+        # Send Data to InfluxDB
+        send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
+
+        logging.debug("linux_os_fs: Ended collecting data")
+
+    except Exception as msgerror:
+        logging.error("linux_os_fs: Failed to collect data from %s with error %s" % (args['ip'], msgerror))
+        return -1
+
+
+#################################################################################
+#
+#  linux_os_net()
+#   collects for each network interface in status connected values in Mbp:
+#       "net.{iface}.rx_mbp", "net.{iface}.tx_mbp"
+#
+#################################################################################
+def linux_os_net(**args):
+    # Network
+    # interface  rx_bytes tx_bytes
+
+    bastion = check_bastion(args['ip_bastion'], args['bastion'])
+    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
+    hostname = check_alias(args['alias'], args['ip'])
+
+    # unix bash command to be executed
+    STR_CMD = "tail -n +3 /proc/net/dev | awk '{sub(/:/, \"\");print $1, $2, $10}'"
+
+    logging.debug("linux_os_net: Starting ssh execution to get linux_os_net network metrics")
+
+    logging.debug("linux_os_net: Connecting to remote host - %s", str(args['ip']))
+    logging.debug("linux_os_net: Executing command - %s", STR_CMD)
+
+    try:
+        sshcon = Secure_Connect(str(args['ip']), bastion, args['user'], host_keys)
+        stdout = sshcon.ssh_run(STR_CMD)
+        response = stdout.stdout
+        sshcon.ssh_del()
+
+        int_timestamp = int(time.time())
+        logging.debug("linux_os_net: Command Result linux_os_net - %s", response)
+        logging.debug("linux_os_net: Finished ssh execution to get metrics")
+
+        fields = response.splitlines()
+        record = []
+
+        # [interface.if  interface.rx_bytes interface.tx_bytes]
+
+        for line in fields:
+            field = str(line).split()
+            record = record + [
+                {"measurement": "net",
+                 "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
+                          "if": field[0]},
+                 "fields": {"rx_bytes": float(field[1]), "tx_bytes": float(field[2])},
+                 "time": int_timestamp
+                 }
+            ]
+
+        logging.debug("linux_os_net: Data to be sent to influxdb %s", record)
+
+        print("linux_os_net: Data to be sent to influxdb ",
+              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
+
+        # Send Data to InfluxDB
+        send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
+
+        logging.debug("linux_os_net: Ended collecting data")
+
+    except Exception as msgerror:
+        logging.error("linux_os_net: Failed to collect data from %s with error %s" % (args['ip'], msgerror))
+        return -1
+
+
+# HELPER FUNCTIONS
+
+def check_bastion(ip_bastion, bastion):
+    # Check if Bastion host is defined, in order to proxy the connection
+    if ip_bastion:
+        res_bastion = str(ip_bastion)
+    elif bastion:
+        res_bastion = str(bastion)
+    else:
+        res_bastion = None
+
+    return res_bastion
+
+
+def check_alias(alias, ip):
+    # Check if Alias is defined, if not use IPAddress for hostname
+    if alias:
+        hostname = alias
+    else:
+        hostname = ip
+
+    return hostname
+
+def check_ip_host_keys(ip_host_keys, host_keys):
+
+    if ip_host_keys:
+        res_host_keys = ip_host_keys
+    elif host_keys:
+        res_host_keys = host_keys
+    else:
+        res_host_keys = None
+
+    return res_host_keys

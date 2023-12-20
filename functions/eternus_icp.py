@@ -1,9 +1,10 @@
 from functions_core.netcat import *
 from functions_core.secure_connect import *
 import re, os, logging, subprocess, time
+from functions_core.send_influxdb import *
 
 
-def cs_iostat(**args):
+def eternus_icp_fs_io(**args):
 
     logging.debug("Starting func_eternus_icp_fs")
 
@@ -67,18 +68,33 @@ def cs_iostat(**args):
     
     logging.debug("Output of Command Line 3 - %s" % response)
     
+    record = []
+
+    logging.debug("Starting metrics processing on FS_IO")
+
     for line in response.splitlines():
         if args['alias']:
               hostname = args['alias']
         else:
-              hostname = str(args['ip']).replace(".","-dot-")
+              hostname = str(args['ip'])
+
         if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
-            logging.debug("Starting metrics processing on FS type - %s" % time.ctime())
+            
             columns = line.split()
-            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "svctm" + " " + re.sub(",",".",columns[15]) +" "+ str(timestamp) + "\n")
-            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "r_await" + " " + re.sub(",",".",columns[10]) +" "+ str(timestamp) + "\n")
-            netcat(args['repository'], args['repository_port'], args['repository_protocol'],  str(args['collector_root']) + "." + str(args['name']) + "." + str(args['resources_types']) + "." + hostname + "." + "fs" + "." + str(columns[0]) + "." + str(columns[1]) + "." + str(columns[17]) + "." + "w_await" + " " + re.sub(",",".",columns[11]) +" "+ str(timestamp) + "\n")
-            logging.debug("Finished metrics processing on FS type - %s" % time.ctime())
+
+            record = record + [
+                     {"measurement": "fs_io",
+                              "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
+                                       "dm": str(columns[0]),"fs": str(columns[1]), "rawdev": str(columns[17])},
+                              "fields": {"svctm": float(columns[15]), "r_await": float(columns[10]), "w_await": float(columns[11])},
+                              "time": timestamp
+                              }
+                         ]
+
+
+    # Send Data to InfluxDB
+    logging.debug("Data to be sent to DB by FS_IO %s" % record)
+    send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
 
     ssh.ssh_del()
             

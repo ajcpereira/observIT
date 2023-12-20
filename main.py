@@ -31,7 +31,7 @@ from functions import *
 #                                                                               #
 #################################################################################
 
-configfile_default = "config/config.yaml"
+configfile = "config/config.yaml"
 event = Event()
 
 #################################################################################
@@ -48,18 +48,18 @@ def run_threaded(**args) -> None:
         event.wait(timeout=args['poll']*60)
         logging.debug("Will run_thread with %s" % args)
         if event.is_set():
-            logging.warning("Exited run_thread")
+            logging.debug("#### Exited run_thread ####")
             break
         #Thread(target=eval(args['func']+"."+args['func']), kwargs=args).start()
-        Thread(target=eval(args['resources_types']+"."+args['func']), kwargs=args).start()
-
+        #Thread(target=eval(args['resources_types']+"."+args['func']), kwargs=args).start()
+        Thread(target=eval(args['func']), kwargs=args).start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
 
 def launch_thread(result_dicts):
     for result_dict in result_dicts:
-        logging.debug("Will launch tread %s" % result_dict)
+        logging.debug("Will launch thread %s" % result_dict)
         Thread(target=run_threaded, kwargs=result_dict).start()
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
@@ -71,20 +71,26 @@ def launch_thread(result_dicts):
 #################################################################################
 
 if __name__ == "__main__":
-    
-    config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
-    result_dicts, global_parms = create_metric_ip_dicts(config)
-    
-    ########## BEGIN - Start Logging Facility #######################################
-    logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
-    ########## END - Start Logging Facility #########################################    
 
-    ########## BEGIN - Log configfile start processing ##############################
-    logging.info("Starting Collector")
-    ########## END - Log configfile start processing ################################
-  
+    ########## BEGIN FUNCTIONS IN YAML_VALIDATE  ################################    
+    config, orig_mtime, configfile_running = configfile_read(configfile)
+    result_dicts, global_parms = create_metric_ip_dicts(config)
+    ########## END FUNCTIONS IN YAML_VALIDATE  ##################################    
+
+
+    ########## BEGIN - Start Logging Facility ###################################
+    logging.basicConfig(filename=global_parms['logfile'], level=eval("logging."+global_parms['loglevel']), format='%(asctime)s %(levelname)s %(module)s %(threadName)s %(message)s', force=True)
+    ########## END - Start Logging Facility #####################################    
+
+    ########## BEGIN - Log configfile start processing ##########################
+    logging.info("################ Starting Collector ################")
+    ########## END - Log configfile start processing ############################
+
+    logging.debug("Will print the dict that will be used: %s" % result_dicts)
+
     launch_thread(result_dicts)
-    if config.global_parameters.grafana_auto_fun:
+
+    if config.global_parameters.auto_fungraph:
         build_dashboards(config)
     
 
@@ -97,10 +103,10 @@ if __name__ == "__main__":
             event.set()
             
             orig_mtime = os.path.getmtime(configfile_running)
-            config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile_default)
+            config, orig_mtime, configfile_running = configfile_read(sys.argv, configfile)
             result_dicts, global_parms = create_metric_ip_dicts(config)
             
-            logging.debug("File changed will load %s" % result_dicts)
+            logging.debug("Configfile changed, will reload with %s" % result_dicts)
 
             for handler in logging.root.handlers[:]:
                 logging.root.removeHandler(handler)
@@ -113,9 +119,7 @@ if __name__ == "__main__":
             time.sleep(5)
             event.clear()
             launch_thread(result_dicts)
-            if config.global_parameters.grafana_auto_fun:
+            if config.global_parameters.auto_fungraph:
                 build_dashboards(config)
             logging.info("Configfile reloaded")
-
-
-            
+            logging.debug("Configfile reloaded")
