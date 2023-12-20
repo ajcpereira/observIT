@@ -34,10 +34,11 @@ def upload_to_grafana(json, server, api_key, verify=True):
 
     try:
         r = requests.post(f"http://{server}/api/dashboards/db", data=json, headers=headers, verify=verify)
-    except:
-        logging.error("Unable to create dashboard in grafana!")
-        logging.error("Status code = %s", r.status_code)
-        logging.error("Response = %s", r.content)
+    except Exception as msgerror:
+        logging.error("Failed to create report in grafana %s with error %s" % (server, msgerror))
+        #logging.error("Unable to create dashboard in grafana!")
+        #logging.error("Status code = %s", r.status_code)
+        #logging.error("Response = %s", r.content)
 
 
 def create_system_dashboard(sys, config):
@@ -77,7 +78,7 @@ def build_dashboards(config):
 
     logging.debug("Will build dashboards")
     grafana_api_key = config.global_parameters.grafana_api_key
-    grafana_server = config.global_parameters.grafana_server
+    grafana_server = config.global_parameters.grafana_server + ":3000"
 
     systems = build_grafana_fun_data_model(config)
 
@@ -272,7 +273,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
 
                 target_mem = [InfluxDBTarget(
-                    query="SELECT  (last(total)-last(avail)) as \"Used\", last(\"avail\") as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag",
+                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY DESC LIMIT 1",
                     format="table")]
 
                 panels_list.append(BarChart(
@@ -290,7 +291,6 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                     legendDisplayMode="table",
                     stacking={'mode': "normal"},
                     tooltipMode="multi",
-                    #timeFrom=str(poll)+"m",
                 ))
 
             case "fs":
@@ -300,7 +300,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     target_fs = [InfluxDBTarget(
-                        query="SELECT last(\"used\") as Used, (last(\"total\")-last(\"used\")) as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY time DESC",
+                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY DESC LIMIT 1",
                         format="table")]
 
                     panels_list.append(BarChart(
@@ -318,7 +318,6 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                         legendDisplayMode="table",
                         stacking={'mode': "normal"},
                         tooltipMode="multi",
-                        #timeFrom=str(poll)+"m",
                     ))
 
             case "net":
@@ -396,7 +395,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                         gradientMode='hue',
                         fillOpacity=25,
                         unit="ms",
-                        gridPos=GridPos(h=7, w=24, x=0, y=9),
+                        gridPos=GridPos(h=7, w=8, x=0, y=9),
                         spanNulls=True,
                         legendPlacement="right",
                         legendDisplayMode="table"
@@ -415,7 +414,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                         gradientMode='hue',
                         fillOpacity=25,
                         unit="ms",
-                        gridPos=GridPos(h=7, w=24, x=0, y=10),
+                        gridPos=GridPos(h=7, w=8, x=8, y=10),
                         spanNulls=True,
                         legendPlacement="right",
                         legendDisplayMode="table"
@@ -434,7 +433,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                         gradientMode='hue',
                         fillOpacity=25,
                         unit="ms",
-                        gridPos=GridPos(h=7, w=24, x=0, y=11),
+                        gridPos=GridPos(h=7, w=8, x=16, y=11),
                         spanNulls=True,
                         legendPlacement="right",
                         legendDisplayMode="table"
@@ -492,7 +491,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
 
                 target_mem = [InfluxDBTarget(
-                    query="SELECT  (last(total)-last(avail)) as \"Used\", last(\"avail\") as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag",
+                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY DESC LIMIT 1",
                     format="table")]
 
                 panels_list.append(BarChart(
@@ -510,7 +509,6 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                     legendDisplayMode="table",
                     stacking={'mode': "normal"},
                     tooltipMode="multi",
-                    #timeFrom=str(poll)+"m",
                 ))
 
             case "fs":
@@ -520,7 +518,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     target_fs = [InfluxDBTarget(
-                        query="SELECT last(\"used\") as Used, (last(\"total\")-last(\"used\")) as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY time DESC",
+                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY DESC LIMIT 1",
                         format="table")]
 
                     panels_list.append(BarChart(
@@ -538,7 +536,6 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                         legendDisplayMode="table",
                         stacking={'mode': "normal"},
                         tooltipMode="multi",
-                        #timeFrom=str(poll)+"m",
                     ))
 
             case "net":
