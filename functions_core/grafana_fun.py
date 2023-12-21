@@ -273,7 +273,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
 
                 target_mem = [InfluxDBTarget(
-                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY DESC LIMIT 1",
+                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
                     format="table")]
 
                 panels_list.append(BarChart(
@@ -300,7 +300,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     target_fs = [InfluxDBTarget(
-                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY DESC LIMIT 1",
+                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
                         format="table")]
 
                     panels_list.append(BarChart(
@@ -491,7 +491,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
 
                 target_mem = [InfluxDBTarget(
-                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY DESC LIMIT 1",
+                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
                     format="table")]
 
                 panels_list.append(BarChart(
@@ -518,7 +518,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     target_fs = [InfluxDBTarget(
-                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY DESC LIMIT 1",
+                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
                         format="table")]
 
                     panels_list.append(BarChart(
