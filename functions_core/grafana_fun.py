@@ -348,6 +348,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                         legendDisplayMode="table",
                         stacking={'mode': "normal"},
                         tooltipMode="multi",
+                        xTickLabelRotation=-45,
                     ))
 
             case "net":
@@ -562,6 +563,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                         legendDisplayMode="table",
                         stacking={'mode': "normal"},
                         tooltipMode="multi",
+                        xTickLabelRotation=-45,
                     ))
 
             case "net":
@@ -615,8 +617,14 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
 
 # Grafanalib doesn't have a class to manipulate BarChart
 # this is a new class, based on TimeSeries class, to create BarChart graphs
-
+@attr.s
 class BarChart(TimeSeries):
+
+#    def __init__(self, xTickLabelRotation):
+#        super().__init__(self, xTickLabelRotation)
+#        self.xTickLabelRotation = xTickLabelRotation
+
+    xTickLabelRotation = attr.ib(default=0, validator=instance_of(int))
 
     def to_json_data(self):
         return self.panel_json(
@@ -658,6 +666,7 @@ class BarChart(TimeSeries):
                 },
                 'options': {
                     'stacking': self.stacking,
+                    'xTickLabelRotation': self.xTickLabelRotation,
                     'legend': {
                         'displayMode': self.legendDisplayMode,
                         'placement': self.legendPlacement,
