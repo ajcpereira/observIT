@@ -94,6 +94,7 @@ def build_dashboards(config):
 # function: build_grafana_fun_data_model
 #
 # This function builds a dictionary with the data model for creating the graphs
+# This functions need rework!!!!!
 ##########################################################################################################################
 
 
@@ -103,12 +104,11 @@ def build_grafana_fun_data_model(config):
         b_exists = False
 
         for x in lst:
-
             if system_name in x['system']:
                 for y in x['resources']:
-                    if resource_name in y['name']:
+                    if resource_name == y['name']:
                         for z in y['data']:
-                            if metric_name in z['metric']:
+                            if metric_name == z['metric']:
                                 metrics_lst = z['hosts']
                                 b_exists = True
 
@@ -118,7 +118,7 @@ def build_grafana_fun_data_model(config):
 
         b_result = False
         for x in lst:
-            if system_name in x['system']:
+            if system_name == x['system']:
                 b_result = True
 
         return b_result
@@ -127,9 +127,9 @@ def build_grafana_fun_data_model(config):
 
         b_result = False
         for x in lst:
-            if system_name in x:
+            if system_name == x['system']:
                 for y in x['resources']:
-                    if resource_name in y['name']:
+                    if resource_name == y['name']:
                         b_result = True
 
         return b_result
@@ -137,13 +137,12 @@ def build_grafana_fun_data_model(config):
     def my_update_resource_list(system_name, resource_name, metric_name, lst, dict_metric):
 
         for x in lst:
-            if system_name in x['system']:
+            if system_name == x['system']:
                 for y in x['resources']:
-                    if resource_name in y['name']:
-                        for z in y['name']:
-                            for k in y['data']:
-                                if metric_name in k['metric']:
-                                    k.update(dict_metric)
+                    if resource_name == y['name']:
+                        for k in y['data']:
+                            if metric_name == k['metric']:
+                                k.update(dict_metric)
 
         return lst
 
@@ -159,6 +158,19 @@ def build_grafana_fun_data_model(config):
         logging.debug(add_resource.__name__ + ": function result is %s", local_model)
 
         return local_model
+
+    def my_add_metrics_to_existing_resource_list(system_name, resource_name, dict_metric, model):
+
+        local_model = model
+
+        for x in local_model:
+            if system_name == x['system']:
+                for y in x['resources']:
+                    if resource_name == y['name']:
+                        y['data'].append(dict_metric[0])
+
+        return local_model
+
 
     logging.debug(build_grafana_fun_data_model.__name__ + ": Config data is - %s", config)
     model_result = []
@@ -183,25 +195,43 @@ def build_grafana_fun_data_model(config):
                 logging.debug(build_grafana_fun_data_model.__name__ + ": Adding metric %s and hosts %s", metric.name,
                               host_list)
                 if met_exists:
-                    metric_dict = {'metric': metric.name, 'hosts': met_hosts_lst + host_list}
+                    metric_dict = {"metric": metric.name, "hosts": met_hosts_lst + host_list}
+                    logging.debug(build_grafana_fun_data_model.__name__ + ": New metric list %s ",
+                                  metric_dict)
+
                     model_result = my_update_resource_list(system.name, system.resources_types, metric.name,
                                                            model_result, metric_dict)
+                    logging.debug(build_grafana_fun_data_model.__name__ + ": New model result %s ",
+                                  model_result)
                 else:
-                    metric_list.append({'metric': metric.name, 'hosts': host_list})
+                    metric_list.append({"metric": metric.name, "hosts": host_list})
+
                 logging.debug(build_grafana_fun_data_model.__name__ + ": Metrics exist %s and metrics list is %s",
                               met_exists, metric_list)
+
             res_exists = check_if_resource_exists(system.name, system.resources_types, model_result)
+
+            if res_exists and not met_exists:
+                logging.debug(build_grafana_fun_data_model.__name__ + ": Resource exist=%s and metrics exist=%s metrics list is %s model_result %s",
+                              res_exists, met_exists, metric_list, model_result)
+                model_result = my_add_metrics_to_existing_resource_list(system.name, system.resources_types, metric_list,model_result)
+
             if not res_exists:
                 logging.debug(
                     build_grafana_fun_data_model.__name__ + ": Resource %s do not exists but system %s exists",
                     system.resources_types, system.name)
-                res_list.append({'name': system.resources_types, 'data': metric_list})
-            if check_if_system_exists(system.name, model_result):
+                res_list.append({"name": system.resources_types, "data": metric_list})
+
+            if check_if_system_exists(system.name, model_result) and not res_exists:
                 logging.debug(build_grafana_fun_data_model.__name__ + ": System exists - %s", model_result)
-                model_result = add_resource(system.name, {'name': system.resources_types, 'data': metric_list},
+                model_result = add_resource(system.name, {"name": system.resources_types, "data": metric_list},
                                             model_result)
-            else:
-                model_result.append({'system': system.name, 'resources': res_list, 'poll': system.config.parameters.poll})
+
+            # System
+            if not check_if_system_exists(system.name, model_result) and not res_exists:
+                model_result.append({"system": system.name, "resources": res_list, "poll": system.config.parameters.poll})
+
+            logging.debug(build_grafana_fun_data_model.__name__ + ": Model is - %s", model_result)
     except Exception as msgerror:
         logging.error(
             build_grafana_fun_data_model.__name__ + ": Unexpected error creating grafana_fun data model - %s" % msgerror)
@@ -252,7 +282,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 panels_target_list_cpu_load = []
                 for host in metric['hosts']:
                     panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
-                        query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"host\"::tag", alias="$tag_host")]
+                        query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag", alias="$tag_host")]
 
                 panels_list.append(TimeSeries(
                     title="CPU Average Load (5 min)",
@@ -273,7 +303,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
 
                 target_mem = [InfluxDBTarget(
-                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
+                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
                     format="table")]
 
                 panels_list.append(BarChart(
@@ -300,7 +330,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     target_fs = [InfluxDBTarget(
-                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
                         format="table")]
 
                     panels_list.append(BarChart(
@@ -325,7 +355,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     target_net_outbound = [InfluxDBTarget(
-                        query="SELECT derivative(\"tx_bytes\", " + str(poll) + "m) FROM \"net\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"if\"::tag",
+                        query="SELECT derivative(\"tx_bytes\", " + str(poll) + "m) FROM \"net\" WHERE (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"if\"::tag",
                         alias="$tag_if")]
 
                     panels_list.append(TimeSeries(
@@ -344,7 +374,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
                     ))
 
                     target_net_inbound = [InfluxDBTarget(
-                        query="SELECT derivative(\"rx_bytes\"," + str(poll)+"m) FROM \"net\" WHERE (\"host\"::tag = '" + host +"') AND $timeFilter GROUP BY \"if\"::tag",
+                        query="SELECT derivative(\"rx_bytes\"," + str(poll)+"m) FROM \"net\" WHERE (\"host\"::tag = '" + host +"') AND (\"system\"::tag = '" + system_name + "')  AND $timeFilter GROUP BY \"if\"::tag",
                         alias="$tag_if")]
 
                     panels_list.append(TimeSeries(
@@ -383,7 +413,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     panels_target_list = [InfluxDBTarget(
-                        query="SELECT \"svctm\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+                        query="SELECT \"svctm\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
                         alias="$tag_fs $tag_dm $tag_rawdev")]
 
                     panels_list.append(TimeSeries(
@@ -402,7 +432,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                     ))
 
                     panels_target_list = [InfluxDBTarget(
-                                        query="SELECT \"r_await\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+                                        query="SELECT \"r_await\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "')  AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
                                         alias="$tag_fs $tag_dm $tag_rawdev")]
 
                     panels_list.append(TimeSeries(
@@ -421,7 +451,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                     ))
 
                     panels_target_list = [InfluxDBTarget(
-                        query="SELECT \"w_await\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+                        query="SELECT \"w_await\" FROM \"fs_io\" WHERE (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
                         alias="$tag_fs $tag_dm $tag_rawdev")]
 
                     panels_list.append(TimeSeries(
@@ -441,14 +471,10 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
             case "cpu":
                 panels_list.append(RowPanel(title=resource_name + ': CPU', gridPos=GridPos(h=1, w=24, x=0, y=0)))
 
-                panels_target_list_cpu_use = [InfluxDBTarget(
-                    query="SELECT \"use\" FROM \"cpu\" WHERE $timeFilter GROUP BY \"host\"::tag", alias="$tag_host").to_json_data()]
-
                 panels_target_list_cpu_use = []
-
                 for host in metric['hosts']:
                     panels_target_list_cpu_use = panels_target_list_cpu_use + [InfluxDBTarget(
-                        query="SELECT \"use\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"host\"::tag",
+                        query="SELECT \"use\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
                         alias="$tag_host").to_json_data()]
 
                 panels_list.append(TimeSeries(
@@ -469,7 +495,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 panels_target_list_cpu_load = []
                 for host in metric['hosts']:
                     panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
-                        query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') GROUP BY \"host\"::tag",
+                        query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
                         alias="$tag_host")]
 
                 panels_list.append(TimeSeries(
@@ -491,7 +517,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 panels_list.append(RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=2)))
 
                 target_mem = [InfluxDBTarget(
-                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
+                    query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
                     format="table")]
 
                 panels_list.append(BarChart(
@@ -518,7 +544,7 @@ def create_panel_eternus_icp(system_name, resource_name, data, poll):
                 for host in metric['hosts']:
 
                     target_fs = [InfluxDBTarget(
-                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host +"') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+                        query="SELECT \"used\" as Used, \"total\"-\"used\" as Available FROM \"fs\" WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
                         format="table")]
 
                     panels_list.append(BarChart(
