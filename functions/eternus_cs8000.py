@@ -4,9 +4,9 @@ import re, os, logging, subprocess, time
 from functions_core.send_influxdb import *
 
 
-def eternus_icp_fs_io(**args):
+def eternus_cs8000_fs_io(**args):
 
-    logging.debug("Starting func_eternus_icp_fs")
+    logging.debug("Starting func_eternus_cs8000_fs_io")
 
     # Command line to run remotly
     cmd1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"

@@ -44,6 +44,7 @@ services:
       - /opt/fj-collector/influxdb/influxdb:/var/lib/influxdb
       - /opt/fj-collector/influxdb/influxdb2:/var/lib/influxdb2
       - /opt/fj-collector/influxdb/influxdb2-config:/etc/influxdb
+    user: "0"
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
 #      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"

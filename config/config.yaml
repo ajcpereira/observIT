@@ -1,6 +1,6 @@
 systems:
   - name: dev_env_99
-    resources_types: eternus_icp
+    resources_types: eternus_cs8000
     config:
       parameters:
         user: super
@@ -16,7 +16,7 @@ systems:
           alias: linux14
         - ip: 127.0.0.1
   - name: dev_env_99
-    resources_types: eternus_icp
+    resources_types: eternus_cs8000
     config:
       parameters:
         user: super
@@ -28,7 +28,7 @@ systems:
         - ip: 127.0.0.1
           alias: linux25
   - name: dev_env_99
-    resources_types: linux_os
+    resources_types: eternus_cs8000
     config:
       parameters:
         user: super
@@ -55,9 +55,9 @@ global_parameters:
   repository: influxdb
   repository_port: 8086
   repository_protocol: tcp
-  repository_api_key: 11pOy9Qzp_zdiljjrXTnvYXMV4cxUOr_pQB-6VFlzbU1LMe51hSWZi2X3MpBla5bR5rzo6_hxJh6BPOoDt67AA==
+  repository_api_key: TOBEDEFINED
   loglevel: DEBUG
   logfile: logs/fj-collector.log
   auto_fungraph: yes
-  grafana_api_key: glsa_7AjCeAulfV62Ekj7Z85Ck5Z1xA8cBvNA_78139d28
+  grafana_api_key: TOBEDEFINED
   grafana_server:  localhost
