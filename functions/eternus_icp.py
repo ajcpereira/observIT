@@ -78,7 +78,7 @@ def eternus_icp_fs_io(**args):
         else:
               hostname = str(args['ip'])
 
-        if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
+        if len(line.split()) == 18 and not line.startswith("\n") and not line.startswith("Device"):
             
             columns = line.split()
 
