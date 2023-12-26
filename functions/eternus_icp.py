@@ -78,15 +78,15 @@ def eternus_icp_fs_io(**args):
         else:
               hostname = str(args['ip'])
 
-        if len(line.split())==18 and not line.startswith("\n") and not line.startswith("Device"):
+        if len(line.split()) == 18 and not line.startswith("\n") and not line.startswith("Device"):
             
             columns = line.split()
 
             record = record + [
                      {"measurement": "fs_io",
                               "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
-                                       "dm": str(columns[0]),"fs": str(columns[1]), "rawdev": str(columns[17])},
-                              "fields": {"svctm": float(columns[15]), "r_await": float(columns[10]), "w_await": float(columns[11])},
+                                       "fs": str(columns[0]), "dm": str(columns[1]),"rawdev": str(columns[17])},
+                              "fields": {"svctm": float(columns[15]), "r_await": float(columns[10]), "w_await": float(columns[11]), "r/s": float(columns[2]), "w/s": float(columns[3])},
                               "time": timestamp
                               }
                          ]

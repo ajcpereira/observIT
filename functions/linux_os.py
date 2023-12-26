@@ -61,9 +61,6 @@ def linux_os_cpu(**args):
 
         logging.debug("linux_os_cpu: Data to be sent to influxdb %s", record)
 
-        print("linux_os_cpu: Data to be sent to influxdb ",
-              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
-
         # Send Data to InfluxDB
         send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
 
@@ -120,9 +117,6 @@ def linux_os_mem(**args):
         ]
 
         logging.debug("linux_os_mem: Data to be sent to influxdb %s", record)
-
-        print("linux_os_mem: Data to be sent to influxdb ",
-              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
 
         # Send Data to InfluxDB
         send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
@@ -184,9 +178,6 @@ def linux_os_fs(**args):
 
         logging.debug("linux_os_fs: Data to be sent to influxdb %s", record)
 
-        print("linux_os_fs: Data to be sent to influxdb ",
-              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
-
         # Send Data to InfluxDB
         send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
 
@@ -247,9 +238,6 @@ def linux_os_net(**args):
             ]
 
         logging.debug("linux_os_net: Data to be sent to influxdb %s", record)
-
-        print("linux_os_net: Data to be sent to influxdb ",
-              time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int_timestamp)), record)
 
         # Send Data to InfluxDB
         send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
