@@ -86,7 +86,7 @@ def eternus_icp_fs_io(**args):
                      {"measurement": "fs_io",
                               "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
                                        "fs": str(columns[0]), "dm": str(columns[1]),"rawdev": str(columns[17])},
-                              "fields": {"svctm": float(columns[15]), "r_await": float(columns[10]), "w_await": float(columns[11])},
+                              "fields": {"svctm": float(columns[15]), "r_await": float(columns[10]), "w_await": float(columns[11]), "r/s": float(columns[2]), "w/s": float(columns[3])},
                               "time": timestamp
                               }
                          ]
