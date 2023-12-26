@@ -85,7 +85,7 @@ def eternus_icp_fs_io(**args):
             record = record + [
                      {"measurement": "fs_io",
                               "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
-                                       "dm": str(columns[0]),"fs": str(columns[1]), "rawdev": str(columns[17])},
+                                       "fs": str(columns[0]), "dm": str(columns[1]),"rawdev": str(columns[17])},
                               "fields": {"svctm": float(columns[15]), "r_await": float(columns[10]), "w_await": float(columns[11])},
                               "time": timestamp
                               }

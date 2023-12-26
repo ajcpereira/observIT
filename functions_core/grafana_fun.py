@@ -56,6 +56,7 @@ def create_system_dashboard(sys, config):
             sys['system'],
         ],
         timezone="browser",
+        refresh="1m",
         panels=panels,
 
     ).auto_panel_ids()
