@@ -108,6 +108,7 @@ if __name__ == "__main__":
             
             logging.debug("Configfile changed, will reload with %s" % result_dicts)
 
+
             for handler in logging.root.handlers[:]:
                 logging.root.removeHandler(handler)
             try:             
