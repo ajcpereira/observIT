@@ -9,9 +9,9 @@ services:
       - /opt/fj-collector/collector/keys:/collector/keys
       - /opt/fj-collector/collector/tests:/collector/tests
 #    environment:
-#      - ENV HTTP_PROXY="http\://10.220.3.113\:8080"
-#      - ENV HTTPS_PROXY="https\://10.220.3.113\:8080"
-#      - ENV FTP_PROXY="ftp\://10.220.3.113\:8080"
+#      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
+#      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
+#      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
     logging:
       options:
         max-size: "10m"
@@ -27,9 +27,9 @@ services:
       - /opt/fj-collector/grafana/data/grafana:/var/lib/grafana/
     user: "0"
 #    environment:
-#      - ENV HTTP_PROXY="http\://10.220.3.113\:8080"
-#      - ENV HTTPS_PROXY="https\://10.220.3.113\:8080"
-#      - ENV FTP_PROXY="ftp\://10.220.3.113\:8080"
+#      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
+#      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
+#      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
     logging:
        options:
          max-size: "10m"
@@ -45,9 +45,9 @@ services:
       - /opt/fj-collector/influxdb/influxdb2:/var/lib/influxdb2
       - /opt/fj-collector/influxdb/influxdb2-config:/etc/influxdb
 #    environment:
-#      - ENV HTTP_PROXY="http\://10.220.3.113\:8080"
-#      - ENV HTTPS_PROXY="https\://10.220.3.113\:8080"
-#      - ENV FTP_PROXY="ftp\://10.220.3.113\:8080"
+#      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
+#      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
+#      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
     logging:
        options:
          max-size: "10m"
