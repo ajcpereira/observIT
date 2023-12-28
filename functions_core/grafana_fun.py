@@ -34,6 +34,7 @@ def upload_to_grafana(json_data, server, api_key, verify=True):
 
     try:
         r = requests.post(f"http://{server}/api/dashboards/db", data=json_data, headers=headers, verify=verify)
+        logging.debug("Message from fungraph %s" % r.json() )
     except Exception as msgerror:
         logging.error("Failed to create report in grafana %s with error %s" % (server, msgerror))
 
@@ -45,9 +46,8 @@ def create_system_dashboard(sys, config):
         match res['name']:
             case "linux_os":
                 panels = panels + create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], sys['poll'])
-            case "eternus_icp":
-                panels = panels + create_panel_eternus_icp(str(sys['system']), str(res['name']), res['data'],
-                                                           sys['poll'])
+            case "eternus_cs8000":
+                panels = panels + create_panel_eternus_cs8000(str(sys['system']), str(res['name']), res['data'],sys['poll'])
 
     my_dashboard = Dashboard(
         title="System " + sys['system'] + " dashboard",
@@ -408,11 +408,11 @@ def create_panel_linux_os(system_name, resource_name, data, poll):
 
 ########################################################################################################################
 #
-# Resource Type: eternus_icp
+# Resource Type: eternus_cs8000
 #
 ########################################################################################################################
 
-def create_panel_eternus_icp(system_name, resource_name, data, poll):
+def create_panel_eternus_cs8000(system_name, resource_name, data, poll):
     panels_list = []
 
     for metric in data:

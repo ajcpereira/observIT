@@ -1,13 +1,13 @@
 version: "3.9"
 services:
-  fj-collector:
-    image: "fj-collector:latest"
+  fjcollector:
+    image: "fjcollector:latest"
     restart: unless-stopped
     volumes:
-      - /opt/fj-collector/collector/logs:/collector/logs
-      - /opt/fj-collector/collector/config:/collector/config
-      - /opt/fj-collector/collector/keys:/collector/keys
-      - /opt/fj-collector/collector/tests:/collector/tests
+      - /opt/fjcollector/collector/logs:/collector/logs
+      - /opt/fjcollector/collector/config:/collector/config
+      - /opt/fjcollector/collector/keys:/collector/keys
+      - /opt/fjcollector/collector/tests:/collector/tests
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
 #      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
@@ -23,8 +23,8 @@ services:
     ports:
     - "80:3000/tcp"
     volumes:
-      - /opt/fj-collector/grafana/provisioning/:/etc/grafana/provisioning/
-      - /opt/fj-collector/grafana/data/grafana:/var/lib/grafana/
+      - /opt/fjcollector/grafana/provisioning/:/etc/grafana/provisioning/
+      - /opt/fjcollector/grafana/data/grafana:/var/lib/grafana/
     user: "0"
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
@@ -41,9 +41,9 @@ services:
     ports:
     - "8086:8086/tcp"
     volumes:
-      - /opt/fj-collector/influxdb/influxdb:/var/lib/influxdb
-      - /opt/fj-collector/influxdb/influxdb2:/var/lib/influxdb2
-      - /opt/fj-collector/influxdb/influxdb2-config:/etc/influxdb
+      - /opt/fjcollector/influxdb/influxdb:/var/lib/influxdb
+      - /opt/fjcollector/influxdb/influxdb2:/var/lib/influxdb2
+      - /opt/fjcollector/influxdb/influxdb2-config:/etc/influxdb
     user: "0"
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
