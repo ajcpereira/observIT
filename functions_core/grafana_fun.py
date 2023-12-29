@@ -381,52 +381,7 @@ def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
             legendDisplayMode="table",
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
-        ))
-
-        panels_target_list = [InfluxDBTarget(
-            query="SELECT r_await FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "')  AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
-            alias="$tag_fs $tag_dm $tag_rawdev")]
-
-        panels_list.append(TimeSeries2(
-            title=host + " R_AWAIT",
-            dataSource='default',
-            targets=panels_target_list,
-            drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
-            unit="ms",
-            gridPos=GridPos(h=penel_height, w=panel_width, x=panel_width, y=pos),
-            spanNulls=True,
-            legendPlacement="bottom",
-            legendDisplayMode="table",
-            legendCalcs=["max", "mean"],
-            legendSortBy="Max",
-        ))
-
-        panels_target_list = [InfluxDBTarget(
-            query="SELECT w_await FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
-            alias="$tag_fs $tag_dm $tag_rawdev")]
-
-        panels_list.append(TimeSeries2(
-            title=host + " W_AWAIT",
-            dataSource='default',
-            targets=panels_target_list,
-            drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
-            unit="ms",
-            gridPos=GridPos(h=penel_height, w=panel_width, x=2*panel_width, y=pos),
-            spanNulls=True,
-            legendPlacement="bottom",
-            legendDisplayMode="table",
-            legendCalcs=["max", "mean"],
-            legendSortBy="Max",
+            legendSortDesc=True,
         ))
 
         panels_target_list = [InfluxDBTarget(
@@ -444,12 +399,37 @@ def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
             gradientMode='hue',
             fillOpacity=25,
             unit="iops",
-            gridPos=GridPos(h=penel_height, w=panel_width, x=3*panel_width, y=pos),
+            gridPos=GridPos(h=penel_height, w=panel_width, x=1 * panel_width, y=pos),
             spanNulls=True,
             legendPlacement="bottom",
             legendDisplayMode="table",
-            legendCalcs = ["max", "mean"],
+            legendCalcs=["max", "mean"],
             legendSortBy="Max",
+            legendSortDesc=True,
+        ))
+
+        panels_target_list = [InfluxDBTarget(
+            query="SELECT r_await FROM fs_io WHERE (\"host\"::tag = '" + host +
+                  "') AND (\"system\"::tag = '" + system_name +
+                  "')  AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            alias="$tag_fs $tag_dm $tag_rawdev")]
+
+        panels_list.append(TimeSeries2(
+            title=host + " R_AWAIT",
+            dataSource='default',
+            targets=panels_target_list,
+            drawStyle='line',
+            lineInterpolation='smooth',
+            gradientMode='hue',
+            fillOpacity=25,
+            unit="ms",
+            gridPos=GridPos(h=penel_height, w=panel_width, x=2 * panel_width, y=pos),
+            spanNulls=True,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendCalcs=["max", "mean"],
+            legendSortBy="Max",
+            legendSortDesc=True,
         ))
 
         panels_target_list = [InfluxDBTarget(
@@ -467,13 +447,40 @@ def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
             gradientMode='hue',
             fillOpacity=25,
             unit="iops",
+            gridPos=GridPos(h=penel_height, w=panel_width, x=3 * panel_width, y=pos),
+            spanNulls=True,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendCalcs=["max", "mean"],
+            legendSortBy="Max",
+            legendSortDesc=True,
+        ))
+
+        panels_target_list = [InfluxDBTarget(
+            query="SELECT w_await FROM fs_io WHERE (\"host\"::tag = '" + host +
+                  "') AND (\"system\"::tag = '" + system_name +
+                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            alias="$tag_fs $tag_dm $tag_rawdev")]
+
+        panels_list.append(TimeSeries2(
+            title=host + " W_AWAIT",
+            dataSource='default',
+            targets=panels_target_list,
+            drawStyle='line',
+            lineInterpolation='smooth',
+            gradientMode='hue',
+            fillOpacity=25,
+            unit="ms",
             gridPos=GridPos(h=penel_height, w=panel_width-1, x=4*panel_width, y=pos),
             spanNulls=True,
             legendPlacement="bottom",
             legendDisplayMode="table",
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
+            legendSortDesc=True,
         ))
+
+
 
         pos = pos + 7
 
@@ -559,13 +566,15 @@ class BarChart(TimeSeries):
 @attr.s
 class TimeSeries2(TimeSeries):
 
-    def __init__(self, xTickLabelRotation, legendSortBy, **kwargs):
+    def __init__(self, xTickLabelRotation, legendSortBy, legendSortDesc, **kwargs):
         super().__init__(self, **kwargs)
         self.xTickLabelRotation = xTickLabelRotation
         self.legendSortBy = legendSortBy
+        self.legendSortDesc = legendSortDesc
 
     xTickLabelRotation = attr.ib(default=0, validator=instance_of(int))
     legendSortBy = attr.ib(default='max', validator=instance_of(str))
+    legendSortDesc = attr.ib(default=False, validator=instance_of(bool))
 
     def to_json_data(self):
         return self.panel_json(
@@ -612,7 +621,8 @@ class TimeSeries2(TimeSeries):
                         'displayMode': self.legendDisplayMode,
                         'placement': self.legendPlacement,
                         'calcs': self.legendCalcs,
-                        'sortBy': self.legendSortBy
+                        'sortBy': self.legendSortBy,
+                        'sortDesc': self.legendSortDesc,
                     },
                     'tooltip': {
                         'mode': self.tooltipMode
