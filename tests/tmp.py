@@ -8,40 +8,40 @@ if os.path.isfile("plmcmd_query-V"):
     library = {}
 
     for line in cmd1.splitlines():
-        count_i = 0
-
         columns = line.split()
-
         if line.startswith("pos"):
             continue
         else:
+            # Lib / Count Medias / Total Cap / Total Valid / Val% / Clean / Inacessible / Fault    
             if str(columns[2]) not in library.keys():
-                if str(columns[4][0]) == 'i':
-                    library[str(columns[2])]=[str(columns[2]),0,0,0,0,1,0]
-                elif str(columns[4][0]) == 'f':
-                    library[str(columns[2])]=[str(columns[2]),0,0,0,0,0,1]
-                # Lib / Count Medias / Total Cap / Total Valid / Val% / Inacessible / Fault    
-                elif float(columns[8]) > 0:
-                    library[str(columns[2])]=[str(columns[2]),1,float(columns[8]),float(columns[9]),float(columns[9])/float(columns[8])*100,0,0]
+                if str(columns[4][0]) == 'i' and not str(columns[1]).startswith("CLN"):
+                    library[str(columns[2])]=[str(columns[2]),0,0,0,0,0,1,0]
+                elif str(columns[4][0]) == 'f' and not str(columns[1]).startswith("CLN"):
+                    library[str(columns[2])]=[str(columns[2]),0,0,0,0,0,0,1]
+                elif str(columns[1]).startswith("CLN"):
+                    library[str(columns[2])]=[str(columns[2]),0,float(columns[8]),float(columns[9]),0,1,0,0]
+                elif float(columns[8]) > 0 and not str(columns[1]).startswith("CLN"):
+                    library[str(columns[2])]=[str(columns[2]),1,float(columns[8]),float(columns[9]),int(columns[10]),0,0,0]
                 else:
-                    library[str(columns[2])]=[str(columns[2]),0,float(library[str(columns[2])][2]),float(library[str(columns[2])][3]),float(library[str(columns[2])][4]),0,0]
+                    print("This line has not application %s" % columns)
             else:
-                if str(columns[4][0]) == 'i':
-                    library[str(columns[2])]=[str(columns[2]),float(library[str(columns[2])][1])+0,float(library[str(columns[2])][3]),float(library[str(columns[2])][4]),float(columns[9])/float(columns[8])*100,float(library[str(columns[2])][5])+0,float(library[str(columns[2])][5])+0]
-                elif str(columns[4][0]) == 'f':
-                    library[str(columns[2])]=[str(columns[2]),float(library[str(columns[2])][1])+1,float(library[str(columns[2])][3]),float(library[str(columns[2])][4]),float(columns[9])/float(columns[8])*100,float(library[str(columns[2])][5])+0,float(library[str(columns[2])][5])+0]
+                if str(columns[4][0]) == 'i' and not str(columns[1]).startswith("CLN"):
+                    print("Ina")
+                    library[str(columns[2])]=[str(columns[2]),int(library[str(columns[2])][1])+0,float(library[str(columns[2])][2]),float(library[str(columns[2])][3]),float(library[str(columns[2])][4]),int(library[str(columns[2])][5])+0,int(library[str(columns[2])][6])+1,int(library[str(columns[2])][7])+0]
+                elif str(columns[4][0]) == 'f' and not str(columns[1]).startswith("CLN"):
+                    library[str(columns[2])]=[str(columns[2]),int(library[str(columns[2])][1])+0,float(library[str(columns[2])][2]),float(library[str(columns[2])][3]),float(library[str(columns[2])][4]),int(library[str(columns[2])][5])+0,int(library[str(columns[2])][6])+0,int(library[str(columns[2])][7])+1]
+                elif str(columns[1]).startswith("CLN"):
+                    library[str(columns[2])]=[str(columns[2]),int(library[str(columns[2])][1])+0,int(library[str(columns[2])][2]),int(library[str(columns[2])][3]),int(library[str(columns[2])][4]),int(library[str(columns[2])][5])+1,int(library[str(columns[2])][6])+0,int(library[str(columns[2])][7])+0]
+                elif float(columns[8]) > 0 and not str(columns[1]).startswith("CLN"):
+                    library[str(columns[2])]=[str(columns[2]),int(library[str(columns[2])][1])+1,float(library[str(columns[2])][2])+float(columns[8]),float(library[str(columns[2])][3])+float(columns[9]),int(library[str(columns[2])][4])+int(columns[10]),int(library[str(columns[2])][5])+0,int(library[str(columns[2])][6])+0,int(library[str(columns[2])][7])+0]
                 else:
-                    library[str(columns[2])]=[str(columns[2]),float(library[str(columns[2])][1])+1,float(library[str(columns[2])][3])+float(columns[8]),float(library[str(columns[2])][4])+float(columns[9]),float(columns[9])/float(columns[8])*100,float(library[str(columns[2])][5])+0,float(library[str(columns[2])][5])+0]
-                #print(library[str(columns[2])])
-                #library[str(columns[2])]=str(columns[2]),float(columns[8])
-                print("In Library %s" % str(columns[2]))
-
-        print(library)            
-    print(library)
+                    print("This line has not application %s" % columns)
+    for line in library.values():
+        print(line[2])
 #        columns = line.split()
 #    
 #        if line.startswith("Tapelibrary"):    
-#            if tapename != None:
+#            if tapename != None
 #          
 #                record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": tapename },
 #                                  "fields": {"total": float(count_used+count_unused+count_another_state), "used": float(count_used), "other": float(count_another_state)},
