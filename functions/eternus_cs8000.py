@@ -483,8 +483,9 @@ for line in response.splitlines():
             logging.error("This line requires development analysis -  %s" % columns)
 
     for line in library.values():
-        record = record + [{"measurement": "medias", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": line[0] },
-                                  "fields": {"Total Medias": line[1], "Total Cap": line[2], "Total Val": line[3], "Val %": line[4], "Total Clean Medias": line[5], "Total Ina": line[6], "Total Fault": line[7]},
+        # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
+        record = record + [{"measurement": "medias", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "pvgname": line[0] },
+                                  "fields": {"Total Medias": line[1], "Fault": line[2], "Ina": line[3], "Scr": line[4], "-10": line[5], "-20": line[6], "-30": line[7], "-40": line[8], "-50": line[9], "-60": line[10], "-70": line[11], "-80": line[12], "-90": line[13], ">90": line[14], "Total Cap (TB)": line[15], "Total Used (TB)": line[16]},
                                   "time": timestamp}]
     ########################
 
