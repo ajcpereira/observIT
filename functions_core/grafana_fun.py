@@ -41,6 +41,7 @@ def upload_to_grafana(json_data, server, api_key, verify=True):
 
 def create_system_dashboard(sys, config):
     panels = []
+    templating = []
     y_pos = 3
 
     panels = panels + create_title_panel(str(sys['system']))
@@ -51,8 +52,8 @@ def create_system_dashboard(sys, config):
                 y_pos, res_panel = create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], sys['poll'], y_pos)
                 panels = panels + res_panel
             case "eternus_cs8000":
-                y_pos, res_panel = create_panel_eternus_cs8000(str(sys['system']), str(res['name']), res['data'],
-                                                           sys['poll'], y_pos)
+                y_pos, res_panel = create_panel_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], sys['poll'], y_pos)
+                templating = create_dashboard_vars(res['data'])
                 panels = panels + res_panel
 
     my_dashboard = Dashboard(
@@ -64,7 +65,7 @@ def create_system_dashboard(sys, config):
         timezone="browser",
         refresh="1m",
         panels=panels,
-
+        templating=templating,
     ).auto_panel_ids()
 
     return my_dashboard
@@ -88,7 +89,7 @@ def build_dashboards(config):
 
     for sys in systems:
         my_dashboard = create_system_dashboard(sys, config)
-        my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=False, message="Updated by fjcollector")
+        my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True, message="Updated by fjcollector")
         logging.debug("Created dashboard %s", my_dashboard_json)
         upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
 
@@ -140,7 +141,11 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
     for metric in data:
         match metric['metric']:
             case "fs_io":
-                y_pos, panel = fs_io_graph_cs8000(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos)
+                panels_list = panels_list + panel
+
+            case "drives":
+                y_pos, panel = graph_eternus_cs8000_drives(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "cpu":
@@ -350,7 +355,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
         return pos, panels_list
 
 
-def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
+def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
 
 
     panels_list = [RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
@@ -367,7 +372,7 @@ def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
-            title=host + " SVCTM",
+            title=host + " Service Time",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
@@ -415,7 +420,7 @@ def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
-            title=host + " R_AWAIT",
+            title=host + " Read Average Wait Time",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
@@ -463,7 +468,7 @@ def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
-            title=host + " W_AWAIT",
+            title=host + " Write Average Wait Time",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
@@ -485,6 +490,61 @@ def fs_io_graph_cs8000(system_name,resource_name,metric, y_pos):
         pos = pos + 7
 
     return pos, panels_list
+
+
+def graph_eternus_cs8000_drives(system_name,resource_name,metric, y_pos):
+
+    panels_list = [RowPanel(title=resource_name + ': Tape Libraries', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    line = y_pos + 1
+
+    target_list = [InfluxDBTarget(
+            query="SELECT \"used\" as Used, \"other\" as Other, \"total\" as Total FROM \"drives\" WHERE $timeFilter AND (\"system\"::tag = '" + system_name +
+                  "') AND (\"tapename\"::tag =~ /^$tapename$/)")]
+
+
+    panels_list.append(TimeSeries(
+        title="Tape Library $tapename",
+        repeat=Repeat(direction='h', variable='tapename',maxPerRow=6),
+        dataSource='default',
+        targets=target_list,
+        drawStyle='line',
+        lineInterpolation='stepAfter',
+        gradientMode='hue',
+        fillOpacity=25,
+        unit='',
+        gridPos=GridPos(h=7, w=12, x=0, y=line),
+        spanNulls=True,
+        legendPlacement='right',
+        legendDisplayMode='table',
+    ))
+
+    line = line + 7
+
+    return line, panels_list
+
+
+def create_dashboard_vars(data):
+
+    tpl_lst = []
+
+    for metric in data:
+        match metric['metric']:
+            case "drives":
+                tpl_lst = tpl_lst + [ Template(
+                    #dataSource="default",
+                    name='tapename',
+                    label='tapename',
+                    query='SHOW TAG VALUES WITH KEY = \"tapename\"',
+                    type='query',
+                    includeAll=True,
+                    multi=True,
+                    allValue=True,
+                    default='All',
+                    refresh=2,
+                    hide=HIDE_VARIABLE,
+                ) ]
+
+    return Templating(tpl_lst)
 
 ########################################################################################################################
 #
