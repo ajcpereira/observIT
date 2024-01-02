@@ -1,4 +1,3 @@
-from functions_core.netcat import *
 import re, logging, requests, urllib3
 from dateutil import parser
 
