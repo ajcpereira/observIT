@@ -156,6 +156,10 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
                 y_pos, panel = eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
+            case "fc":
+                y_pos, panel = eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos, poll)
+                panels_list = panels_list + panel
+
             case "cpu":
                 y_pos, panel = cpu_graph_linux(system_name,resource_name, metric, y_pos)
                 panels_list = panels_list + panel
@@ -741,6 +745,59 @@ def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
     line = line + 7
 
     return line, panels_list
+
+
+def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
+
+
+    panels_list = [RowPanel(title=resource_name + ': FC', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    pos = y_pos + 1
+
+    for host in metric['hosts']:
+        target_net_outbound = [InfluxDBTarget(
+            query="SELECT derivative(tx_bytes, " + str(poll) +
+                  "m) FROM fc WHERE (\"host\"::tag = '" + host +
+                  "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"hba\"::tag",
+            alias="$tag_hba")]
+
+        panels_list.append(TimeSeries(
+            title=host + " FC Outbound",
+            dataSource='default',
+            targets=target_net_outbound,
+            drawStyle='line',
+            lineInterpolation='smooth',
+            gradientMode='hue',
+            fillOpacity=25,
+            unit="binBps",
+            gridPos=GridPos(h=7, w=12, x=0, y=pos),
+            spanNulls=True,
+            legendPlacement="right",
+            legendDisplayMode="table"
+        ))
+
+        target_net_inbound = [InfluxDBTarget(
+            query="SELECT derivative(rx_bytes," + str(
+                poll) + "m) FROM \"fc\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"hba\"::tag",
+            alias="$tag_hba")]
+
+        panels_list.append(TimeSeries(
+            title=host + " FC Inbound",
+            dataSource='default',
+            targets=target_net_inbound,
+            drawStyle='line',
+            lineInterpolation='smooth',
+            gradientMode='hue',
+            fillOpacity=25,
+            unit="binBps",
+            gridPos=GridPos(h=7, w=12, x=12, y=pos),
+            spanNulls=True,
+            legendPlacement="right",
+            legendDisplayMode="table"
+        ))
+        pos = pos + 7
+
+        return pos, panels_list
+
 
 
 def create_dashboard_vars(data):

@@ -476,7 +476,7 @@ def eternus_cs8000_pvgprofile(**args):
 
     for line in library.values():
         # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
-        record = record + [{"measurement": "medias", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "pvgname": line[0] },
+        record = record + [{"measurement": "pvgprofile", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "pvgname": line[0] },
                                   "fields": {"Total Medias": line[1], "Fault": line[2], "Ina": line[3], "Scr": line[4], "-10": line[5], "-20": line[6], "-30": line[7], "-40": line[8], "-50": line[9], "-60": line[10], "-70": line[11], "-80": line[12], "-90": line[13], ">90": line[14], "Total Cap (GiB)": line[15], "Total Used (GiB)": line[16]},
                                   "time": timestamp}]
     ########################
