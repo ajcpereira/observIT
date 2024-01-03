@@ -6,3 +6,5 @@
 **/logs/*
 **/keys/*
 **/.mypy_cache
+**/.idea/
+**/config/**

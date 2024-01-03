@@ -1,6 +1,5 @@
 import time
 
-from functions_core.netcat import *
 from functions_core.secure_connect import *
 from functions_core.send_influxdb import *
 import re, logging

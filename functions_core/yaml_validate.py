@@ -42,8 +42,13 @@ def configfile_read(configfile):
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 class AllowedMetrics:
     allowed_metrics = {
-        'eternus_icp': [['fs_io','fs', 'cpu', 'mem'], ['eternus_icp.eternus_icp_fs_io','linux_os.linux_os_fs','linux_os.linux_os_cpu', 'linux_os.linux_os_mem']],
-        'linux_os': [['cpu', 'mem', 'fs', 'net'], ['linux_os.linux_os_cpu', 'linux_os.linux_os_mem', 'linux_os.linux_os_fs', 'linux_os.linux_os_net']],
+        'eternus_cs8000': [['fs_io','fs', 'cpu', 'mem', 'drives', 'medias', 'pvgprofile', 'net', 'fc'],
+                           ['eternus_cs8000.eternus_cs8000_fs_io',
+                            'linux_os.linux_os_fs','linux_os.linux_os_cpu', 'linux_os.linux_os_mem', 'eternus_cs8000.eternus_cs8000_drives', 
+                            'eternus_cs8000.eternus_cs8000_medias', 'eternus_cs8000.eternus_cs8000_pvgprofile', 'linux_os.linux_os_net', 
+                            'eternus_cs8000.eternus_cs8000_fc']],
+        'linux_os': [['cpu', 'mem', 'fs', 'net'],
+                     ['linux_os.linux_os_cpu', 'linux_os.linux_os_mem', 'linux_os.linux_os_fs', 'linux_os.linux_os_net']],
         'fj_ism': [['temp'], ['ism_temp']]
     }
 
@@ -56,14 +61,14 @@ class AllowedMetrics:
             if metric_name in metrics_list[0]:
                 index = metrics_list[0].index(metric_name)
         except TypeError:
-            print("Selected resource_type - %s - is not allowed, values can be one of the following keys - %s" % (resource_type, self.allowed_metrics.keys()))
+            logging.error("Selected resource_type - %s - is not allowed, values can be one of the following keys - %s" % (resource_type, self.allowed_metrics.keys()))
             exit()            
 
         if metric_name in metrics_list[0]:
             index = metrics_list[0].index(metric_name)
             return metrics_list[1][index]
         else:
-            print("Selected metric - %s - is not allowed for this resource_type - %s - allowed values are - %s" % (metric_name, resource_type, metrics_list[0]))
+            logging.error("Selected metric - %s - is not allowed for this resource_type - %s - allowed values are - %s" % (metric_name, resource_type, metrics_list[0]))
             exit()
 ########## CLASS VALIDATES MIXING OF RESOURCE TYPES AND METRICS FROM YAML #######
 

@@ -1,0 +1,75 @@
+Tapelibrary: 3LT260
+PLS PLS5 working properly since 23-12-27 04:14:17
+pos  PDS    state          PV     PVG      job-state              timestamp
+  1  PD02   unused         ====== ======   ======             23-12-27 14:55:26
+  2  PD07   occupied       301839 INOSL3   READ_SENT          23-12-27 14:35:55
+  3  PD10   occupied       302103 INOSL3   UNLOAD_SENT        23-12-27 15:04:20
+  4  PDS1   unused         ====== ======   ======             23-12-27 15:04:03
+  5  PDS3   occupied       302226 INOSL3   UNLOAD_SENT        23-12-27 15:04:00
+  6  PDS9   occupied       301680 LTRDEP   READ_SENT          23-12-27 15:04:44
+  7  PDSD   unused         ====== ======   ======             23-12-27 14:53:16
+  8  PDSH   unused         ====== ======   ======             23-12-27 14:41:14
+  9  PDSO   occupied       301960 LTRDEP   WRITE_SENT         23-12-27 15:04:44
+10  PDSQ   occupied       301984 INOSL3   WRITE_SENT         23-12-27 15:04:16
+11  PDSU   unused         ====== ======   ======             23-12-27 14:54:20
+12  PDSV   unused         ====== ======   ======             23-12-27 14:49:55
+Tapelibrary: 4LT260
+PLS PLS8 working properly since 23-12-27 04:14:17
+pos  PDS    state          PV     PVG      job-state              timestamp
+  1  PD01   unused         ====== ======   ======             23-12-27 14:42:38
+  2  PD05   unused         ====== ======   ======             23-12-27 14:37:49
+  3  PD12   occupied       301097 INOSL4   WRITE_SENT         23-12-27 15:05:19
+  4  PDS2   occupied       301008 INOSL4   READ_SENT          23-12-27 14:47:13
+  5  PDS7   unused         ====== ======   ======             23-12-27 14:56:01
+  6  PDS8   occupied       301253 INOSL4   READ_SENT          23-12-27 15:05:19
+  7  PDSE   unused         ====== ======   ======             23-12-27 14:14:07
+  8  PDSM   occupied       301036 INOSL4   READ_SENT          23-12-27 14:54:46
+  9  PDSN   occupied       301238 INOSL4   READ_SENT          23-12-27 14:48:54
+10  PDSP   unused         ====== ======   ======             23-12-27 15:04:06
+11  PDSR   occupied       300965 INOSL4   WRITE_SENT         23-12-27 14:56:53
+12  PDSX   unused         ====== ======   ======             23-12-27 14:13:30
+Tapelibrary: LT260
+PLS PLS6 working properly since 23-12-27 04:14:17
+pos  PDS    state          PV     PVG      job-state              timestamp
+  1  PD00   occupied       300685 INOSLT   WRITE_SENT         23-12-27 15:05:27
+  2  PD08   occupied       300777 INOSLT   WRITE_SENT         23-12-27 15:05:25
+  3  PD09   occupied       300066 INOSLT   WRITE_SENT         23-12-27 15:03:43
+  4  PD11   occupied       302165 INOSLT   READ_SENT          23-12-27 15:03:00
+  5  PDS6   occupied       300643 ILTR01   READ_SENT          23-12-27 15:02:50
+  6  PDSB   occupied       300531 INOSLT   WRITE_SENT         23-12-27 15:05:24
+  7  PDSC   occupied       300794 INOSLT   READ_SENT          23-12-27 14:57:29
+  8  PDSJ   occupied       300549 INOSLT   READ_SENT          23-12-27 15:00:28
+  9  PDSK   occupied       300697 ILTR01   WRITE_SENT         23-12-27 15:03:56
+10  PDSL   occupied       300784 INOSLT   WRITE_SENT         23-12-27 15:05:15
+11  PDSW   occupied       300150 INOSLT   WRITE_SENT         23-12-27 15:05:45
+12  PDSZ   occupied       300437 INOSLT   READ_SENT          23-12-27 15:01:17
+Tapelibrary: 2LT260
+PLS PLS9 working properly since 23-12-27 04:14:17
+pos  PDS    state          PV     PVG      job-state              timestamp
+  1  PD03   occupied       300448 INOSL2   ======             23-12-27 15:05:45
+  2  PD04   occupied       301574 INOSL2   READ_SENT          23-12-27 15:04:00
+  3  PD06   occupied       301380 INOSL2   UNLOAD_SENT        23-12-27 15:05:46
+  4  PDS4   unused         ====== ======   ======             23-12-27 15:05:23
+  5  PDS5   occupied       300487 INOSL2   UNLOAD_SENT        23-12-27 15:05:42
+  6  PDSA   occupied       301530 INOSL2   READ_SENT          23-12-27 15:00:15
+  7  PDSF   occupied       300406 INOSL2   READ_SENT          23-12-27 15:01:33
+  8  PDSG   occupied       300667 INOSL2   UNLOAD_SENT        23-12-27 15:05:49
+  9  PDSI   occupied       300253 INOSL2   READ_SENT          23-12-27 15:04:13
+10  PDSS   occupied       301502 ILTR02   READ_SENT          23-12-27 15:03:54
+11  PDST   occupied       300332 ILTR02   MOUNT_SENT         23-12-27 15:04:48
+12  PDSY   occupied       300678 INOSL2   WRITE_SENT         23-12-27 15:04:00
+Tapelibrary: 6LT260
+PLS PLS7 working properly since 23-12-27 04:14:17
+pos  PDS    state          PV     PVG      job-state              timestamp
+  1  PD13   unused         ====== ======   ======             23-12-27 14:42:40
+  2  PD14   unused         ====== ======   ======             23-12-27 13:36:16
+  3  PD15   occupied       302355 INOSL6   READ_SENT          23-12-27 14:41:42
+  4  PD16   unused         ====== ======   ======             23-12-27 14:44:00
+  5  PD17   unused         ====== ======   ======             23-12-27 14:51:42
+  6  PD18   occupied       302316 INOSL6   WRITE_SENT         23-12-27 15:02:53
+  7  PD19   occupied       302428 INOSL6   READ_SENT          23-12-27 14:48:47
+  8  PD20   unused         ====== ======   ======             23-12-27 14:41:02
+  9  PD21   occupied       302368 INOSL6   WRITE_SENT         23-12-27 14:58:06
+10  PD22   occupied       302357 INOSL6   READ_SENT          23-12-27 15:01:33
+11  PD23   occupied       302293 INOSL6   ======             23-12-27 15:03:04
+12  PD24   occupied       302362 INOSL6   READ_SENT          23-12-27 14:58:06
