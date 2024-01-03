@@ -148,6 +148,14 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
                 y_pos, panel = graph_eternus_cs8000_drives(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
+            case "medias":
+                y_pos, panel = eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos)
+                panels_list = panels_list + panel
+
+            case "pvgprofile":
+                y_pos, panel = eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos)
+                panels_list = panels_list + panel
+
             case "cpu":
                 y_pos, panel = cpu_graph_linux(system_name,resource_name, metric, y_pos)
                 panels_list = panels_list + panel
@@ -313,7 +321,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
         target_net_outbound = [InfluxDBTarget(
             query="SELECT derivative(tx_bytes, " + str(poll) +
                   "m) FROM net WHERE (\"host\"::tag = '" + host +
-                  "') AND $timeFilter GROUP BY \"if\"::tag",
+                  "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"if\"::tag",
             alias="$tag_if")]
 
         panels_list.append(TimeSeries(
@@ -516,6 +524,218 @@ def graph_eternus_cs8000_drives(system_name,resource_name,metric, y_pos):
         spanNulls=True,
         legendPlacement='right',
         legendDisplayMode='table',
+    ))
+
+    line = line + 7
+
+    return line, panels_list
+
+
+def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
+
+    panels_list = [RowPanel(title=resource_name + ': Tape Medias', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    line = y_pos + 1
+
+    target_list = [InfluxDBTarget(
+        query="SELECT  \"Total Cap GiB\", \"Total Clean Medias\", \"Total Fault\", \"Total Ina\", \"Total Medias\", \"Total Val GiB\", \"Val %\"  FROM \"medias\" WHERE $timeFilter AND (\"system\"::tag='" + system_name + "') GROUP BY \"host\"::tag, \"tapename\"::tag ORDER BY DESC LIMIT 1",
+        format="table")]
+
+    override_lst = [
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Time"
+        },
+        "properties": [
+          {
+            "id": "custom.hidden",
+            "value": True
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Total Cap GiB"
+        },
+        "properties": [
+          {
+            "id": "unit",
+            "value": "decgbytes"
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Total Val GiB"
+        },
+        "properties": [
+          {
+            "id": "unit",
+            "value": "decgbytes"
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Val %"
+        },
+        "properties": [
+          {
+            "id": "unit",
+            "value": "percent"
+          },
+          {
+            "id": "thresholds",
+            "value": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": None
+                },
+                {
+                  "color": "#EAB839",
+                  "value": 65
+                },
+                {
+                  "color": "red",
+                  "value": 75
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+
+    thres = [
+        {
+            "color": "text",
+            "value": None
+        }
+    ]
+
+    panels_list.append(Table(
+        title="Tape Medias",
+        dataSource='default',
+        targets=target_list,
+        gridPos=GridPos(h=7, w=24, x=0, y=line),
+        filterable=True,
+        displayMode="color-text",
+        colorMode="thresholds",
+        overrides=override_lst,
+        #thresholds=Threshold('black', 0, 0.0),
+        thresholds=thres,
+    ))
+
+    line = line + 7
+
+    return line, panels_list
+
+
+def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
+
+    panels_list = [RowPanel(title=resource_name + ': Physical Volume Group Profile', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    line = y_pos + 1
+
+    target_list = [InfluxDBTarget(
+        query= "SELECT \"Total Medias\", \"Fault\", \"Ina\", \"Scr\", \"-10\", \"-20\", \"-30\", \"-40\", \"-50\", \"-60\", \"-70\", \"-80\", \"-90\", \">90\", \"Total Cap (GiB)\", \"Total Used (GiB)\" from pvgprofile WHERE $timeFilter AND (\"system\"::tag='" + system_name + "') GROUP BY \"pvgname\"::tag, \"host\"::tag ORDER BY DESC LIMIT 1",
+        format="table")]
+
+    override_lst = [
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Time"
+            },
+            "properties": [
+                {
+                    "id": "custom.hidden",
+                    "value": True
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Scr"
+            },
+            "properties": [
+                {
+                    "id": "thresholds",
+                    "value": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": None
+                            },
+                            {
+                                "color": "red",
+                                "value": 0
+                            },
+                            {
+                                "color": "#EAB839",
+                                "value": 10
+                            },
+                            {
+                                "color": "green",
+                                "value": 15
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total Cap (GiB)"
+            },
+            "properties": [
+                {
+                    "id": "unit",
+                    "value": "decgbytes"
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total Used (GiB)"
+            },
+            "properties": [
+                {
+                    "id": "unit",
+                    "value": "decgbytes"
+                }
+            ]
+        }
+    ]
+
+    thres = [
+          {
+            "color": "text",
+            "value": None
+          }
+        ]
+
+
+    panels_list.append(Table(
+        title="Physical Volume Group",
+        dataSource='default',
+        targets=target_list,
+        gridPos=GridPos(h=7, w=24, x=0, y=line),
+        filterable=True,
+        displayMode="color-text",
+        colorMode="thresholds",
+        overrides=override_lst,
+        #thresholds=Threshold(line=False,color='text', index=0, value=0.0, op=EVAL_GT),
+        thresholds=thres,
+        fontSize="85%",
     ))
 
     line = line + 7
