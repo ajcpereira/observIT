@@ -83,7 +83,7 @@ systems:
     resources_types: eternus_cs8000
     config:
       parameters:
-        user: alex
+        user: fjcollector
         host_keys: keys/id_rsa
         poll: 1
       metrics:
