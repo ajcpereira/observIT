@@ -1,6 +1,6 @@
-from functions_core.secure_connect import *
-import re, os, logging, subprocess, time
+import os, logging, subprocess, time
 from functions_core.send_influxdb import *
+from functions_core.secure_connect import *
 
 
 def eternus_cs8000_fs_io(**args):
@@ -281,7 +281,6 @@ def eternus_cs8000_medias(**args):
 
     ##############################
     library = {}
-    pvg_library = {}
     record = []
     
     for line in response.splitlines():
@@ -489,3 +488,95 @@ def eternus_cs8000_pvgprofile(**args):
     ssh.ssh_del()        
     logging.debug("Finished core function ssh with args %s" % args)
     logging.debug("Finished func_eternus_cs8000_pvgprofile")
+    
+def eternus_cs8000_fc(**args):
+
+    logging.debug("Starting func_eternus_cs8000_fc")
+
+    # Command line to run remotly
+    cmd1="for i in \`ls /sys/class/fc_host\`; do tx=\`cat /sys/class/fc_host/$i/statistics/tx_words\`; rx=\`cat /sys/class/fc_host/$i/statistics/rx_words\`; echo $i $tx $rx; done"
+    
+    logging.debug("Use_sudo is set to %s and ip_use_sudo %s" % (args['use_sudo'], args['ip_use_sudo']))
+
+    if args['use_sudo'] or args['ip_use_sudo']:
+            cmd1 = "sudo " + cmd1
+            logging.debug("Will use cmd1 with sudo - %s" % cmd1)
+    
+    logging.debug("Command Line 1 - %s" % cmd1)
+
+    flag_test=None
+    
+    if os.path.isfile("./tests/fc_transmit"):
+          logging.info("fc_transmit file exists, it will be used for tests")
+          flag_test=True
+          cmd="cat ./tests/fc_transmit"
+          cmd1 = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+          logging.debug("cmd1 for test %s" % cmd1)
+          logging.warning("You are using test file for FC, not really data")
+          
+
+    ###########################################
+    if args['ip_bastion']:
+          bastion=str(args['ip_bastion'])
+    elif args['bastion']:
+          bastion=str(args['bastion'])
+    else:
+          bastion=None
+
+    if args['ip_host_keys']:
+          host_keys=args['ip_host_keys']
+    elif args['host_keys']:
+          host_keys=args['host_keys']
+    else:
+          host_keys=None
+
+    if args['alias']:
+        hostname = args['alias']
+    else:
+        hostname = str(args['ip'])
+    ###########################################
+
+    try:
+        ssh=Secure_Connect(str(args['ip']),bastion,args['user'],host_keys)
+    except Exception as msgerror:
+        logging.error("Failed to connect to %s with error %s" % (args['ip'], msgerror))
+        return -1
+    
+    logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
+    
+    if flag_test:
+         response = cmd1
+    else:
+         stdout = ssh.ssh_run(cmd1)
+         response = stdout.stdout
+
+    timestamp = int(time.time())
+    
+    logging.debug("Output of Command Line 1 - %s" % response)
+    
+    logging.debug("Starting metrics processing on FC")
+
+
+    ##############################
+    record = []
+    for line in response.splitlines():
+        columns = line.split()
+
+        record = record + [
+            {"measurement": "fc",
+             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
+                      "hba": columns[0]},
+             "fields": {"rx_bytes": int(columns[2],0)*4, "tx_bytes": int(columns[1],0)*4},
+             "time": timestamp
+             }
+        ]
+
+    ########################
+
+    # Send Data to InfluxDB
+    logging.debug("Data to be sent to DB by fc %s" % record)
+    send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
+    
+    ssh.ssh_del()        
+    logging.debug("Finished core function ssh with args %s" % args)
+    logging.debug("Finished func_eternus_cs8000_fc")
