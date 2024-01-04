@@ -375,10 +375,13 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
 
     for host in metric['hosts']:
         panels_target_list = [InfluxDBTarget(
-            query="SELECT svctm FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"svctm\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
+
+
+
 
         panels_list.append(TimeSeries2(
             title=host + " Service Time",
@@ -399,9 +402,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT \"r/s\" FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"r/s\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -423,9 +426,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT r_await FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "')  AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"r_await\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -447,9 +450,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT \"w/s\" FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"w/s\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -471,9 +474,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT w_await FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"w_await\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -493,8 +496,6 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendSortBy="Max",
             legendSortDesc=True,
         ))
-
-
 
         pos = pos + 7
 
