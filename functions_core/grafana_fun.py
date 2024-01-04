@@ -122,7 +122,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll, global_pos):
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos, poll)
+                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -157,7 +157,7 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
                 panels_list = panels_list + panel
 
             case "fc":
-                y_pos, panel = eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos, poll)
+                y_pos, panel = eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "cpu":
@@ -173,7 +173,7 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos, poll)
+                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -315,7 +315,7 @@ def fs_graph_linux(system_name,resource_name,metric, y_pos):
     return pos, panels_list
 
 
-def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
+def net_graph_linux(system_name,resource_name,metric, y_pos):
 
 
     panels_list = [RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
@@ -323,9 +323,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
 
     for host in metric['hosts']:
         target_net_outbound = [InfluxDBTarget(
-            query="SELECT derivative(tx_bytes, " + str(poll) +
-                  "m) FROM net WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"if\"::tag",
+            query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
             alias="$tag_if")]
 
         panels_list.append(TimeSeries(
@@ -344,8 +342,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
         ))
 
         target_net_inbound = [InfluxDBTarget(
-            query="SELECT derivative(rx_bytes," + str(
-                poll) + "m) FROM \"net\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"if\"::tag",
+            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
             alias="$tag_if")]
 
         panels_list.append(TimeSeries(
@@ -364,7 +361,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
         ))
         pos = pos + 7
 
-        return pos, panels_list
+    return pos, panels_list
 
 
 def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
@@ -747,7 +744,7 @@ def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
+def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
 
 
     panels_list = [RowPanel(title=resource_name + ': FC', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
@@ -755,10 +752,9 @@ def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
 
     for host in metric['hosts']:
         target_net_outbound = [InfluxDBTarget(
-            query="SELECT derivative(tx_bytes, " + str(poll) +
-                  "m) FROM fc WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"hba\"::tag",
+            query = "SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
             alias="$tag_hba")]
+
 
         panels_list.append(TimeSeries(
             title=host + " FC Outbound",
@@ -776,8 +772,7 @@ def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
         ))
 
         target_net_inbound = [InfluxDBTarget(
-            query="SELECT derivative(rx_bytes," + str(
-                poll) + "m) FROM \"fc\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"hba\"::tag",
+            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
             alias="$tag_hba")]
 
         panels_list.append(TimeSeries(
@@ -796,7 +791,7 @@ def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
         ))
         pos = pos + 7
 
-        return pos, panels_list
+    return pos, panels_list
 
 
 
