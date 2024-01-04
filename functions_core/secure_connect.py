@@ -74,8 +74,11 @@ class Secure_Connect():
                  return -1
 
     def ssh_run(self, cmd):
-         stdout = self.ssh.run(cmd, hide=True, timeout=50)
-         return stdout
+         try:
+            stdout = self.ssh.run(cmd, hide=True, timeout=30)
+            return stdout
+         except Exception as msgerror:
+             logging.error("Class Secure_Connect failed to exec cmd in function ssh_run %s" % msgerror)
     
     def ssh_del(self):
          logging.debug("Will close ssh sessions on Class Secure_connect")

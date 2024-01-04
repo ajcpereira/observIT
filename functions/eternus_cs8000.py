@@ -91,11 +91,13 @@ def eternus_cs8000_fs_io(**args):
                          ]
 
 
+    # Close ssh session
+    ssh.ssh_del()
+    logging.debug("Finished core function ssh with args %s" % args)
+    
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by FS_IO %s" % record)
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
-
-    ssh.ssh_del()
             
     logging.debug("Finished core function ssh with args %s" % args)
 
@@ -203,12 +205,14 @@ def eternus_cs8000_drives(**args):
                                   "fields": {"total": float(count_used+count_unused+count_another_state), "used": float(count_used), "other": float(count_another_state)},
                                   "time": timestamp}]
 
+    # Close ssh session
+    ssh.ssh_del()        
+    logging.debug("Finished core function ssh with args %s" % args)
+
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by drives %s" % record)
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
     
-    ssh.ssh_del()        
-    logging.debug("Finished core function ssh with args %s" % args)
     logging.debug("Finished func_eternus_cs8000_drives ")
 
 def eternus_cs8000_medias(**args):
@@ -285,7 +289,7 @@ def eternus_cs8000_medias(**args):
     
     for line in response.splitlines():
         columns = line.split()
-        if line.startswith("pos"):
+        if line.__contains__("pos"):
             continue
         else:
             # Library Libname / Count Medias / Total Cap / Total Valid / Val% / Clean / Inacessible / Fault
@@ -298,7 +302,7 @@ def eternus_cs8000_medias(**args):
                     library[str(columns[2])]=[str(columns[2]),0,0,0,0.0,0,0,1]
                 elif str(columns[1]).startswith("CLN"):
                     library[str(columns[2])]=[str(columns[2]),0,float(columns[8]),float(columns[9]),0.0,1,0,0]
-                elif float(columns[8]) > 0 and not str(columns[1]).startswith("CLN"):
+                elif float(columns[8]) > 0.0 and not str(columns[1]).startswith("CLN"):
                     library[str(columns[2])]=[str(columns[2]),1,float(columns[8]),float(columns[9]),float(columns[10]),0,0,0]
                 else:
                     logging.error("This line requires development analysis -  %s" % columns)
@@ -323,12 +327,14 @@ def eternus_cs8000_medias(**args):
                                   "time": timestamp}]
     ########################
 
+    # Close ssh session
+    ssh.ssh_del()        
+    logging.debug("Finished core function ssh with args %s" % args)
+
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by medias %s" % record)
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
     
-    ssh.ssh_del()        
-    logging.debug("Finished core function ssh with args %s" % args)
     logging.debug("Finished func_eternus_cs8000_medias")
 
 def eternus_cs8000_pvgprofile(**args):
@@ -405,74 +411,76 @@ def eternus_cs8000_pvgprofile(**args):
 
     for line in response.splitlines():
         columns = line.split()
-        # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
-        if str(columns[3]) not in library.keys():
-            if str(columns[4][0]) == 'f':
-                library[str(columns[3])]=[str(columns[3]),1,1,0,0,0,0,0,0,0,0,0,0,0,0,0.0,0.0]
-            elif str(columns[4][0]) == 'i':
-                library[str(columns[3])]=[str(columns[3]),1,0,1,0,0,0,0,0,0,0,0,0,0,0,0.0,0.0]
-            elif float(columns[10]) == 0 and str(columns[4][0]) == 'o':
-                library[str(columns[3])]=[str(columns[3]),1,0,0,1,0,0,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
-            elif float(columns[10]) > 0:
-                if float(columns[10]) < 10:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,1,0,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 10 and float(columns[10]) < 20:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,1,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 20 and float(columns[10]) < 30:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,1,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 30 and float(columns[10]) < 40:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,1,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 40 and float(columns[10]) < 50:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,1,0,0,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 50 and float(columns[10]) < 60:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,1,0,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 60 and float(columns[10]) < 70:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,1,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 70 and float(columns[10]) < 80:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,0,1,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 80 and float(columns[10]) < 90:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,0,0,1,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) >= 90:
-                    library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,0,0,0,1,float(columns[8]),float(columns[9])]
-                else:
-                    logging.error("This line requires development analysis -  %s" % columns)
-            else:
-                logging.error("This line requires development analysis -  %s" % columns)
-        # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
+        if line.__contains__("pos"):
+            continue
         else:
-            #                            tapename 0       Total PVG 1                           Fault 2                              Ina 3                            Scr 4                                -10 5                                -20 6                               -30 7                                -40 8                            -50 9                                -60 10                                -70 11                                -80 12                                -90 13                                +90 14                                Total Cap 15        Used Cap 16
-            #library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3][1])])+0,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+0,float(library[str(columns[3])][16])+0]
-            if str(columns[4][0]) == 'f':
-                library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3][1])])+1,int(library[str(columns[3])][2])+1,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+0,float(library[str(columns[3])][16])+0]
-            elif str(columns[4][0]) == 'i':
-                library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3][1])])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+1,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+0,float(library[str(columns[3])][16])+0]
-            elif float(columns[10]) == 0 and str(columns[4][0]) == 'o':
-                library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3][1])])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+1,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-            elif float(columns[10]) > 0:
-                if float(columns[10]) < 10:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+1,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 10 and float(columns[10]) < 20:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+1,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 20 and float(columns[10]) < 30:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+1,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 30 and float(columns[10]) < 40:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+1,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 40 and float(columns[10]) < 50:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+1,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 50 and float(columns[10]) < 60:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+1,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 60 and float(columns[10]) < 70:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+1,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 70 and float(columns[10]) < 80:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+1,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 80 and float(columns[10]) < 90:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+1,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) >= 90:
-                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+1,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+            if str(columns[3]) not in library.keys():
+                if str(columns[4][0]) == 'f':
+                    library[str(columns[3])]=[str(columns[3]),1,1,0,0,0,0,0,0,0,0,0,0,0,0,0.0,0.0]
+                elif str(columns[4][0]) == 'i':
+                    library[str(columns[3])]=[str(columns[3]),1,0,1,0,0,0,0,0,0,0,0,0,0,0,0.0,0.0]
+                elif float(columns[10]) == 0 and str(columns[4][0]) == 'o':
+                    library[str(columns[3])]=[str(columns[3]),1,0,0,1,0,0,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
+                elif float(columns[10]) > 0:
+                    if float(columns[10]) < 10:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,1,0,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 10 and float(columns[10]) < 20:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,1,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 20 and float(columns[10]) < 30:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,1,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 30 and float(columns[10]) < 40:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,1,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 40 and float(columns[10]) < 50:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,1,0,0,0,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 50 and float(columns[10]) < 60:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,1,0,0,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 60 and float(columns[10]) < 70:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,1,0,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 70 and float(columns[10]) < 80:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,0,1,0,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 80 and float(columns[10]) < 90:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,0,0,1,0,float(columns[8]),float(columns[9])]
+                    elif float(columns[10]) >= 90:
+                        library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,0,0,0,1,float(columns[8]),float(columns[9])]
+                    else:
+                        logging.error("This line requires development analysis -  %s" % columns)
                 else:
                     logging.error("This line requires development analysis -  %s" % columns)
+            # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
             else:
-                logging.error("This line requires development analysis -  %s" % columns)
+                #                            tapename 0       Total PVG 1                           Fault 2                              Ina 3                            Scr 4                                -10 5                                -20 6                               -30 7                                -40 8                            -50 9                                -60 10                                -70 11                                -80 12                                -90 13                                +90 14                                Total Cap 15        Used Cap 16
+                #library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3][1])])+0,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+0,float(library[str(columns[3])][16])+0]
+                if str(columns[4][0]) == 'f':
+                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+1,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+0,float(library[str(columns[3])][16])+0]
+                elif str(columns[4][0]) == 'i':
+                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+1,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+0,float(library[str(columns[3])][16])+0]
+                elif float(columns[10]) == 0 and str(columns[4][0]) == 'o':
+                    library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+1,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                elif float(columns[10]) > 0:
+                    if float(columns[10]) < 10:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+1,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 10 and float(columns[10]) < 20:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+1,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 20 and float(columns[10]) < 30:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+1,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 30 and float(columns[10]) < 40:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+1,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 40 and float(columns[10]) < 50:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+1,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 50 and float(columns[10]) < 60:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+1,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 60 and float(columns[10]) < 70:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+1,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 70 and float(columns[10]) < 80:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+1,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 80 and float(columns[10]) < 90:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+1,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    elif float(columns[10]) >= 90:
+                        library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+1,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
+                    else:
+                        logging.error("This line requires development analysis -  %s" % columns)
+                else:
+                    logging.error("This line requires development analysis -  %s" % columns)
 
     for line in library.values():
         # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
@@ -481,12 +489,14 @@ def eternus_cs8000_pvgprofile(**args):
                                   "time": timestamp}]
     ########################
 
+    # Close ssh session
+    ssh.ssh_del()
+    logging.debug("Finished core function ssh with args %s" % args)
+
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by pvgprofile %s" % record)
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
     
-    ssh.ssh_del()        
-    logging.debug("Finished core function ssh with args %s" % args)
     logging.debug("Finished func_eternus_cs8000_pvgprofile")
     
 def eternus_cs8000_fc(**args):
@@ -573,10 +583,12 @@ def eternus_cs8000_fc(**args):
 
     ########################
 
+    # Close ssh session
+    ssh.ssh_del()        
+    logging.debug("Finished core function ssh with args %s" % args)
+
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by fc %s" % record)
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
     
-    ssh.ssh_del()        
-    logging.debug("Finished core function ssh with args %s" % args)
     logging.debug("Finished func_eternus_cs8000_fc")

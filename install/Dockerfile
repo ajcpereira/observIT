@@ -9,8 +9,8 @@ RUN apt-get update \
 	python3 python3-venv python3-pip \
 	&& apt-get clean
 
-#ENV HTTP_PROXY="http://###"
-#ENV HTTPS_PROXY="http://###"
+#ENV HTTP_PROXY="http://20.220.3.113:8080"
+#ENV HTTPS_PROXY="http://20.220.3.113:8080"
 #ENV no_proxy=grafana
 
 # Copy application
