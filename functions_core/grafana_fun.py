@@ -290,8 +290,48 @@ def fs_graph_linux(system_name,resource_name,metric, y_pos):
 
     for host in metric['hosts']:
         target_fs = [InfluxDBTarget(
-            query="SELECT used as Used, total-used as Available FROM fs WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+            #query="SELECT used as Used, total-used as Available FROM fs WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+            query="SELECT \"used\" as \"Used\", \"total\"-\"used\" as \"Available\", \"total\" as \"Total\", \"used\"/\"total\"*100 as \"%Used\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
             format="table")]
+
+        overrides_lst = [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "%Used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "tooltip": False,
+                  "viz": True,
+                  "legend": True
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "tooltip": False,
+                  "viz": True,
+                  "legend": True
+                }
+              }
+            ]
+          }
+        ]
 
         panels_list.append(BarChart(
             title=host + " Filesystem",
@@ -309,6 +349,8 @@ def fs_graph_linux(system_name,resource_name,metric, y_pos):
             stacking={'mode': "normal"},
             tooltipMode="multi",
             xTickLabelRotation=-45,
+            decimals=2,
+            overrides=overrides_lst,
         ))
         pos = pos + 7
 
@@ -829,11 +871,13 @@ def create_dashboard_vars(data):
 @attr.s
 class BarChart(TimeSeries):
 
-    def __init__(self, xTickLabelRotation, **kwargs):
+    def __init__(self, xTickLabelRotation, decimals,**kwargs):
         super().__init__(self, **kwargs)
         self.xTickLabelRotation = xTickLabelRotation
+        self.decimals = decimals
 
     xTickLabelRotation = attr.ib(default=0, validator=instance_of(int))
+    decimals = attr.ib(default=0, validator=instance_of(int))
 
     def to_json_data(self):
         return self.panel_json(
@@ -869,7 +913,8 @@ class BarChart(TimeSeries):
                             },
                         },
                         'mappings': self.mappings,
-                        'unit': self.unit
+                        'unit': self.unit,
+                        'decimals': self.decimals,
                     },
                     'overrides': self.overrides
                 },
@@ -1043,7 +1088,8 @@ def build_grafana_fun_data_model(config):
             if system_name == x['system']:
                 for y in x['resources']:
                     if resource_name == y['name']:
-                        y['data'].append(dict_metric[0])
+                        #y['data'].append(dict_metric[0])
+                        y['data'] = y['data'] + dict_metric
 
         return local_model
 
