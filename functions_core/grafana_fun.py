@@ -122,7 +122,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll, global_pos):
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos, poll)
+                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -157,7 +157,7 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
                 panels_list = panels_list + panel
 
             case "fc":
-                y_pos, panel = eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos, poll)
+                y_pos, panel = eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "cpu":
@@ -173,7 +173,7 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos, poll)
+                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -290,8 +290,48 @@ def fs_graph_linux(system_name,resource_name,metric, y_pos):
 
     for host in metric['hosts']:
         target_fs = [InfluxDBTarget(
-            query="SELECT used as Used, total-used as Available FROM fs WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+            #query="SELECT used as Used, total-used as Available FROM fs WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+            query="SELECT \"used\" as \"Used\", \"total\"-\"used\" as \"Available\", \"total\" as \"Total\", \"used\"/\"total\"*100 as \"%Used\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
             format="table")]
+
+        overrides_lst = [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "%Used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "tooltip": False,
+                  "viz": True,
+                  "legend": True
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "tooltip": False,
+                  "viz": True,
+                  "legend": True
+                }
+              }
+            ]
+          }
+        ]
 
         panels_list.append(BarChart(
             title=host + " Filesystem",
@@ -309,13 +349,15 @@ def fs_graph_linux(system_name,resource_name,metric, y_pos):
             stacking={'mode': "normal"},
             tooltipMode="multi",
             xTickLabelRotation=-45,
+            decimals=2,
+            overrides=overrides_lst,
         ))
         pos = pos + 7
 
     return pos, panels_list
 
 
-def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
+def net_graph_linux(system_name,resource_name,metric, y_pos):
 
 
     panels_list = [RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
@@ -323,9 +365,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
 
     for host in metric['hosts']:
         target_net_outbound = [InfluxDBTarget(
-            query="SELECT derivative(tx_bytes, " + str(poll) +
-                  "m) FROM net WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"if\"::tag",
+            query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
             alias="$tag_if")]
 
         panels_list.append(TimeSeries(
@@ -344,8 +384,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
         ))
 
         target_net_inbound = [InfluxDBTarget(
-            query="SELECT derivative(rx_bytes," + str(
-                poll) + "m) FROM \"net\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"if\"::tag",
+            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
             alias="$tag_if")]
 
         panels_list.append(TimeSeries(
@@ -364,7 +403,7 @@ def net_graph_linux(system_name,resource_name,metric, y_pos, poll):
         ))
         pos = pos + 7
 
-        return pos, panels_list
+    return pos, panels_list
 
 
 def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
@@ -378,10 +417,13 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
 
     for host in metric['hosts']:
         panels_target_list = [InfluxDBTarget(
-            query="SELECT svctm FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"svctm\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
+
+
+
 
         panels_list.append(TimeSeries2(
             title=host + " Service Time",
@@ -402,9 +444,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT \"r/s\" FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"r/s\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -426,9 +468,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT r_await FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "')  AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"r_await\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -450,9 +492,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT \"w/s\" FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"w/s\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -474,9 +516,9 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
         ))
 
         panels_target_list = [InfluxDBTarget(
-            query="SELECT w_await FROM fs_io WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name +
-                  "') AND $timeFilter GROUP BY \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag",
+            query=("SELECT mean(\"w_await\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host +
+                   "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
         panels_list.append(TimeSeries2(
@@ -496,8 +538,6 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendSortBy="Max",
             legendSortDesc=True,
         ))
-
-
 
         pos = pos + 7
 
@@ -747,7 +787,7 @@ def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
+def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
 
 
     panels_list = [RowPanel(title=resource_name + ': FC', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
@@ -755,10 +795,9 @@ def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
 
     for host in metric['hosts']:
         target_net_outbound = [InfluxDBTarget(
-            query="SELECT derivative(tx_bytes, " + str(poll) +
-                  "m) FROM fc WHERE (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') AND $timeFilter GROUP BY \"hba\"::tag",
+            query = "SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
             alias="$tag_hba")]
+
 
         panels_list.append(TimeSeries(
             title=host + " FC Outbound",
@@ -776,8 +815,7 @@ def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
         ))
 
         target_net_inbound = [InfluxDBTarget(
-            query="SELECT derivative(rx_bytes," + str(
-                poll) + "m) FROM \"fc\" WHERE (\"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"hba\"::tag",
+            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
             alias="$tag_hba")]
 
         panels_list.append(TimeSeries(
@@ -796,7 +834,7 @@ def eternus_cs8000_fc_graph(system_name,resource_name,metric, y_pos, poll):
         ))
         pos = pos + 7
 
-        return pos, panels_list
+    return pos, panels_list
 
 
 
@@ -833,11 +871,13 @@ def create_dashboard_vars(data):
 @attr.s
 class BarChart(TimeSeries):
 
-    def __init__(self, xTickLabelRotation, **kwargs):
+    def __init__(self, xTickLabelRotation, decimals,**kwargs):
         super().__init__(self, **kwargs)
         self.xTickLabelRotation = xTickLabelRotation
+        self.decimals = decimals
 
     xTickLabelRotation = attr.ib(default=0, validator=instance_of(int))
+    decimals = attr.ib(default=0, validator=instance_of(int))
 
     def to_json_data(self):
         return self.panel_json(
@@ -873,7 +913,8 @@ class BarChart(TimeSeries):
                             },
                         },
                         'mappings': self.mappings,
-                        'unit': self.unit
+                        'unit': self.unit,
+                        'decimals': self.decimals,
                     },
                     'overrides': self.overrides
                 },
@@ -1047,7 +1088,8 @@ def build_grafana_fun_data_model(config):
             if system_name == x['system']:
                 for y in x['resources']:
                     if resource_name == y['name']:
-                        y['data'].append(dict_metric[0])
+                        #y['data'].append(dict_metric[0])
+                        y['data'] = y['data'] + dict_metric
 
         return local_model
 
