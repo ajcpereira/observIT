@@ -33,20 +33,26 @@ def eternus_cs8000_fs_io(**args):
     logging.debug("Command Line 2 - %s" % cmd2)
     logging.debug("Command Line 3 - %s" % cmd3)
 
+###########################################
     if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
+        bastion=str(args['ip_bastion'])
     elif args['bastion']:
-          bastion=str(args['bastion'])
+        bastion=str(args['bastion'])
     else:
-          bastion=None
+        bastion=None
 
     if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
+        host_keys=args['ip_host_keys']
     elif args['host_keys']:
-          host_keys=args['host_keys']
+        host_keys=args['host_keys']
     else:
-          host_keys=None
+        host_keys=None
 
+    if args['alias']:
+        hostname = args['alias']
+    else:
+        hostname = str(args['ip'])
+###########################################
     try:
         ssh=Secure_Connect(str(args['ip']),bastion,args['user'],host_keys)
     except Exception as msgerror:
@@ -63,7 +69,12 @@ def eternus_cs8000_fs_io(**args):
     else:
          stdout = ssh.ssh_run(cmd3)
          response = stdout.stdout
+
     timestamp = int(time.time())
+    
+    # Close ssh session
+    ssh.ssh_del()
+    logging.debug("Finished core function ssh with args %s" % args)
     
     logging.debug("Output of Command Line 3 - %s" % response)
     
@@ -72,10 +83,8 @@ def eternus_cs8000_fs_io(**args):
     logging.debug("Starting metrics processing on FS_IO")
 
     for line in response.splitlines():
-        if args['alias']:
-              hostname = args['alias']
-        else:
-              hostname = str(args['ip'])
+        if not line.strip():
+             continue
 
         if len(line.split()) == 18 and not line.startswith("\n") and not line.startswith("Device"):
             
@@ -89,11 +98,6 @@ def eternus_cs8000_fs_io(**args):
                               "time": timestamp
                               }
                          ]
-
-
-    # Close ssh session
-    ssh.ssh_del()
-    logging.debug("Finished core function ssh with args %s" % args)
     
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by FS_IO %s" % record)
@@ -164,6 +168,10 @@ def eternus_cs8000_drives(**args):
 
     timestamp = int(time.time())
     
+    # Close ssh session
+    ssh.ssh_del()        
+    logging.debug("Finished core function ssh with args %s" % args)
+
     logging.debug("Output of Command Line 1 - %s" % response)
     
     logging.debug("Starting metrics processing on DRIVES")
@@ -175,6 +183,9 @@ def eternus_cs8000_drives(**args):
     record=[]
     
     for line in response.splitlines():
+        if not line.strip():
+             continue
+        
         columns = line.split()
     
         if line.startswith("Tapelibrary"):    
@@ -205,10 +216,6 @@ def eternus_cs8000_drives(**args):
     record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": tapename },
                                   "fields": {"total": int(count_used+count_unused+count_another_state), "used": int(count_used), "other": int(count_another_state)},
                                   "time": timestamp}]
-
-    # Close ssh session
-    ssh.ssh_del()        
-    logging.debug("Finished core function ssh with args %s" % args)
 
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by drives %s" % record)
@@ -279,6 +286,10 @@ def eternus_cs8000_medias(**args):
 
     timestamp = int(time.time())
     
+    # Close ssh session
+    ssh.ssh_del()        
+    logging.debug("Finished core function ssh with args %s" % args)
+
     logging.debug("Output of Command Line 1 - %s" % response)
     
     logging.debug("Starting metrics processing on MEDIAS")
@@ -289,7 +300,11 @@ def eternus_cs8000_medias(**args):
     record = []
     
     for line in response.splitlines():
+        if not line.strip():
+             continue
+        
         columns = line.split()
+        
         if line.__contains__("pos"):
             continue
         else:
@@ -327,10 +342,6 @@ def eternus_cs8000_medias(**args):
                                   "fields": {"Total Medias": line[1], "Total Cap GiB": line[2], "Total Val GiB": line[3], "Val %": line[4], "Total Clean Medias": line[5], "Total Ina": line[6], "Total Fault": line[7]},
                                   "time": timestamp}]
     ########################
-
-    # Close ssh session
-    ssh.ssh_del()        
-    logging.debug("Finished core function ssh with args %s" % args)
 
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by medias %s" % record)
@@ -400,7 +411,11 @@ def eternus_cs8000_pvgprofile(**args):
          response = stdout.stdout
 
     timestamp = int(time.time())
-    
+
+    # Close ssh session
+    ssh.ssh_del()
+    logging.debug("Finished core function ssh with args %s" % args)
+
     logging.debug("Output of Command Line 1 - %s" % response)
     
     logging.debug("Starting metrics processing on PVGProfile")
@@ -411,6 +426,9 @@ def eternus_cs8000_pvgprofile(**args):
     record = []
 
     for line in response.splitlines():
+        if not line.strip():
+             continue
+                
         columns = line.split()
         if line.__contains__("PVG"):
             continue
@@ -490,10 +508,6 @@ def eternus_cs8000_pvgprofile(**args):
                                   "time": timestamp}]
     ########################
 
-    # Close ssh session
-    ssh.ssh_del()
-    logging.debug("Finished core function ssh with args %s" % args)
-
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by pvgprofile %s" % record)
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
@@ -562,7 +576,11 @@ def eternus_cs8000_fc(**args):
          response = stdout.stdout
 
     timestamp = int(time.time())
-    
+
+    # Close ssh session
+    ssh.ssh_del()        
+    logging.debug("Finished core function ssh with args %s" % args)
+
     logging.debug("Output of Command Line 1 - %s" % response)
     
     logging.debug("Starting metrics processing on FC")
@@ -571,6 +589,9 @@ def eternus_cs8000_fc(**args):
     ##############################
     record = []
     for line in response.splitlines():
+        if not line.strip():
+            continue
+
         columns = line.split()
 
         record = record + [
@@ -583,10 +604,6 @@ def eternus_cs8000_fc(**args):
         ]
 
     ########################
-
-    # Close ssh session
-    ssh.ssh_del()        
-    logging.debug("Finished core function ssh with args %s" % args)
 
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by fc %s" % record)
