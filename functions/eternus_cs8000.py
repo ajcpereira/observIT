@@ -181,7 +181,7 @@ def eternus_cs8000_drives(**args):
             if tapename != None:
           
                 record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": tapename },
-                                  "fields": {"total": float(count_used+count_unused+count_another_state), "used": float(count_used), "other": float(count_another_state)},
+                                  "fields": {"total": int(count_used+count_unused+count_another_state), "used": int(count_used), "other": int(count_another_state)},
                                   "time": timestamp}]
     
                 logging.debug("tapename %s total drives %s used %s unused %s other %s" % (tapename, count_used+count_unused+count_another_state, count_used, count_unused, count_another_state))
@@ -191,7 +191,8 @@ def eternus_cs8000_drives(**args):
                 tapename = str(columns[1])
             else:
                 tapename = str(columns[1])
-        elif line.startswith("PLS") or line.startswith("pos"):
+        elif not columns[0].isdigit():
+        #elif line.startswith("PLS") or line.startswith("pos"):
             continue
         else:
             if str(columns[2]) == "unused":
@@ -202,7 +203,7 @@ def eternus_cs8000_drives(**args):
                 count_another_state = count_another_state + 1
     
     record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": tapename },
-                                  "fields": {"total": float(count_used+count_unused+count_another_state), "used": float(count_used), "other": float(count_another_state)},
+                                  "fields": {"total": int(count_used+count_unused+count_another_state), "used": int(count_used), "other": int(count_another_state)},
                                   "time": timestamp}]
 
     # Close ssh session
@@ -411,7 +412,7 @@ def eternus_cs8000_pvgprofile(**args):
 
     for line in response.splitlines():
         columns = line.split()
-        if line.__contains__("pos"):
+        if line.__contains__("PVG"):
             continue
         else:
             if str(columns[3]) not in library.keys():
@@ -421,7 +422,7 @@ def eternus_cs8000_pvgprofile(**args):
                     library[str(columns[3])]=[str(columns[3]),1,0,1,0,0,0,0,0,0,0,0,0,0,0,0.0,0.0]
                 elif float(columns[10]) == 0 and str(columns[4][0]) == 'o':
                     library[str(columns[3])]=[str(columns[3]),1,0,0,1,0,0,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
-                elif float(columns[10]) > 0:
+                elif float(columns[10]) >= 0:
                     if float(columns[10]) < 10:
                         library[str(columns[3])]=[str(columns[3]),1,0,0,0,1,0,0,0,0,0,0,0,0,0,float(columns[8]),float(columns[9])]
                     elif float(columns[10]) >= 10 and float(columns[10]) < 20:
@@ -456,7 +457,7 @@ def eternus_cs8000_pvgprofile(**args):
                     library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+1,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+0,float(library[str(columns[3])][16])+0]
                 elif float(columns[10]) == 0 and str(columns[4][0]) == 'o':
                     library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+1,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
-                elif float(columns[10]) > 0:
+                elif float(columns[10]) >= 0:
                     if float(columns[10]) < 10:
                         library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+1,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+0,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
                     elif float(columns[10]) >= 10 and float(columns[10]) < 20:
