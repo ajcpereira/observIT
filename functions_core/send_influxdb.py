@@ -9,7 +9,7 @@ def send_influxdb(srv, port, token, org, bucket, data):
     logging.debug("Sending data to InfluxDB server: %s", srv)
 
     try:
-        write_client = influxdb_client.InfluxDBClient(url="http://" + srv + ":" + port, token=token, org=org)
+        write_client = influxdb_client.InfluxDBClient(url="http://" + srv + ":" + port, token=token, org=org,timeout=10000, enable_gzip=True)
         write_api = write_client.write_api(write_options=SYNCHRONOUS)
         response = write_api.write(bucket=bucket, org=org, record=data,write_precision="s")
         if response:

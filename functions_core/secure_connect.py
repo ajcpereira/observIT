@@ -6,7 +6,7 @@ import time
 
 class Secure_Connect():
     def __init__(self, param_ip, bastion, user, host_keys):
-        time.sleep(round(random.uniform(0.50, 10.00),2))
+        time.sleep(round(random.uniform(0.50, 14.99),2))
         logging.debug("Class Secure_connect Started")
         self.bastion = bastion
 
@@ -17,7 +17,7 @@ class Secure_Connect():
 
             try:
                 logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
-                self.ssh_bastion = fabric2.Connection(host=str(bastion), user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": host_keys,})
+                self.ssh_bastion = fabric2.Connection(host=str(bastion), user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": host_keys, "banner_timeout":12, "auth_timeout":12, "channel_timeout":12,})
                 self.ssh_bastion.open()
                 logging.debug("Got session for bastion")
             except Exception as msgerror:
@@ -43,7 +43,7 @@ class Secure_Connect():
             logging.debug("Wrote the key in temp file")
 
             try:
-                self.ssh = fabric2.Connection(host=str(param_ip), user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": private_key_file,}, gateway=self.ssh_bastion)
+                self.ssh = fabric2.Connection(host=str(param_ip), user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": private_key_file,"banner_timeout":12, "auth_timeout":12, "channel_timeout":12,}, gateway=self.ssh_bastion)
                 logging.debug("Created ssh connection with hostname - %s - through bastion - %s" % (param_ip, bastion))
             except Exception as msgerror:
                 logging.error("Class Secure_Connect with bastion FAILED - %s" % msgerror)
@@ -62,8 +62,8 @@ class Secure_Connect():
         else:
             logging.debug("Class Secure_connect without bastion Started")
             try:
-                time.sleep(round(random.uniform(0.50, 10.00),2))
-                self.ssh = fabric2.Connection(host=param_ip, user=user, port=22, connect_timeout=10, connect_kwargs={"key_filename": host_keys,})
+                time.sleep(round(random.uniform(0.50, 14.99),2))
+                self.ssh = fabric2.Connection(host=param_ip, user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": host_keys,"banner_timeout":12, "auth_timeout":12, "channel_timeout":12,})
                 self.ssh.open()
                 logging.debug("Class Secure_connect ended, will return session - %s - for ip %s" % (self,param_ip))
             except Exception as msgerror:
