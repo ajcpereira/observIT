@@ -162,6 +162,7 @@ def eternus_cs8000_drives(**args):
     
     if flag_test:
          response = cmd1
+         ssh.ssh_run("ls")
     else:
          stdout = ssh.ssh_run(cmd1)
          response = stdout.stdout
@@ -280,6 +281,7 @@ def eternus_cs8000_medias(**args):
     
     if flag_test:
          response = cmd1
+         ssh.ssh_run("ls")
     else:
          stdout = ssh.ssh_run(cmd1)
          response = stdout.stdout
@@ -406,6 +408,7 @@ def eternus_cs8000_pvgprofile(**args):
     
     if flag_test:
          response = cmd1
+         ssh.ssh_run("ls")
     else:
          stdout = ssh.ssh_run(cmd1)
          response = stdout.stdout
@@ -571,6 +574,7 @@ def eternus_cs8000_fc(**args):
     
     if flag_test:
          response = cmd1
+         ssh.ssh_run("ls")
     else:
          stdout = ssh.ssh_run(cmd1)
          response = stdout.stdout
