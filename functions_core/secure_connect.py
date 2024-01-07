@@ -22,8 +22,8 @@ class Secure_Connect():
                 logging.debug("Got session for bastion")
             except Exception as msgerror:
                 logging.error("Failed fabric2 - %s" % msgerror)
-                if self.ssh:
-                    self.ssh.close()
+                if self.ssh_bastion:
+                    self.ssh_bastion.close()
 
             try:
                 logging.debug("Will get pkey")
@@ -49,6 +49,8 @@ class Secure_Connect():
                 logging.error("Class Secure_Connect with bastion FAILED - %s" % msgerror)
                 if self.ssh:
                     self.ssh.close()
+                if self.ssh_bastion:
+                    self.ssh_bastion.close()
 
             try:
                 logging.debug("will open session")
@@ -58,6 +60,8 @@ class Secure_Connect():
                 logging.error("Class Secure_Connect with bastion FAILED - %s - for ip %s" % (msgerror, param_ip))
                 if self.ssh:
                     self.ssh.close()
+                if self.ssh_bastion:
+                    self.ssh_bastion.close()
 
         else:
             logging.debug("Class Secure_connect without bastion Started")
@@ -80,6 +84,8 @@ class Secure_Connect():
             logging.error("Class Secure_Connect failed to exec cmd in function ssh_run %s" % msgerror)
             if self.ssh:
                 self.ssh.close()
+            if self.ssh_bastion:
+                self.ssh_bastion.close()
     
     def ssh_del(self):
          logging.debug("Will close ssh sessions on Class Secure_connect")
