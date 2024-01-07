@@ -22,8 +22,13 @@ class Secure_Connect():
                 logging.debug("Got session for bastion")
             except Exception as msgerror:
                 logging.error("Failed fabric2 - %s" % msgerror)
-                if self.ssh_bastion:
+                if hasattr(self,'ssh'):
+                    self.ssh.close()
+                    del self.ssh
+                if hasattr(self, 'ssh_bastion'):
                     self.ssh_bastion.close()
+                    del self.ssh_bastion
+                del self
 
             try:
                 logging.debug("Will get pkey")
@@ -32,8 +37,13 @@ class Secure_Connect():
                 logging.debug("Got the pkey %s" % pkey_trunk)
             except Exception as msgerror:
                 logging.error("Failed to get pkey form bastion - %s" % msgerror)
-                if self.ssh_bastion:
+                if hasattr(self,'ssh'):
+                    self.ssh.close()
+                    del self.ssh
+                if hasattr(self, 'ssh_bastion'):
                     self.ssh_bastion.close()
+                    del self.ssh_bastion
+                del self
 
             # Write the private key contents to a temporary file
             with tempfile.NamedTemporaryFile(delete=False, buffering=- 1) as f:
@@ -47,21 +57,27 @@ class Secure_Connect():
                 logging.debug("Created ssh connection with hostname - %s - through bastion - %s" % (param_ip, bastion))
             except Exception as msgerror:
                 logging.error("Class Secure_Connect with bastion FAILED - %s" % msgerror)
-                if self.ssh:
+                if hasattr(self,'ssh'):
                     self.ssh.close()
-                if self.ssh_bastion:
+                    del self.ssh
+                if hasattr(self, 'ssh_bastion'):
                     self.ssh_bastion.close()
+                    del self.ssh_bastion
+                del self
 
             try:
                 logging.debug("will open session")
                 self.ssh.open()
-                logging.debug("Class Secure_connect open ok, will return session - %s" % self)
+                logging.debug("Class Secure_connect open ok with bastion, will return session - %s" % self)
             except Exception as msgerror:
                 logging.error("Class Secure_Connect with bastion FAILED - %s - for ip %s" % (msgerror, param_ip))
-                if self.ssh:
+                if hasattr(self,'ssh'):
                     self.ssh.close()
-                if self.ssh_bastion:
+                    del self.ssh
+                if hasattr(self, 'ssh_bastion'):
                     self.ssh_bastion.close()
+                    del self.ssh_bastion
+                del self
 
         else:
             logging.debug("Class Secure_connect without bastion Started")
@@ -69,30 +85,37 @@ class Secure_Connect():
                 time.sleep(round(random.uniform(0.50, 14.99),2))
                 self.ssh = fabric2.Connection(host=param_ip, user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": host_keys,"banner_timeout":12, "auth_timeout":12, "channel_timeout":12,})
                 self.ssh.open()
-                logging.debug("Class Secure_connect ended, will return session - %s - for ip %s" % (self,param_ip))
+                logging.debug("Class Secure_connect open ok with bastion, will return session - %s" % self)
             except Exception as msgerror:
-                logging.error("Class Secure FAILED - %s" % msgerror)
-                if self.ssh:
+                logging.error("Class Secure FAILED - %s - for ip %s" % (msgerror, param_ip))
+                if hasattr(self,'ssh'):
                     self.ssh.close()
+                    del self.ssh
+                del self
                  
 
     def ssh_run(self, cmd):
         try:
+            logging.debug("Execute command with session %s" % self)
             stdout = self.ssh.run(cmd, hide=True, timeout=30)
             return stdout
         except Exception as msgerror:
             logging.error("Class Secure_Connect failed to exec cmd in function ssh_run %s" % msgerror)
-            if self.ssh:
+            if hasattr(self,'ssh'):
                 self.ssh.close()
-            if self.ssh_bastion:
+                del self.ssh
+            if hasattr(self, 'ssh_bastion'):
                 self.ssh_bastion.close()
+                del self.ssh_bastion
+            del self
     
     def ssh_del(self):
-         logging.debug("Will close ssh sessions on Class Secure_connect")
-         self.ssh.close()
-         del self.ssh
-         logging.debug("Closed session on Class Secure_connect")
-         if self.bastion:
+         if hasattr(self,'ssh'):
+            self.ssh.close()
+            del self.ssh
+            logging.debug("Closed session on Class Secure_connect - %s" % self)
+         if hasattr(self, 'ssh_bastion'):
             self.ssh_bastion.close()
             del self.ssh_bastion
-            logging.debug("Closed bastion session on Class Secure_connect")
+            logging.debug("Closed bastion session on Class Secure_connect - %s" % self)
+         del self
