@@ -73,3 +73,4 @@ pos  PDS    state          PV     PVG      job-state              timestamp
  10  PD22   unused         ====== ======   ======             24-01-03 17:51:40
  11  PD23   occupied       302350 INOSL6   WRITE_SENT         24-01-03 17:52:58
  12  PD24   unused         ====== ======   ======             24-01-03 16:12:07
+
