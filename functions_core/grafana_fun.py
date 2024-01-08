@@ -199,15 +199,18 @@ def create_title_panel(system_name):
 
 def cpu_graph_linux(system_name,resource_name,metric, y_pos):
 
+    str_title = "CPU Usage ("+ resource_name +")"
 
-    panels_list = [RowPanel(title=resource_name + ': CPU', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     panels_target_list_cpu_use = []
     for host in metric['hosts']:
         panels_target_list_cpu_use = panels_target_list_cpu_use + [InfluxDBTarget(
-            query="SELECT use FROM cpu WHERE $timeFilter AND (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
+            # query="SELECT use FROM cpu WHERE $timeFilter AND (\"host\"::tag = '" + host +
+            #       "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
+            query="SELECT mean(\"use\") FROM \"cpu\" WHERE (\"system\"::tag = '" + system_name +
+                   "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"host\"::tag fill(null)",
             alias="$tag_host")]
 
     panels_list.append(TimeSeries(
@@ -228,12 +231,14 @@ def cpu_graph_linux(system_name,resource_name,metric, y_pos):
     panels_target_list_cpu_load = []
     for host in metric['hosts']:
         panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
-            query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
+            query="SELECT \"load1m\" FROM \"cpu\" WHERE (\"system\"::tag = '" + system_name +
+                  "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"host\"::tag",
+            # query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host +
+            #       "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
             alias="$tag_host")]
 
     panels_list.append(TimeSeries(
-        title="CPU Average Load (5 min)",
+        title="CPU Average Load (1 min)",
         dataSource='default',
         targets=panels_target_list_cpu_load,
         drawStyle='line',
@@ -254,7 +259,8 @@ def cpu_graph_linux(system_name,resource_name,metric, y_pos):
 
 def mem_graph_linux(system_name, resource_name, metric, y_pos):
 
-    panels_list = [RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "Memory Usage (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     target_mem = [InfluxDBTarget(
@@ -285,7 +291,8 @@ def mem_graph_linux(system_name, resource_name, metric, y_pos):
 
 def fs_graph_linux(system_name,resource_name,metric, y_pos):
 
-    panels_list = [RowPanel(title=resource_name + ': File System', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "File System Capacity (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     for host in metric['hosts']:
@@ -359,8 +366,8 @@ def fs_graph_linux(system_name,resource_name,metric, y_pos):
 
 def net_graph_linux(system_name,resource_name,metric, y_pos):
 
-
-    panels_list = [RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "Network Usage (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     for host in metric['hosts']:
@@ -408,8 +415,8 @@ def net_graph_linux(system_name,resource_name,metric, y_pos):
 
 def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
 
-
-    panels_list = [RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "File System IO (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
     panel_width = 5
     penel_height = 14
@@ -546,7 +553,8 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
 
 def graph_eternus_cs8000_drives(system_name,resource_name,metric, y_pos):
 
-    panels_list = [RowPanel(title=resource_name + ': Tape Libraries', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "Tape Libraries (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     target_list = [InfluxDBTarget(
