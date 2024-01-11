@@ -550,6 +550,9 @@ def eternus_cs8000_fc(**args):
 
     logging.debug("Starting func_eternus_cs8000_fc")
 
+    # Organize the args from ip calling specific function     
+    args=args_setup(args)
+
     # Command line to run remotly
     #cmd1="for i in `ls /sys/class/fc_host`; do tx=`cat /sys/class/fc_host/$i/statistics/tx_words`; rx=`cat /sys/class/fc_host/$i/statistics/rx_words`; echo $i $tx $rx; done"
     cmd1="LST=`ls /sys/kernel/config/target/qla2xxx| grep \":\" | sed \'s/://g\'`;MYDHBA=\"\";MYTHBA=\"\";DISK=`lsscsi | awk \'{ print $1, $2 }\' | grep disk | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;TAPE=`lsscsi | awk \'{ print $1, $2 }\' | grep tape | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;for x in $TAPE; do    MYTHBA=$MYTHBA\" host\"$x; done;for i in `ls /sys/class/fc_host`; do    WWN=`cat /sys/class/fc_host/$i/port_name | sed \'s/^0x//\'`   ;    if [[ ${LST,,} = *${WWN,,}* ]];    then         i=$i\"-TGT\"; TMP=`echo $WWN | sed \'s/../&:/g;s/:$//\'`; RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk \'{ sum += $1 } END { print sum }\'`; TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk \'{ sum += $1 } END { print sum }\'`;    elif [[ ${MYDHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-INT\";    elif [[ ${MYTHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-BE\";    fi;    echo $i $WWN $RX $TX; done" 
@@ -563,8 +566,6 @@ def eternus_cs8000_fc(**args):
           response = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
           logging.debug("Testfile for fc is:\n%s" % response)
           logging.warning("You are using test file for FC, not really data")
-          
-    args=args_setup(args)
 
     try:
         ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
