@@ -3,6 +3,33 @@ from functions_core.send_influxdb import *
 from functions_core.secure_connect import *
 
 
+def args_setup(**args):
+
+    if args['ip_bastion']:
+          bastion=str(args['ip_bastion'])
+    elif args['bastion']:
+          bastion=str(args['bastion'])
+    else:
+          bastion=None
+
+    if args['ip_host_keys']:
+          host_keys=args['ip_host_keys']
+    elif args['host_keys']:
+          host_keys=args['host_keys']
+    else:
+          host_keys=None
+
+    if args['alias']:
+        hostname = args['alias']
+    else:
+        hostname = str(args['ip'])
+        
+    args['bastion']=bastion
+    args['host_keys']=host_keys
+    args['hostname'].append(hostname)
+
+    return args  
+
 def eternus_cs8000_fs_io(**args):
 
     logging.debug("Starting func_eternus_cs8000_fs_io")
@@ -516,14 +543,16 @@ def eternus_cs8000_pvgprofile(**args):
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
     
     logging.debug("Finished func_eternus_cs8000_pvgprofile")
-    
+
+
+
 def eternus_cs8000_fc(**args):
 
     logging.debug("Starting func_eternus_cs8000_fc")
 
     # Command line to run remotly
-    cmd1="for i in `ls /sys/class/fc_host`; do tx=`cat /sys/class/fc_host/$i/statistics/tx_words`; rx=`cat /sys/class/fc_host/$i/statistics/rx_words`; echo $i $tx $rx; done"
-     
+    #cmd1="for i in `ls /sys/class/fc_host`; do tx=`cat /sys/class/fc_host/$i/statistics/tx_words`; rx=`cat /sys/class/fc_host/$i/statistics/rx_words`; echo $i $tx $rx; done"
+    cmd1="LST=`ls /sys/kernel/config/target/qla2xxx| grep ":" | sed 's/://g'`;MYDHBA="";MYTHBA="";DISK=`lsscsi | awk '{ print $1, $2 }' | grep disk | cut -d ":" -f 1 | sed 's/\[//' | sort -u`;TAPE=`lsscsi | awk '{ print $1, $2 }' | grep tape | cut -d ":" -f 1 | sed 's/\[//' | sort -u`;for x in $TAPE; do    MYTHBA=$MYTHBA" host"$x; done;for i in `ls /sys/class/fc_host`; do    WWN=`cat /sys/class/fc_host/$i/port_name | sed 's/^0x//'`   ;    if [[ ${LST,,} = *${WWN,,}* ]];    then         i=$i"-TGT"; TMP=`echo $WWN | sed 's/../&:/g;s/:$//'`; RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk '{ sum += $1 } END { print sum }'`; TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk '{ sum += $1 } END { print sum }'`;    elif [[ ${MYDHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n '{ print $1+0}'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; i=$i"-INT";    elif [[ ${MYTHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n '{ print $1+0}'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; i=$i"-BE";    fi;    echo $i $WWN $RX $TX; done" 
     logging.debug("Command Line 1 - %s" % cmd1)
 
     flag_test=None
@@ -536,47 +565,42 @@ def eternus_cs8000_fc(**args):
           logging.debug("cmd1 for test %s" % cmd1)
           logging.warning("You are using test file for FC, not really data")
           
-
-    ###########################################
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    if args['alias']:
-        hostname = args['alias']
-    else:
-        hostname = str(args['ip'])
-    ###########################################
+    args=args_setup(args)
 
     try:
-        ssh=Secure_Connect(str(args['ip']),bastion,args['user'],host_keys)
+        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error("Failed to connect to %s with error %s" % (args['ip'], msgerror))
+        ssh.ssh_del()
         return -1
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
     if flag_test:
-         response = cmd1
-         ssh.ssh_run("ls")
+        response = cmd1
+        try:
+            ssh.ssh_run("ls")
+        except Exception as msgerror:
+             logging.error("Failed to run test command to %s with error %s" % (args['ip'], msgerror))
+             ssh.ssh_del()
+             return -1
     else:
-         stdout = ssh.ssh_run(cmd1)
-         response = stdout.stdout
+        try:
+            stdout = ssh.ssh_run(cmd1)
+            response = stdout.stdout
+            if stdout.stderr:
+                 logging.error("Got error from command line %s" % stdout.error)
+                 return -1
+        except Exception as msgerror:
+             logging.error("Failed to run command to %s with error %s" % (args['ip'], msgerror))
+             ssh.ssh_del()
+             return -1            
 
     timestamp = int(time.time())
 
     # Close ssh session
-    ssh.ssh_del()        
+    ssh.ssh_del()
+
     logging.debug("Finished core function ssh with args %s" % args)
 
     logging.debug("Output of Command Line 1 - %s" % response)
@@ -594,9 +618,9 @@ def eternus_cs8000_fc(**args):
 
         record = record + [
             {"measurement": "fc",
-             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
+             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
                       "hba": columns[0]},
-             "fields": {"rx_bytes": int(columns[2],0)*4, "tx_bytes": int(columns[1],0)*4},
+             "fields": {"rx_bytes": int(columns[2]), "tx_bytes": int(columns[3])},
              "time": timestamp
              }
         ]
