@@ -523,13 +523,7 @@ def eternus_cs8000_fc(**args):
 
     # Command line to run remotly
     cmd1="for i in `ls /sys/class/fc_host`; do tx=`cat /sys/class/fc_host/$i/statistics/tx_words`; rx=`cat /sys/class/fc_host/$i/statistics/rx_words`; echo $i $tx $rx; done"
-    
-    logging.debug("Use_sudo is set to %s and ip_use_sudo %s" % (args['use_sudo'], args['ip_use_sudo']))
-
-    #if args['use_sudo'] or args['ip_use_sudo']:
-    #        cmd1 = "sudo " + cmd1
-    #        logging.debug("Will use cmd1 with sudo - %s" % cmd1)
-    
+     
     logging.debug("Command Line 1 - %s" % cmd1)
 
     flag_test=None
