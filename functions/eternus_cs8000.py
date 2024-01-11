@@ -3,7 +3,7 @@ from functions_core.send_influxdb import *
 from functions_core.secure_connect import *
 
 
-def args_setup(**args):
+def args_setup(args):
 
     if args['ip_bastion']:
           bastion=str(args['ip_bastion'])
@@ -26,7 +26,7 @@ def args_setup(**args):
         
     args['bastion']=bastion
     args['host_keys']=host_keys
-    args['hostname'].append(hostname)
+    args['hostname']=hostname
 
     return args  
 
@@ -552,17 +552,16 @@ def eternus_cs8000_fc(**args):
 
     # Command line to run remotly
     #cmd1="for i in `ls /sys/class/fc_host`; do tx=`cat /sys/class/fc_host/$i/statistics/tx_words`; rx=`cat /sys/class/fc_host/$i/statistics/rx_words`; echo $i $tx $rx; done"
-    cmd1="LST=`ls /sys/kernel/config/target/qla2xxx| grep ":" | sed 's/://g'`;MYDHBA="";MYTHBA="";DISK=`lsscsi | awk '{ print $1, $2 }' | grep disk | cut -d ":" -f 1 | sed 's/\[//' | sort -u`;TAPE=`lsscsi | awk '{ print $1, $2 }' | grep tape | cut -d ":" -f 1 | sed 's/\[//' | sort -u`;for x in $TAPE; do    MYTHBA=$MYTHBA" host"$x; done;for i in `ls /sys/class/fc_host`; do    WWN=`cat /sys/class/fc_host/$i/port_name | sed 's/^0x//'`   ;    if [[ ${LST,,} = *${WWN,,}* ]];    then         i=$i"-TGT"; TMP=`echo $WWN | sed 's/../&:/g;s/:$//'`; RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk '{ sum += $1 } END { print sum }'`; TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk '{ sum += $1 } END { print sum }'`;    elif [[ ${MYDHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n '{ print $1+0}'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; i=$i"-INT";    elif [[ ${MYTHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n '{ print $1+0}'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; i=$i"-BE";    fi;    echo $i $WWN $RX $TX; done" 
+    cmd1="LST=`ls /sys/kernel/config/target/qla2xxx| grep \":\" | sed \'s/://g\'`;MYDHBA=\"\";MYTHBA=\"\";DISK=`lsscsi | awk \'{ print $1, $2 }\' | grep disk | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;TAPE=`lsscsi | awk \'{ print $1, $2 }\' | grep tape | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;for x in $TAPE; do    MYTHBA=$MYTHBA\" host\"$x; done;for i in `ls /sys/class/fc_host`; do    WWN=`cat /sys/class/fc_host/$i/port_name | sed \'s/^0x//\'`   ;    if [[ ${LST,,} = *${WWN,,}* ]];    then         i=$i\"-TGT\"; TMP=`echo $WWN | sed \'s/../&:/g;s/:$//\'`; RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk \'{ sum += $1 } END { print sum }\'`; TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk \'{ sum += $1 } END { print sum }\'`;    elif [[ ${MYDHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-INT\";    elif [[ ${MYTHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-BE\";    fi;    echo $i $WWN $RX $TX; done" 
     logging.debug("Command Line 1 - %s" % cmd1)
 
     flag_test=None
     
     if os.path.isfile("./tests/fc_transmit"):
-          logging.info("fc_transmit file exists, it will be used for tests")
           flag_test=True
           cmd="cat ./tests/fc_transmit"
-          cmd1 = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
-          logging.debug("cmd1 for test %s" % cmd1)
+          response = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+          logging.debug("Testfile for fc is:\n%s" % response)
           logging.warning("You are using test file for FC, not really data")
           
     args=args_setup(args)
@@ -577,9 +576,9 @@ def eternus_cs8000_fc(**args):
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
     if flag_test:
-        response = cmd1
         try:
-            ssh.ssh_run("ls")
+            stdout = ssh.ssh_run(cmd1)
+            logging.debug("The output from ssh_run in test mode was:\n%s \nThe error logs was:\n%s" % (stdout.stdout, stdout.stderr))
         except Exception as msgerror:
              logging.error("Failed to run test command to %s with error %s" % (args['ip'], msgerror))
              ssh.ssh_del()
@@ -589,25 +588,22 @@ def eternus_cs8000_fc(**args):
             stdout = ssh.ssh_run(cmd1)
             response = stdout.stdout
             if stdout.stderr:
-                 logging.error("Got error from command line %s" % stdout.error)
+                 logging.error("Got error from command line:\n%s" % stdout.error)
                  return -1
         except Exception as msgerror:
              logging.error("Failed to run command to %s with error %s" % (args['ip'], msgerror))
              ssh.ssh_del()
              return -1            
-
     timestamp = int(time.time())
+    logging.debug("Output of Command Line 1:\n%s" % response)
+
 
     # Close ssh session
     ssh.ssh_del()
+    logging.debug("Finished core function ssh with args:\n%s" % args)
 
-    logging.debug("Finished core function ssh with args %s" % args)
 
-    logging.debug("Output of Command Line 1 - %s" % response)
-    
     logging.debug("Starting metrics processing on FC")
-
-
     ##############################
     record = []
     for line in response.splitlines():
@@ -616,16 +612,19 @@ def eternus_cs8000_fc(**args):
 
         columns = line.split()
 
-        record = record + [
-            {"measurement": "fc",
-             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
-                      "hba": columns[0]},
-             "fields": {"rx_bytes": int(columns[2]), "tx_bytes": int(columns[3])},
-             "time": timestamp
-             }
-        ]
-
+        if len(columns) == 4:
+            record = record + [
+                {"measurement": "fc",
+                 "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
+                          "hba": columns[0]},
+                 "fields": {"rx_bytes": int(columns[2]), "tx_bytes": int(columns[3])},
+                 "time": timestamp
+                 }
+            ]
+        else:
+             logging.error("The number of columns wasn't the expected one:\n%s"% columns)
     ########################
+    logging.debug("Finished metrics processing on FC")
 
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by fc %s" % record)
