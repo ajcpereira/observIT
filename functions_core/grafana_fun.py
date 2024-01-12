@@ -329,43 +329,111 @@ def fs_graph_linux(system_name, resource_name, metric, y_pos):
             format="table")]
 
         overrides_lst = [
-            {
-                "matcher": {
-                    "id": "byName",
-                    "options": "%Used"
-                },
-                "properties": [
-                    {
-                        "id": "unit",
-                        "value": "percent"
-                    },
-                    {
-                        "id": "custom.hideFrom",
-                        "value": {
-                            "tooltip": False,
-                            "viz": True,
-                            "legend": True
-                        }
-                    }
-                ]
-            },
-            {
-                "matcher": {
-                    "id": "byName",
-                    "options": "Total"
-                },
-                "properties": [
-                    {
-                        "id": "custom.hideFrom",
-                        "value": {
-                            "tooltip": False,
-                            "viz": True,
-                            "legend": True
-                        }
-                    }
-                ]
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "%Used"
+        },
+        "properties": [
+          {
+            "id": "unit",
+            "value": "percent"
+          },
+          {
+            "id": "custom.hideFrom",
+            "value": {
+              "legend": True,
+              "tooltip": False,
+              "viz": True
             }
+          }
         ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Total"
+        },
+        "properties": [
+          {
+            "id": "custom.hideFrom",
+            "value": {
+              "legend": True,
+              "tooltip": False,
+              "viz": True
+            }
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Used"
+        },
+        "properties": [
+          {
+            "id": "thresholds",
+            "value": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": None
+                },
+                {
+                  "color": "red",
+                  "value": 95
+                }
+              ]
+            }
+          },
+          {
+            "id": "color",
+            "value": {
+              "mode": "thresholds"
+            }
+          }
+        ]
+      }
+    ]
+        # overrides_lst = [
+        #     {
+        #         "matcher": {
+        #             "id": "byName",
+        #             "options": "%Used"
+        #         },
+        #         "properties": [
+        #             {
+        #                 "id": "unit",
+        #                 "value": "percent"
+        #             },
+        #             {
+        #                 "id": "custom.hideFrom",
+        #                 "value": {
+        #                     "tooltip": False,
+        #                     "viz": True,
+        #                     "legend": True
+        #                 }
+        #             }
+        #         ]
+        #     },
+        #     {
+        #         "matcher": {
+        #             "id": "byName",
+        #             "options": "Total"
+        #         },
+        #         "properties": [
+        #             {
+        #                 "id": "custom.hideFrom",
+        #                 "value": {
+        #                     "tooltip": False,
+        #                     "viz": True,
+        #                     "legend": True
+        #                 }
+        #             }
+        #         ]
+        #     }
+        # ]
 
         panels_list.append(CollectorBarChart(
             title=host + " Filesystem",
