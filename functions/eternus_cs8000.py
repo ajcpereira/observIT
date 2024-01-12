@@ -682,7 +682,7 @@ done"
     logging.debug("Finished metrics processing on FC")
 
     # Send Data to InfluxDB
-    logging.debug("Data to be sent to DB by fc %s" % record)
+    logging.debug("Data to be sent to DB by fc:\n%s" % record)
     send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
     
     logging.debug("Finished func_eternus_cs8000_fc")
