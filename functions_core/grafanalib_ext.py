@@ -36,7 +36,7 @@ COLLECTOR_GRADIENT_MODE = 'hue'
 COLLECTOR_SHOW_POINTS = 'never'
 COLLECTOR_LINE_INTERPOLATION = 'smooth'
 COLLECTOR_FILL_OPACITY = 25
-COLLECTOR_SPAN_NULLS = False
+COLLECTOR_SPAN_NULLS = True
 
 
 #################################################################################
