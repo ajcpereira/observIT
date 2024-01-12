@@ -63,8 +63,6 @@ cd fj-collector
 sudo make setup
 ````
 
-edit /opt/fjcollector/collector/config/config.yaml
-
 For each IP that you access through ssh you will need the private key.
 On the previous file (config.yaml) you can specifie it's location (host_keys entry)
 Be aware that since the code runs inside a container the config.yaml uses the path inside of the container, so:
@@ -75,8 +73,10 @@ Be aware that since the code runs inside a container the config.yaml uses the pa
   We recommend you use relative paths:
     host_keys: keys/id_rsa
     logfile: logs/fjcollector.log
- 
-### collector.yaml
+
+edit /opt/fjcollector/collector/config/config.yaml
+
+### config.yaml
 ````
 systems:
   - name: MYCS0100
