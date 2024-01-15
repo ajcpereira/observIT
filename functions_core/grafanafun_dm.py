@@ -88,7 +88,7 @@ def data_model_build(config):
     json_dict = json.loads(config.model_dump_json())
     d_model = []
 
-    logging.debug(data_model_build.__name__, "- Config file in JSON format is: ", json_dict)
+    logging.debug("%s - Config file in JSON format is: %s" % (data_model_build.__name__,json_dict))
 
     try:
         for sys in json_dict['systems']:

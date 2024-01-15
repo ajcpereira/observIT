@@ -37,6 +37,7 @@ COLLECTOR_SHOW_POINTS = 'never'
 COLLECTOR_LINE_INTERPOLATION = 'smooth'
 COLLECTOR_FILL_OPACITY = 25
 COLLECTOR_SPAN_NULLS = True
+COLLECTOR_FC_UNITS = 'MBs'
 
 
 #################################################################################

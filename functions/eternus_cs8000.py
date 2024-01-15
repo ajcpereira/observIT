@@ -556,59 +556,45 @@ def eternus_cs8000_fc(**args):
     # Command line to run remotly
     #cmd1="for i in `ls /sys/class/fc_host`; do tx=`cat /sys/class/fc_host/$i/statistics/tx_words`; rx=`cat /sys/class/fc_host/$i/statistics/rx_words`; echo $i $tx $rx; done"
     #cmd1="LST=`ls /sys/kernel/config/target/qla2xxx| grep \":\" | sed \'s/://g\'`;MYDHBA=\"\";MYTHBA=\"\";DISK=`lsscsi | awk \'{ print $1, $2 }\' | grep disk | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;TAPE=`lsscsi | awk \'{ print $1, $2 }\' | grep tape | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;for x in $TAPE; do    MYTHBA=$MYTHBA\" host\"$x; done;for i in `ls /sys/class/fc_host`; do    WWN=`cat /sys/class/fc_host/$i/port_name | sed \'s/^0x//\'`   ;    if [[ ${LST,,} = *${WWN,,}* ]];    then         i=$i\"-TGT\"; TMP=`echo $WWN | sed \'s/../&:/g;s/:$//\'`; RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk \'{ sum += $1 } END { print sum }\'`; TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk \'{ sum += $1 } END { print sum }\'`;    elif [[ ${MYDHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-INT\";    elif [[ ${MYTHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-BE\";    fi;    echo $i $WWN $RX $TX; done" 
-    cmd1="MYHBA=\"\"; \
-WWN=\"\"; \
-RX=\"\"; \
-TX=\"\"; \
-mkdir -p /tmp/fjcollector; \
-if [[ -f /tmp/fjcollector/FC_lshba ]] && [[ $(find /tmp/fjcollector/FC_lsthba -mtime -1 -print) ]]; \
+    cmd1="INT=\"-INT\";\
+BE=\"-BE\";\
+TGT=\"-TGT\";\
+LSDISK=`lsscsi | awk '{ print $1, $2 }' | grep disk | cut -d \":\" -f 1 | sed 's/\[//' | sort -u`; \
+LSTAPE=`lsscsi | awk '{ print $1, $2 }' | grep tape | cut -d \":\" -f 1 | sed 's/\[//' | sort -u`; \
+if [[ -d /sys/class/fc_host ]];\
 then \
-if [[ -f /tmp/fjcollector/FC_lsthba ]]; \
-then \
-    LSTHBA=`cat /tmp/fjcollector/FC_lsthba`; \
+LSHBA=`ls /sys/class/fc_host`; \
 fi; \
-LSDISK=`cat /tmp/fjcollector/FC_lsdisk`; \
-LSTAPE=`cat /tmp/fjcollector/FC_lstape`; \
-LSHBA=`cat /tmp/fjcollector/FC_lshba`; \
-else \
 if [[ -d /sys/kernel/config/target/qla2xxx ]]; \
 then \
-    ls /sys/kernel/config/target/qla2xxx| grep \":\" | sed 's/://g' > /tmp/fjcollector/FC_lsthba; \
-    LSTHBA=`cat /tmp/fjcollector/FC_lsthba`; \
+ls /sys/kernel/config/target/qla2xxx| grep \":\" | sed 's/://g'; \
+LSTHBA=`cat /tmp/fjcollector/FC_lsthba`; \
 fi; \
-lsscsi | awk '{ print $1, $2 }' | grep disk | cut -d \":\" -f 1 | sed 's/\[//' | sort -u > /tmp/fjcollector/FC_lsdisk; \
-lsscsi | awk '{ print $1, $2 }' | grep tape | cut -d \":\" -f 1 | sed 's/\[//' | sort -u > /tmp/fjcollector/FC_lstape; \
-ls /sys/class/fc_host > /tmp/fjcollector/FC_lshba; \
-LSDISK=`cat /tmp/fjcollector/FC_lsdisk`; \
-LSTAPE=`cat /tmp/fjcollector/FC_lstape`; \
-LSHBA=`cat /tmp/fjcollector/FC_lshba`; \
-fi; \
-for x in $LSTAPE; \
-do \
-MYHBA=$MYHBA\" host\"$x; \
-done; \
+if [[ ! -z $LSHBA ]]; \
+then \
 for i in $LSHBA; \
 do \
 WWN=`cat /sys/class/fc_host/$i/port_name | sed 's/^0x//'`; \
 if [[ ${LSTHBA,,} = *${WWN,,}* ]]; \
 then \
-    i=$i\"-TGT\"; \
-    TMP=`echo $WWN | sed 's/../&:/g;s/:$//'`; \
-    RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk '{ sum += $1 } END { print sum }'`; \
-    TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk '{ sum += $1 } END { print sum }'`; \
+i=$i$TGT; \
+TMP=`echo $WWN | sed 's/../&:/g;s/:$//'`; \
+RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk '{ sum += $1 } END { print sum }'`; \
+TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk '{ sum += $1 } END { print sum }'`; \
 elif [[ ${LSHBA,,} = *${i,,}* ]]; \
 then \
-    RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n '{ print $1+0}'`; \
-    TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; \
-    i=$i\"-INT\"; \
+RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n '{ print $1+0}'`; \
+TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; \
+i=$i$INT; \
 elif [[ ${LSTAPE,,} = *${i,,}* ]]; \
 then \
-    RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n '{ print $1+0}'`; \
-    TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; \
-    i=$i\"-BE\"; \
+RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n '{ print $1+0}'`; \
+TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; \
+i=$i$BE; \
 fi; \
 echo $i $WWN $RX $TX; \
-done"
+done; \
+fi"
 
     logging.debug("Command Line 1 - %s" % cmd1)
 

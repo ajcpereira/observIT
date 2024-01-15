@@ -1061,7 +1061,7 @@ def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
             showPoints=COLLECTOR_SHOW_POINTS,
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
-            unit="binBps",
+            unit=COLLECTOR_FC_UNITS,
             # unit=BYTES_PER_SEC_FORMAT,
             gridPos=GridPos(h=7, w=12, x=0, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
