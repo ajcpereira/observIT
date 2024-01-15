@@ -1,8 +1,9 @@
-from grafanalib.core import *
-from grafanalib.influxdb import *
-from grafanalib._gen import DashboardEncoder
+
 import json, requests, logging
 from functions_core.yaml_validate import *
+from functions_core.grafanafun_dm import data_model_build
+from functions_core.grafanalib_ext import *
+from grafanalib._gen import DashboardEncoder
 
 
 def get_dashboard_json(dashboard, overwrite=False, message="Updated by grafanlib"):
@@ -49,10 +50,10 @@ def create_system_dashboard(sys, config):
     for res in sys['resources']:
         match res['name']:
             case "linux_os":
-                y_pos, res_panel = create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], sys['poll'], y_pos)
+                y_pos, res_panel = create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], y_pos)
                 panels = panels + res_panel
             case "eternus_cs8000":
-                y_pos, res_panel = create_panel_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], sys['poll'], y_pos)
+                y_pos, res_panel = create_panel_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
                 templating = create_dashboard_vars(res['data'])
                 panels = panels + res_panel
 
@@ -65,7 +66,7 @@ def create_system_dashboard(sys, config):
         timezone="browser",
         refresh="1m",
         panels=panels,
-        templating=templating,
+        templating=Templating(templating),
     ).auto_panel_ids()
 
     return my_dashboard
@@ -79,13 +80,14 @@ def create_system_dashboard(sys, config):
 ########################################################################################################################
 
 def build_dashboards(config):
-    # Dashboards will not be overwrited anymore
+    # Dashboards will be overwritten
 
-    logging.debug("Will build dashboards")
+    logging.debug("%s: Automagically build grafana dashboards", build_dashboards.__name__)
     grafana_api_key = config.global_parameters.grafana_api_key
     grafana_server = config.global_parameters.grafana_server + ":3000"
 
-    systems = build_grafana_fun_data_model(config)
+    # systems = build_grafana_fun_data_model(config)
+    systems = data_model_build(config)
 
     for sys in systems:
         my_dashboard = create_system_dashboard(sys, config)
@@ -101,7 +103,7 @@ def build_dashboards(config):
 ########################################################################################################################
 
 
-def create_panel_linux_os(system_name, resource_name, data, poll, global_pos):
+def create_panel_linux_os(system_name, resource_name, data, global_pos):
     # todo:
 
     panels_list = []
@@ -134,7 +136,7 @@ def create_panel_linux_os(system_name, resource_name, data, poll, global_pos):
 #
 ########################################################################################################################
 
-def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_pos):
+def create_panel_eternus_cs8000(system_name, resource_name, data, global_pos):
     panels_list = []
     y_pos = global_pos
 
@@ -161,7 +163,7 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, poll, global_p
                 panels_list = panels_list + panel
 
             case "cpu":
-                y_pos, panel = cpu_graph_linux(system_name,resource_name, metric, y_pos)
+                y_pos, panel = cpu_graph_linux(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "mem":
@@ -197,54 +199,86 @@ def create_title_panel(system_name):
     return panel
 
 
-def cpu_graph_linux(system_name,resource_name,metric, y_pos):
+def create_dashboard_vars(data):
+    tpl_lst = []
+
+    for metric in data:
+        match metric['metric']:
+            case "drives":
+                tpl_lst = tpl_lst + [Template(
+                    # dataSource="default",
+                    name='tapename',
+                    label='tapename',
+                    query='SHOW TAG VALUES WITH KEY = \"tapename\"',
+                    type='query',
+                    includeAll=True,
+                    multi=True,
+                    allValue=True,
+                    default='All',
+                    refresh=2,
+                    hide=HIDE_VARIABLE,
+                    )
+                ]
+
+    #return Templating(tpl_lst)
+    return tpl_lst
 
 
-    panels_list = [RowPanel(title=resource_name + ': CPU', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+def cpu_graph_linux(system_name, resource_name, metric, y_pos):
+    str_title = "CPU Usage (" + resource_name + ")"
+
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     panels_target_list_cpu_use = []
     for host in metric['hosts']:
         panels_target_list_cpu_use = panels_target_list_cpu_use + [InfluxDBTarget(
-            query="SELECT use FROM cpu WHERE $timeFilter AND (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
+            query="SELECT mean(\"use\") FROM \"cpu\" WHERE (\"system\"::tag = '" + system_name +
+                  "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"host\"::tag fill(null)",
             alias="$tag_host")]
 
-    panels_list.append(TimeSeries(
+    panels_list.append(CollectorTimeSeries(
         title="CPU utilization (%)",
         dataSource='default',
         targets=panels_target_list_cpu_use,
         drawStyle='line',
-        lineInterpolation='smooth',
-        gradientMode='hue',
-        fillOpacity=25,
+        lineInterpolation= COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
         unit="percent",
         gridPos=GridPos(h=7, w=12, x=0, y=line),
-        spanNulls=True,
+        spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="right",
-        legendDisplayMode="table"
-    ))
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendSortDesc=False,
+        )
+    )
 
     panels_target_list_cpu_load = []
     for host in metric['hosts']:
         panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
-            query="SELECT \"load5m\" FROM \"cpu\" WHERE $timeFilter AND (\"host\"::tag = '" + host +
-                  "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag",
+            query="SELECT \"load5m\" FROM \"cpu\" WHERE (\"system\"::tag = '" + system_name +
+                  "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"host\"::tag",
             alias="$tag_host")]
 
-    panels_list.append(TimeSeries(
+    panels_list.append(CollectorTimeSeries(
         title="CPU Average Load (5 min)",
         dataSource='default',
         targets=panels_target_list_cpu_load,
         drawStyle='line',
-        lineInterpolation='smooth',
-        gradientMode='hue',
-        fillOpacity=25,
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
         unit="",
         gridPos=GridPos(h=7, w=12, x=12, y=line),
-        spanNulls=True,
+        spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="right",
-        legendDisplayMode="table"
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendSortDesc=False,
     ))
 
     line = line + 7
@@ -253,25 +287,25 @@ def cpu_graph_linux(system_name,resource_name,metric, y_pos):
 
 
 def mem_graph_linux(system_name, resource_name, metric, y_pos):
-
-    panels_list = [RowPanel(title=resource_name + ': Memory', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "Memory Usage (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     target_mem = [InfluxDBTarget(
         query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
         format="table")]
 
-    panels_list.append(BarChart(
+    panels_list.append(CollectorBarChart(
         title="Memory Usage",
         dataSource='default',
         targets=target_mem,
         drawStyle='line',
-        lineInterpolation='smooth',
-        gradientMode='hue',
-        fillOpacity=25,
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
         unit="decmbytes",
         gridPos=GridPos(h=7, w=24, x=0, y=pos),
-        spanNulls=True,
+        spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="right",
         legendDisplayMode="table",
         stacking={'mode': "normal"},
@@ -283,73 +317,141 @@ def mem_graph_linux(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def fs_graph_linux(system_name,resource_name,metric, y_pos):
-
-    panels_list = [RowPanel(title=resource_name + ': File System', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+def fs_graph_linux(system_name, resource_name, metric, y_pos):
+    str_title = "File System Capacity (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     for host in metric['hosts']:
         target_fs = [InfluxDBTarget(
-            #query="SELECT used as Used, total-used as Available FROM fs WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+            # query="SELECT used as Used, total-used as Available FROM fs WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
             query="SELECT \"used\" as \"Used\", \"total\"-\"used\" as \"Available\", \"total\" as \"Total\", \"used\"/\"total\"*100 as \"%Used\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
             format="table")]
 
         overrides_lst = [
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "%Used"
+        },
+        "properties": [
           {
-            "matcher": {
-              "id": "byName",
-              "options": "%Used"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "tooltip": False,
-                  "viz": True,
-                  "legend": True
-                }
-              }
-            ]
+            "id": "unit",
+            "value": "percent"
           },
           {
-            "matcher": {
-              "id": "byName",
-              "options": "Total"
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "tooltip": False,
-                  "viz": True,
-                  "legend": True
-                }
-              }
-            ]
+            "id": "custom.hideFrom",
+            "value": {
+              "legend": True,
+              "tooltip": False,
+              "viz": True
+            }
           }
         ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Total"
+        },
+        "properties": [
+          {
+            "id": "custom.hideFrom",
+            "value": {
+              "legend": True,
+              "tooltip": False,
+              "viz": True
+            }
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "Used"
+        },
+        "properties": [
+          {
+            "id": "thresholds",
+            "value": {
+              "mode": "percentage",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": None
+                },
+                {
+                  "color": "red",
+                  "value": 95
+                }
+              ]
+            }
+          },
+          {
+            "id": "color",
+            "value": {
+              "mode": "thresholds"
+            }
+          }
+        ]
+      }
+    ]
+        # overrides_lst = [
+        #     {
+        #         "matcher": {
+        #             "id": "byName",
+        #             "options": "%Used"
+        #         },
+        #         "properties": [
+        #             {
+        #                 "id": "unit",
+        #                 "value": "percent"
+        #             },
+        #             {
+        #                 "id": "custom.hideFrom",
+        #                 "value": {
+        #                     "tooltip": False,
+        #                     "viz": True,
+        #                     "legend": True
+        #                 }
+        #             }
+        #         ]
+        #     },
+        #     {
+        #         "matcher": {
+        #             "id": "byName",
+        #             "options": "Total"
+        #         },
+        #         "properties": [
+        #             {
+        #                 "id": "custom.hideFrom",
+        #                 "value": {
+        #                     "tooltip": False,
+        #                     "viz": True,
+        #                     "legend": True
+        #                 }
+        #             }
+        #         ]
+        #     }
+        # ]
 
-        panels_list.append(BarChart(
+        panels_list.append(CollectorBarChart(
             title=host + " Filesystem",
             dataSource='default',
             targets=target_fs,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="deckbytes",
             gridPos=GridPos(h=7, w=24, x=0, y=pos),
-            spanNulls=True,
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
             legendDisplayMode="table",
-            stacking={'mode': "normal"},
+            stacking={"mode": "normal", "group": "A"},
             tooltipMode="multi",
             xTickLabelRotation=-45,
-            decimals=2,
+            valueDecimals=2,
             overrides=overrides_lst,
         ))
         pos = pos + 7
@@ -357,49 +459,62 @@ def fs_graph_linux(system_name,resource_name,metric, y_pos):
     return pos, panels_list
 
 
-def net_graph_linux(system_name,resource_name,metric, y_pos):
-
-
-    panels_list = [RowPanel(title=resource_name + ': Network', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+def net_graph_linux(system_name, resource_name, metric, y_pos):
+    str_title = "Network Usage (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     for host in metric['hosts']:
         target_net_outbound = [InfluxDBTarget(
-            query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
+            query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" +
+                  system_name + "' AND \"host\"::tag = '" + host +
+                  "' AND \"if\"::tag!='lo') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
             alias="$tag_if")]
 
-        panels_list.append(TimeSeries(
-            title=host + " Network Outbound",
+        panels_list.append(CollectorTimeSeries(
+            title=host + " Network Transmit (tx)",
             dataSource='default',
             targets=target_net_outbound,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="binBps",
+            # unit=BYTES_PER_SEC_FORMAT,
             gridPos=GridPos(h=7, w=12, x=0, y=pos),
-            spanNulls=True,
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
-            legendDisplayMode="table"
+            legendDisplayMode="table",
+            stacking={"mode": "normal", "group": "A"},
+            legendSortBy="Name",
+            legendSortDesc=False,
         ))
 
         target_net_inbound = [InfluxDBTarget(
-            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
+            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" +
+                  system_name + "' AND \"host\"::tag = '" + host +
+                  "' AND \"if\"::tag!='lo') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
             alias="$tag_if")]
 
-        panels_list.append(TimeSeries(
-            title=host + " Network Inbound",
+        panels_list.append(CollectorTimeSeries(
+            title=host + " Network Receive (rx)",
             dataSource='default',
             targets=target_net_inbound,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="binBps",
+            # unit=BYTES_PER_SEC_FORMAT,
             gridPos=GridPos(h=7, w=12, x=12, y=pos),
-            spanNulls=True,
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
-            legendDisplayMode="table"
+            legendDisplayMode="table",
+            stacking={"mode": "normal", "group": "A"},
+            legendSortBy="Name",
+            legendSortDesc=False,
         ))
         pos = pos + 7
 
@@ -407,13 +522,11 @@ def net_graph_linux(system_name,resource_name,metric, y_pos):
 
 
 def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
-
-
-    panels_list = [RowPanel(title=resource_name + ': CAFS IOSTAT', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "File System IO (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos)), ]
     pos = y_pos + 1
     panel_width = 5
-    penel_height = 14
-
+    panel_height = 14
 
     for host in metric['hosts']:
         panels_target_list = [InfluxDBTarget(
@@ -422,20 +535,18 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
                    "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
-
-
-
-        panels_list.append(TimeSeries2(
+        panels_list.append(CollectorTimeSeries(
             title=host + " Service Time",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="ms",
-            gridPos=GridPos(h=penel_height, w=panel_width, x=0, y=pos),
-            spanNulls=True,
+            gridPos=GridPos(h=panel_height, w=panel_width, x=0, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="bottom",
             legendDisplayMode="table",
             legendCalcs=["max", "mean"],
@@ -449,17 +560,18 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
                    "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
-        panels_list.append(TimeSeries2(
+        panels_list.append(CollectorTimeSeries(
             title=host + " Reads/s",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="iops",
-            gridPos=GridPos(h=penel_height, w=panel_width, x=1 * panel_width, y=pos),
-            spanNulls=True,
+            gridPos=GridPos(h=panel_height, w=panel_width, x=1 * panel_width, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="bottom",
             legendDisplayMode="table",
             legendCalcs=["max", "mean"],
@@ -473,17 +585,18 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
                    "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
-        panels_list.append(TimeSeries2(
+        panels_list.append(CollectorTimeSeries(
             title=host + " Read Average Wait Time",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="ms",
-            gridPos=GridPos(h=penel_height, w=panel_width, x=2 * panel_width, y=pos),
-            spanNulls=True,
+            gridPos=GridPos(h=panel_height, w=panel_width, x=2 * panel_width, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="bottom",
             legendDisplayMode="table",
             legendCalcs=["max", "mean"],
@@ -497,17 +610,18 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
                    "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
-        panels_list.append(TimeSeries2(
+        panels_list.append(CollectorTimeSeries(
             title=host + " Writes/s",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="iops",
-            gridPos=GridPos(h=penel_height, w=panel_width, x=3 * panel_width, y=pos),
-            spanNulls=True,
+            gridPos=GridPos(h=panel_height, w=panel_width, x=3 * panel_width, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="bottom",
             legendDisplayMode="table",
             legendCalcs=["max", "mean"],
@@ -521,17 +635,18 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
                    "') AND $timeFilter GROUP BY time($__interval), \"fs\"::tag, \"dm\"::tag, \"rawdev\"::tag fill(null)"),
             alias="$tag_fs $tag_dm $tag_rawdev")]
 
-        panels_list.append(TimeSeries2(
+        panels_list.append(CollectorTimeSeries(
             title=host + " Write Average Wait Time",
             dataSource='default',
             targets=panels_target_list,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="ms",
-            gridPos=GridPos(h=penel_height, w=panel_width-1, x=4*panel_width, y=pos),
-            spanNulls=True,
+            gridPos=GridPos(h=panel_height, w=panel_width - 1, x=4 * panel_width, y=pos),
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="bottom",
             legendDisplayMode="table",
             legendCalcs=["max", "mean"],
@@ -544,31 +659,92 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def graph_eternus_cs8000_drives(system_name,resource_name,metric, y_pos):
-
-    panels_list = [RowPanel(title=resource_name + ': Tape Libraries', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+def graph_eternus_cs8000_drives(system_name, resource_name, metric, y_pos):
+    str_title = "Tape Libraries (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     target_list = [InfluxDBTarget(
-            query="SELECT \"used\" as Used, \"other\" as Other, \"total\" as Total FROM \"drives\" WHERE $timeFilter AND (\"system\"::tag = '" + system_name +
-                  "') AND (\"tapename\"::tag =~ /^$tapename$/)")]
+        query="SELECT \"total\" as Total , \"used\"+\"other\" as Used, \"other\" as Unavailable FROM \"drives\" WHERE (\"system\"::tag = '" +
+              system_name + "' AND \"tapename\"::tag =~ /^$tapename$/) AND $timeFilter",
+        )
+    ]
 
+    override_lst = [
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "drives.Unavailable"
+        },
+        "properties": [
+          {
+            "id": "custom.fillOpacity",
+            "value": 100
+          },
+          {
+            "id": "custom.gradientMode",
+            "value": "none"
+          },
+          {
+            "id": "color",
+            "value": {
+              "fixedColor": "#ff331c",
+              "mode": "fixed"
+            }
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "drives.Total"
+        },
+        "properties": [
+          {
+            "id": "color",
+            "value": {
+              "mode": "fixed",
+              "fixedColor": "blue"
+            }
+          }
+        ]
+      },
+      {
+        "matcher": {
+          "id": "byName",
+          "options": "drives.Used"
+        },
+        "properties": [
+          {
+            "id": "color",
+            "value": {
+              "mode": "fixed",
+              "fixedColor": "green"
+            }
+          }
+        ]
+      }
+    ]
 
-    panels_list.append(TimeSeries(
+    panels_list.append(CollectorTimeSeries(
         title="Tape Library $tapename",
-        repeat=Repeat(direction='h', variable='tapename',maxPerRow=6),
+        repeat=Repeat(direction='h', variable='tapename', maxPerRow=6),
         dataSource='default',
         targets=target_list,
         drawStyle='line',
         lineInterpolation='stepAfter',
-        gradientMode='hue',
-        fillOpacity=25,
+        showPoints='auto',
+        gradientMode='none',
+        fillOpacity=50,
         unit='',
         gridPos=GridPos(h=7, w=12, x=0, y=line),
-        spanNulls=True,
+        spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement='right',
         legendDisplayMode='table',
-    ))
+        valueDecimals=0,
+        overrides=override_lst,
+    )
+    )
 
     line = line + 7
 
@@ -576,12 +752,18 @@ def graph_eternus_cs8000_drives(system_name,resource_name,metric, y_pos):
 
 
 def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
-
-    panels_list = [RowPanel(title=resource_name + ': Tape Medias', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "Tape Medias (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     target_list = [InfluxDBTarget(
-        query="SELECT  \"Total Cap GiB\", \"Total Clean Medias\", \"Total Fault\", \"Total Ina\", \"Total Medias\", \"Total Val GiB\", \"Val %\"  FROM \"medias\" WHERE $timeFilter AND (\"system\"::tag='" + system_name + "') GROUP BY \"host\"::tag, \"tapename\"::tag ORDER BY DESC LIMIT 1",
+        # query="SELECT  \"Total Cap GiB\", \"Total Clean Medias\", \"Total Fault\", \"Total Ina\", \"Total Medias\", "
+        #       "\"Total Val GiB\", \"Val %\"  FROM \"medias\" WHERE $timeFilter AND (\"system\"::tag='" + system_name
+        #       + "') GROUP BY \"host\"::tag, \"tapename\"::tag ORDER BY DESC LIMIT 1",
+        query="SELECT  \"Total Cap GiB\" as \"Total Capacity\", \"Total Clean Medias\", \"Total Fault\","
+              " \"Total Ina\" as \"Total Inactive\", \"Total Medias\", \"Total Val GiB\" as \"Total Valid\", "
+              "\"Val %\" as \"Valid %\"  FROM \"medias\" WHERE $timeFilter AND (\"system\"::tag='" + system_name +
+              "') GROUP BY \"host\"::tag, \"tapename\"::tag ORDER BY DESC LIMIT 1",
         format="table")]
 
     override_lst = [
@@ -600,7 +782,7 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
       {
         "matcher": {
           "id": "byName",
-          "options": "Total Cap GiB"
+          "options": "Total Capacity"
         },
         "properties": [
           {
@@ -612,7 +794,7 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
       {
         "matcher": {
           "id": "byName",
-          "options": "Total Val GiB"
+          "options": "Total Valid"
         },
         "properties": [
           {
@@ -624,7 +806,7 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
       {
         "matcher": {
           "id": "byName",
-          "options": "Val %"
+          "options": "Valid %"
         },
         "properties": [
           {
@@ -655,6 +837,78 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
       }
     ]
 
+
+    # override_lst = [
+    #     {
+    #         "matcher": {
+    #             "id": "byName",
+    #             "options": "Time"
+    #         },
+    #         "properties": [
+    #             {
+    #                 "id": "custom.hidden",
+    #                 "value": True
+    #             }
+    #         ]
+    #     },
+    #     {
+    #         "matcher": {
+    #             "id": "byName",
+    #             "options": "Total Cap GiB"
+    #         },
+    #         "properties": [
+    #             {
+    #                 "id": "unit",
+    #                 "value": "decgbytes"
+    #             }
+    #         ]
+    #     },
+    #     {
+    #         "matcher": {
+    #             "id": "byName",
+    #             "options": "Total Val GiB"
+    #         },
+    #         "properties": [
+    #             {
+    #                 "id": "unit",
+    #                 "value": "decgbytes"
+    #             }
+    #         ]
+    #     },
+    #     {
+    #         "matcher": {
+    #             "id": "byName",
+    #             "options": "Val %"
+    #         },
+    #         "properties": [
+    #             {
+    #                 "id": "unit",
+    #                 "value": "percent"
+    #             },
+    #             {
+    #                 "id": "thresholds",
+    #                 "value": {
+    #                     "mode": "absolute",
+    #                     "steps": [
+    #                         {
+    #                             "color": "green",
+    #                             "value": None
+    #                         },
+    #                         {
+    #                             "color": "#EAB839",
+    #                             "value": 65
+    #                         },
+    #                         {
+    #                             "color": "red",
+    #                             "value": 75
+    #                         }
+    #                     ]
+    #                 }
+    #             }
+    #         ]
+    #     }
+    # ]
+
     thres = [
         {
             "color": "text",
@@ -662,7 +916,7 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
         }
     ]
 
-    panels_list.append(Table(
+    panels_list.append(CollectorTable(
         title="Tape Medias",
         dataSource='default',
         targets=target_list,
@@ -671,9 +925,9 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
         displayMode="color-text",
         colorMode="thresholds",
         overrides=override_lst,
-        #thresholds=Threshold('black', 0, 0.0),
         thresholds=thres,
-    ))
+        )
+    )
 
     line = line + 7
 
@@ -681,12 +935,12 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
 
 
 def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
-
-    panels_list = [RowPanel(title=resource_name + ': Physical Volume Group Profile', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "Physical Volume Group Profile (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     target_list = [InfluxDBTarget(
-        query= "SELECT \"Total Medias\", \"Fault\", \"Ina\", \"Scr\", \"-10\", \"-20\", \"-30\", \"-40\", \"-50\", \"-60\", \"-70\", \"-80\", \"-90\", \">90\", \"Total Cap (GiB)\", \"Total Used (GiB)\" from pvgprofile WHERE $timeFilter AND (\"system\"::tag='" + system_name + "') GROUP BY \"pvgname\"::tag, \"host\"::tag ORDER BY DESC LIMIT 1",
+        query="SELECT \"Total Medias\", \"Fault\", \"Ina\", \"Scr\", \"-10\", \"-20\", \"-30\", \"-40\", \"-50\", \"-60\", \"-70\", \"-80\", \"-90\", \">90\", \"Total Cap (GiB)\", \"Total Used (GiB)\" from pvgprofile WHERE $timeFilter AND (\"system\"::tag='" + system_name + "') GROUP BY \"pvgname\"::tag, \"host\"::tag ORDER BY DESC LIMIT 1",
         format="table")]
 
     override_lst = [
@@ -761,14 +1015,13 @@ def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
     ]
 
     thres = [
-          {
+        {
             "color": "text",
             "value": None
-          }
-        ]
+        }
+    ]
 
-
-    panels_list.append(Table(
+    panels_list.append(CollectorTable(
         title="Physical Volume Group",
         dataSource='default',
         targets=target_list,
@@ -777,9 +1030,11 @@ def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
         displayMode="color-text",
         colorMode="thresholds",
         overrides=override_lst,
-        #thresholds=Threshold(line=False,color='text', index=0, value=0.0, op=EVAL_GT),
+        # thresholds=Threshold(line=False,color='text', index=0, value=0.0, op=EVAL_GT),
         thresholds=thres,
         fontSize="85%",
+        minWidth = 55,
+        align="center",
     ))
 
     line = line + 7
@@ -788,383 +1043,59 @@ def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
 
 
 def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
-
-
-    panels_list = [RowPanel(title=resource_name + ': FC', gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    str_title = "FibreChannel Usage (" + resource_name + ")"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     for host in metric['hosts']:
         target_net_outbound = [InfluxDBTarget(
-            query = "SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
+            query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
             alias="$tag_hba")]
 
-
-        panels_list.append(TimeSeries(
-            title=host + " FC Outbound",
+        panels_list.append(CollectorTimeSeries(
+            title=host + " FC Transmit",
             dataSource='default',
             targets=target_net_outbound,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="binBps",
+            # unit=BYTES_PER_SEC_FORMAT,
             gridPos=GridPos(h=7, w=12, x=0, y=pos),
-            spanNulls=True,
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
-            legendDisplayMode="table"
+            legendDisplayMode="table",
+            stacking={"mode": "normal", "group": "A"},
+            legendSortBy="Name",
+            legendSortDesc=False,
         ))
 
         target_net_inbound = [InfluxDBTarget(
             query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
             alias="$tag_hba")]
 
-        panels_list.append(TimeSeries(
-            title=host + " FC Inbound",
+        panels_list.append(CollectorTimeSeries(
+            title=host + " FC Receive",
             dataSource='default',
             targets=target_net_inbound,
             drawStyle='line',
-            lineInterpolation='smooth',
-            gradientMode='hue',
-            fillOpacity=25,
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
             unit="binBps",
+            # unit=BYTES_PER_SEC_FORMAT,
             gridPos=GridPos(h=7, w=12, x=12, y=pos),
-            spanNulls=True,
+            spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
-            legendDisplayMode="table"
+            legendDisplayMode="table",
+            stacking={"mode": "normal", "group": "A"},
+            legendSortBy="Name",
+            legendSortDesc=False,
         ))
         pos = pos + 7
 
     return pos, panels_list
 
-
-
-def create_dashboard_vars(data):
-
-    tpl_lst = []
-
-    for metric in data:
-        match metric['metric']:
-            case "drives":
-                tpl_lst = tpl_lst + [ Template(
-                    #dataSource="default",
-                    name='tapename',
-                    label='tapename',
-                    query='SHOW TAG VALUES WITH KEY = \"tapename\"',
-                    type='query',
-                    includeAll=True,
-                    multi=True,
-                    allValue=True,
-                    default='All',
-                    refresh=2,
-                    hide=HIDE_VARIABLE,
-                ) ]
-
-    return Templating(tpl_lst)
-
-########################################################################################################################
-#
-# Class: BarChart
-#
-# Grafanalib doesn't have a class to manipulate BarChart
-# this is a new class, based on TimeSeries class, to create BarChart graphs
-########################################################################################################################
-@attr.s
-class BarChart(TimeSeries):
-
-    def __init__(self, xTickLabelRotation, decimals,**kwargs):
-        super().__init__(self, **kwargs)
-        self.xTickLabelRotation = xTickLabelRotation
-        self.decimals = decimals
-
-    xTickLabelRotation = attr.ib(default=0, validator=instance_of(int))
-    decimals = attr.ib(default=0, validator=instance_of(int))
-
-    def to_json_data(self):
-        return self.panel_json(
-            {
-                'fieldConfig': {
-                    'defaults': {
-                        'color': {
-                            'mode': self.colorMode
-                        },
-                        'custom': {
-                            'axisPlacement': self.axisPlacement,
-                            'axisLabel': self.axisLabel,
-                            'drawStyle': self.drawStyle,
-                            'lineInterpolation': self.lineInterpolation,
-                            'barAlignment': self.barAlignment,
-                            'lineWidth': self.lineWidth,
-                            'fillOpacity': self.fillOpacity,
-                            'gradientMode': self.gradientMode,
-                            'spanNulls': self.spanNulls,
-                            'showPoints': self.showPoints,
-                            'pointSize': self.pointSize,
-                            'scaleDistribution': {
-                                'type': self.scaleDistributionType,
-                                'log': self.scaleDistributionLog
-                            },
-                            'hideFrom': {
-                                'tooltip': False,
-                                'viz': False,
-                                'legend': False
-                            },
-                            'thresholdsStyle': {
-                                'mode': self.thresholdsStyleMode
-                            },
-                        },
-                        'mappings': self.mappings,
-                        'unit': self.unit,
-                        'decimals': self.decimals,
-                    },
-                    'overrides': self.overrides
-                },
-                'options': {
-                    'stacking': self.stacking,
-                    'xTickLabelRotation': self.xTickLabelRotation,
-                    'legend': {
-                        'displayMode': self.legendDisplayMode,
-                        'placement': self.legendPlacement,
-                        'calcs': self.legendCalcs
-                    },
-                    'tooltip': {
-                        'mode': self.tooltipMode
-                    }
-                },
-                'type': "barchart",
-            })
-
-
-########################################################################################################################
-#
-# Class: TimeSeries2
-#
-# Grafanalib TimeSeries class doesn't have the attribute for sorting the legend
-# this is a new class, based on TimeSeries class, that adds the above funcionality
-#######################################################################################################################
-@attr.s
-class TimeSeries2(TimeSeries):
-
-    def __init__(self, xTickLabelRotation, legendSortBy, legendSortDesc, **kwargs):
-        super().__init__(self, **kwargs)
-        self.xTickLabelRotation = xTickLabelRotation
-        self.legendSortBy = legendSortBy
-        self.legendSortDesc = legendSortDesc
-
-    xTickLabelRotation = attr.ib(default=0, validator=instance_of(int))
-    legendSortBy = attr.ib(default='max', validator=instance_of(str))
-    legendSortDesc = attr.ib(default=False, validator=instance_of(bool))
-
-    def to_json_data(self):
-        return self.panel_json(
-            {
-                'fieldConfig': {
-                    'defaults': {
-                        'color': {
-                            'mode': self.colorMode
-                        },
-                        'custom': {
-                            'axisPlacement': self.axisPlacement,
-                            'axisLabel': self.axisLabel,
-                            'drawStyle': self.drawStyle,
-                            'lineInterpolation': self.lineInterpolation,
-                            'barAlignment': self.barAlignment,
-                            'lineWidth': self.lineWidth,
-                            'fillOpacity': self.fillOpacity,
-                            'gradientMode': self.gradientMode,
-                            'spanNulls': self.spanNulls,
-                            'showPoints': self.showPoints,
-                            'pointSize': self.pointSize,
-                            'scaleDistribution': {
-                                'type': self.scaleDistributionType,
-                                'log': self.scaleDistributionLog
-                            },
-                            'hideFrom': {
-                                'tooltip': False,
-                                'viz': False,
-                                'legend': False
-                            },
-                            'thresholdsStyle': {
-                                'mode': self.thresholdsStyleMode
-                            },
-                        },
-                        'mappings': self.mappings,
-                        'unit': self.unit
-                    },
-                    'overrides': self.overrides
-                },
-                'options': {
-                    'stacking': self.stacking,
-                    'xTickLabelRotation': self.xTickLabelRotation,
-                    'legend': {
-                        'displayMode': self.legendDisplayMode,
-                        'placement': self.legendPlacement,
-                        'calcs': self.legendCalcs,
-                        'sortBy': self.legendSortBy,
-                        'sortDesc': self.legendSortDesc,
-                    },
-                    'tooltip': {
-                        'mode': self.tooltipMode
-                    }
-                },
-                'type': "timeseries",
-            })
-
-
-########################################################################################################################
-#
-# function: build_grafana_fun_data_model
-#
-# This function builds a dictionary with the data model for creating the graphs
-# This functions need rework!!!!!
-########################################################################################################################
-
-
-def build_grafana_fun_data_model(config):
-    def check_if_metric_exists(system_name, resource_name, metric_name, lst):
-        metrics_lst = []
-        b_exists = False
-
-        for x in lst:
-            if system_name in x['system']:
-                for y in x['resources']:
-                    if resource_name == y['name']:
-                        for z in y['data']:
-                            if metric_name == z['metric']:
-                                metrics_lst = z['hosts']
-                                b_exists = True
-
-        return b_exists, metrics_lst
-
-    def check_if_system_exists(system_name, lst):
-
-        b_result = False
-        for x in lst:
-            if system_name == x['system']:
-                b_result = True
-
-        return b_result
-
-    def check_if_resource_exists(system_name, resource_name, lst):
-
-        b_result = False
-        for x in lst:
-            if system_name == x['system']:
-                for y in x['resources']:
-                    if resource_name == y['name']:
-                        b_result = True
-
-        return b_result
-
-    def my_update_resource_list(system_name, resource_name, metric_name, lst, dict_metric):
-
-        for x in lst:
-            if system_name == x['system']:
-                for y in x['resources']:
-                    if resource_name == y['name']:
-                        for k in y['data']:
-                            if metric_name == k['metric']:
-                                k.update(dict_metric)
-
-        return lst
-
-    def add_resource(system_name, dict, model):
-
-        local_model = model
-
-        for x in local_model:
-            if system_name in x['system']:
-                x['resources'].append(dict)
-                logging.debug(add_resource.__name__ + ": existing resources are %s", x)
-
-        logging.debug(add_resource.__name__ + ": function result is %s", local_model)
-
-        return local_model
-
-    def my_add_metrics_to_existing_resource_list(system_name, resource_name, dict_metric, model):
-
-        local_model = model
-
-        for x in local_model:
-            if system_name == x['system']:
-                for y in x['resources']:
-                    if resource_name == y['name']:
-                        #y['data'].append(dict_metric[0])
-                        y['data'] = y['data'] + dict_metric
-
-        return local_model
-
-    logging.debug(build_grafana_fun_data_model.__name__ + ": Config data is - %s", config)
-    model_result = []
-
-    try:
-        for system in config.systems:
-            metric_list = []
-            res_list = []
-            met_exists = False
-            for metric in system.config.metrics:
-                host_list = []
-                for ip in system.config.ips:
-                    #if not ip.alias is None:
-                    if ip.alias is not None:
-                        hostname = ip.alias
-                    else:
-                        hostname = str(ip.ip)
-                    host_list.append(hostname)
-
-                met_exists, met_hosts_lst = check_if_metric_exists(system.name, system.resources_types, metric.name,
-                                                                   model_result)
-                logging.debug(build_grafana_fun_data_model.__name__ + ": Existing metric %s and hosts %s", metric.name,
-                              met_hosts_lst)
-                logging.debug(build_grafana_fun_data_model.__name__ + ": Adding metric %s and hosts %s", metric.name,
-                              host_list)
-                if met_exists:
-                    metric_dict = {"metric": metric.name, "hosts": met_hosts_lst + host_list}
-                    logging.debug(build_grafana_fun_data_model.__name__ + ": New metric list %s ",
-                                  metric_dict)
-
-                    model_result = my_update_resource_list(system.name, system.resources_types, metric.name,
-                                                           model_result, metric_dict)
-                    logging.debug(build_grafana_fun_data_model.__name__ + ": New model result %s ",
-                                  model_result)
-                else:
-                    metric_list.append({"metric": metric.name, "hosts": host_list})
-
-                logging.debug(build_grafana_fun_data_model.__name__ + ": Metrics exist %s and metrics list is %s",
-                              met_exists, metric_list)
-
-            res_exists = check_if_resource_exists(system.name, system.resources_types, model_result)
-
-            if res_exists and not met_exists:
-                logging.debug(
-                    build_grafana_fun_data_model.__name__ +
-                    ": Resource exist=%s and metrics exist=%s metrics list is %s model_result %s",
-                    res_exists, met_exists, metric_list, model_result)
-                model_result = my_add_metrics_to_existing_resource_list(system.name, system.resources_types,
-                                                                        metric_list, model_result)
-
-            if not res_exists:
-                logging.debug(
-                    build_grafana_fun_data_model.__name__ + ": Resource %s do not exists but system %s exists",
-                    system.resources_types, system.name)
-                res_list.append({"name": system.resources_types, "data": metric_list})
-
-            if check_if_system_exists(system.name, model_result) and not res_exists:
-                logging.debug(build_grafana_fun_data_model.__name__ + ": System exists - %s", model_result)
-                model_result = add_resource(system.name, {"name": system.resources_types, "data": metric_list},
-                                            model_result)
-
-            # System
-            if not check_if_system_exists(system.name, model_result) and not res_exists:
-                model_result.append(
-                    {"system": system.name, "resources": res_list, "poll": system.config.parameters.poll})
-
-            logging.debug(build_grafana_fun_data_model.__name__ + ": Model is - %s", model_result)
-    except Exception as msgerror:
-        logging.error(
-            build_grafana_fun_data_model.__name__ +
-            ": Unexpected error creating grafana_fun data model - %s" % msgerror)
-        return -1
-
-    logging.debug(build_grafana_fun_data_model.__name__ + ": grafana_fun data model is - %s", model_result)
-
-    return model_result
