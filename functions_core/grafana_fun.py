@@ -112,19 +112,19 @@ def create_panel_linux_os(system_name, resource_name, data, global_pos):
     for metric in data:
         match metric['metric']:
             case "cpu":
-                y_pos, panel = cpu_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_cpu(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = mem_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_mem(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
-                y_pos, panel = fs_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_fs(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_net(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -151,31 +151,31 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, global_pos):
                 panels_list = panels_list + panel
 
             case "medias":
-                y_pos, panel = eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_eternus_cs8000_medias(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "pvgprofile":
-                y_pos, panel = eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_eternus_cs8000_pvgprofile(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "fc":
-                y_pos, panel = eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_eternus_cs8000_fc(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "cpu":
-                y_pos, panel = cpu_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_cpu(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = mem_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_mem(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
-                y_pos, panel = fs_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_fs(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
             case "net":
-                y_pos, panel = net_graph_linux(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_net(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
 
     return y_pos, panels_list
@@ -220,11 +220,10 @@ def create_dashboard_vars(data):
                     )
                 ]
 
-    #return Templating(tpl_lst)
     return tpl_lst
 
 
-def cpu_graph_linux(system_name, resource_name, metric, y_pos):
+def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
     str_title = "CPU Usage (" + resource_name + ")"
 
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
@@ -252,7 +251,9 @@ def cpu_graph_linux(system_name, resource_name, metric, y_pos):
         legendPlacement="right",
         legendDisplayMode="table",
         legendSortBy="Name",
+        #legendCalcs=['mean', 'max'],
         legendSortDesc=False,
+        valueMax=100,
         )
     )
 
@@ -286,7 +287,7 @@ def cpu_graph_linux(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def mem_graph_linux(system_name, resource_name, metric, y_pos):
+def graph_linux_os_mem(system_name, resource_name, metric, y_pos):
     str_title = "Memory Usage (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -317,123 +318,84 @@ def mem_graph_linux(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def fs_graph_linux(system_name, resource_name, metric, y_pos):
+def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
     str_title = "File System Capacity (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     for host in metric['hosts']:
         target_fs = [InfluxDBTarget(
-            # query="SELECT used as Used, total-used as Available FROM fs WHERE $timeFilter AND (\"host\"::tag = '" + host + "') AND (\"system\"::tag = '" + system_name + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
             query="SELECT \"used\" as \"Used\", \"total\"-\"used\" as \"Available\", \"total\" as \"Total\", \"used\"/\"total\"*100 as \"%Used\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
             format="table")]
 
         overrides_lst = [
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "%Used"
-        },
-        "properties": [
           {
-            "id": "unit",
-            "value": "percent"
-          },
-          {
-            "id": "custom.hideFrom",
-            "value": {
-              "legend": True,
-              "tooltip": False,
-              "viz": True
-            }
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "Total"
-        },
-        "properties": [
-          {
-            "id": "custom.hideFrom",
-            "value": {
-              "legend": True,
-              "tooltip": False,
-              "viz": True
-            }
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "Used"
-        },
-        "properties": [
-          {
-            "id": "thresholds",
-            "value": {
-              "mode": "percentage",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": None
-                },
-                {
-                  "color": "red",
-                  "value": 95
+            "matcher": {
+              "id": "byName",
+              "options": "%Used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": True,
+                  "tooltip": False,
+                  "viz": True
                 }
-              ]
-            }
+              }
+            ]
           },
           {
-            "id": "color",
-            "value": {
-              "mode": "thresholds"
-            }
+            "matcher": {
+              "id": "byName",
+              "options": "Total"
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": True,
+                  "tooltip": False,
+                  "viz": True
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": None
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
           }
         ]
-      }
-    ]
-        # overrides_lst = [
-        #     {
-        #         "matcher": {
-        #             "id": "byName",
-        #             "options": "%Used"
-        #         },
-        #         "properties": [
-        #             {
-        #                 "id": "unit",
-        #                 "value": "percent"
-        #             },
-        #             {
-        #                 "id": "custom.hideFrom",
-        #                 "value": {
-        #                     "tooltip": False,
-        #                     "viz": True,
-        #                     "legend": True
-        #                 }
-        #             }
-        #         ]
-        #     },
-        #     {
-        #         "matcher": {
-        #             "id": "byName",
-        #             "options": "Total"
-        #         },
-        #         "properties": [
-        #             {
-        #                 "id": "custom.hideFrom",
-        #                 "value": {
-        #                     "tooltip": False,
-        #                     "viz": True,
-        #                     "legend": True
-        #                 }
-        #             }
-        #         ]
-        #     }
-        # ]
 
         panels_list.append(CollectorBarChart(
             title=host + " Filesystem",
@@ -443,7 +405,7 @@ def fs_graph_linux(system_name, resource_name, metric, y_pos):
             lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
-            unit="deckbytes",
+            unit=COLLECTOR_FS_UNITS,
             gridPos=GridPos(h=7, w=24, x=0, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
@@ -459,7 +421,7 @@ def fs_graph_linux(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def net_graph_linux(system_name, resource_name, metric, y_pos):
+def graph_linux_os_net(system_name, resource_name, metric, y_pos):
     str_title = "Network Usage (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -480,8 +442,7 @@ def net_graph_linux(system_name, resource_name, metric, y_pos):
             showPoints=COLLECTOR_SHOW_POINTS,
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
-            unit="binBps",
-            # unit=BYTES_PER_SEC_FORMAT,
+            unit=COLLECTOR_NET_UNITS,
             gridPos=GridPos(h=7, w=12, x=0, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
@@ -506,8 +467,7 @@ def net_graph_linux(system_name, resource_name, metric, y_pos):
             showPoints=COLLECTOR_SHOW_POINTS,
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
-            unit="binBps",
-            # unit=BYTES_PER_SEC_FORMAT,
+            unit=COLLECTOR_NET_UNITS,
             gridPos=GridPos(h=7, w=12, x=12, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
@@ -751,15 +711,12 @@ def graph_eternus_cs8000_drives(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
+def graph_eternus_cs8000_medias(system_name, resource_name, metric, y_pos):
     str_title = "Tape Medias (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     target_list = [InfluxDBTarget(
-        # query="SELECT  \"Total Cap GiB\", \"Total Clean Medias\", \"Total Fault\", \"Total Ina\", \"Total Medias\", "
-        #       "\"Total Val GiB\", \"Val %\"  FROM \"medias\" WHERE $timeFilter AND (\"system\"::tag='" + system_name
-        #       + "') GROUP BY \"host\"::tag, \"tapename\"::tag ORDER BY DESC LIMIT 1",
         query="SELECT  \"Total Cap GiB\" as \"Total Capacity\", \"Total Clean Medias\", \"Total Fault\","
               " \"Total Ina\" as \"Total Inactive\", \"Total Medias\", \"Total Val GiB\" as \"Total Valid\", "
               "\"Val %\" as \"Valid %\"  FROM \"medias\" WHERE $timeFilter AND (\"system\"::tag='" + system_name +
@@ -837,78 +794,6 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
       }
     ]
 
-
-    # override_lst = [
-    #     {
-    #         "matcher": {
-    #             "id": "byName",
-    #             "options": "Time"
-    #         },
-    #         "properties": [
-    #             {
-    #                 "id": "custom.hidden",
-    #                 "value": True
-    #             }
-    #         ]
-    #     },
-    #     {
-    #         "matcher": {
-    #             "id": "byName",
-    #             "options": "Total Cap GiB"
-    #         },
-    #         "properties": [
-    #             {
-    #                 "id": "unit",
-    #                 "value": "decgbytes"
-    #             }
-    #         ]
-    #     },
-    #     {
-    #         "matcher": {
-    #             "id": "byName",
-    #             "options": "Total Val GiB"
-    #         },
-    #         "properties": [
-    #             {
-    #                 "id": "unit",
-    #                 "value": "decgbytes"
-    #             }
-    #         ]
-    #     },
-    #     {
-    #         "matcher": {
-    #             "id": "byName",
-    #             "options": "Val %"
-    #         },
-    #         "properties": [
-    #             {
-    #                 "id": "unit",
-    #                 "value": "percent"
-    #             },
-    #             {
-    #                 "id": "thresholds",
-    #                 "value": {
-    #                     "mode": "absolute",
-    #                     "steps": [
-    #                         {
-    #                             "color": "green",
-    #                             "value": None
-    #                         },
-    #                         {
-    #                             "color": "#EAB839",
-    #                             "value": 65
-    #                         },
-    #                         {
-    #                             "color": "red",
-    #                             "value": 75
-    #                         }
-    #                     ]
-    #                 }
-    #             }
-    #         ]
-    #     }
-    # ]
-
     thres = [
         {
             "color": "text",
@@ -934,7 +819,7 @@ def eternus_cs8000_medias_graph(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
+def graph_eternus_cs8000_pvgprofile(system_name, resource_name, metric, y_pos):
     str_title = "Physical Volume Group Profile (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -1042,7 +927,7 @@ def eternus_cs8000_pvgprofile_graph(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
+def graph_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
     str_title = "FibreChannel Usage (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
@@ -1053,7 +938,7 @@ def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
             alias="$tag_hba")]
 
         panels_list.append(CollectorTimeSeries(
-            title=host + " FC Transmit",
+            title=host + " FC Transmit (tx)",
             dataSource='default',
             targets=target_net_outbound,
             drawStyle='line',
@@ -1062,7 +947,6 @@ def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
             unit=COLLECTOR_FC_UNITS,
-            # unit=BYTES_PER_SEC_FORMAT,
             gridPos=GridPos(h=7, w=12, x=0, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
@@ -1077,7 +961,7 @@ def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
             alias="$tag_hba")]
 
         panels_list.append(CollectorTimeSeries(
-            title=host + " FC Receive",
+            title=host + " FC Receive (rx)",
             dataSource='default',
             targets=target_net_inbound,
             drawStyle='line',
@@ -1085,8 +969,7 @@ def eternus_cs8000_fc_graph(system_name, resource_name, metric, y_pos):
             showPoints=COLLECTOR_SHOW_POINTS,
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
-            unit="binBps",
-            # unit=BYTES_PER_SEC_FORMAT,
+            unit=COLLECTOR_FC_UNITS,
             gridPos=GridPos(h=7, w=12, x=12, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",

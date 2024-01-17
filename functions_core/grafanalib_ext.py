@@ -37,7 +37,9 @@ COLLECTOR_SHOW_POINTS = 'never'
 COLLECTOR_LINE_INTERPOLATION = 'smooth'
 COLLECTOR_FILL_OPACITY = 25
 COLLECTOR_SPAN_NULLS = True
-COLLECTOR_FC_UNITS = 'MBs'
+COLLECTOR_FC_UNITS = 'MBs' # Data rate MBytes/sec = 'MBs'
+COLLECTOR_NET_UNITS = 'Bps' # Data rate/ Bytes/sec = 'Bps'
+COLLECTOR_FS_UNITS = 'kbytes' # kibibytes
 
 
 #################################################################################
