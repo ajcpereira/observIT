@@ -35,7 +35,7 @@ def upload_to_grafana(json_data, server, api_key, verify=True):
 
     try:
         r = requests.post(f"http://{server}/api/dashboards/db", data=json_data, headers=headers, verify=verify)
-        logging.debug("Message from fungraph %s" % r.json())
+        logging.debug("Message from grafana_fun is %s" % r.json())
     except Exception as msgerror:
         logging.error("Failed to create report in grafana %s with error %s" % (server, msgerror))
 
@@ -50,10 +50,10 @@ def create_system_dashboard(sys, config):
     for res in sys['resources']:
         match res['name']:
             case "linux_os":
-                y_pos, res_panel = create_panel_linux_os(str(sys['system']), str(res['name']), res['data'], y_pos)
+                y_pos, res_panel = graph_linux_os(str(sys['system']), str(res['name']), res['data'], y_pos)
                 panels = panels + res_panel
             case "eternus_cs8000":
-                y_pos, res_panel = create_panel_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
+                y_pos, res_panel = graph_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
                 templating = create_dashboard_vars(res['data'])
                 panels = panels + res_panel
 
@@ -103,7 +103,7 @@ def build_dashboards(config):
 ########################################################################################################################
 
 
-def create_panel_linux_os(system_name, resource_name, data, global_pos):
+def graph_linux_os(system_name, resource_name, data, global_pos):
     # todo:
 
     panels_list = []
@@ -116,7 +116,7 @@ def create_panel_linux_os(system_name, resource_name, data, global_pos):
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = graph_linux_os_mem(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_mem(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
@@ -136,7 +136,7 @@ def create_panel_linux_os(system_name, resource_name, data, global_pos):
 #
 ########################################################################################################################
 
-def create_panel_eternus_cs8000(system_name, resource_name, data, global_pos):
+def graph_eternus_cs8000(system_name, resource_name, data, global_pos):
     panels_list = []
     y_pos = global_pos
 
@@ -167,7 +167,7 @@ def create_panel_eternus_cs8000(system_name, resource_name, data, global_pos):
                 panels_list = panels_list + panel
 
             case "mem":
-                y_pos, panel = graph_linux_os_mem(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_linux_os_mem(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "fs":
@@ -224,18 +224,24 @@ def create_dashboard_vars(data):
 
 
 def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
-    str_title = "CPU Usage (" + resource_name + ")"
 
+    str_title = "CPU Usage (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
 
     panels_target_list_cpu_use = []
+    panels_target_list_cpu_load = []
     for host in metric['hosts']:
         panels_target_list_cpu_use = panels_target_list_cpu_use + [InfluxDBTarget(
             query="SELECT mean(\"use\") FROM \"cpu\" WHERE (\"system\"::tag = '" + system_name +
                   "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"host\"::tag fill(null)",
             alias="$tag_host")]
+        panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
+            query="SELECT \"load5m\" FROM \"cpu\" WHERE (\"system\"::tag = '" + system_name +
+                  "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"host\"::tag",
+            alias="$tag_host")]
 
+    #Create Panel do show CPU use Graph
     panels_list.append(CollectorTimeSeries(
         title="CPU utilization (%)",
         dataSource='default',
@@ -257,13 +263,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         )
     )
 
-    panels_target_list_cpu_load = []
-    for host in metric['hosts']:
-        panels_target_list_cpu_load = panels_target_list_cpu_load + [InfluxDBTarget(
-            query="SELECT \"load5m\" FROM \"cpu\" WHERE (\"system\"::tag = '" + system_name +
-                  "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"host\"::tag",
-            alias="$tag_host")]
-
+    # Create Panel do show CPU Load
     panels_list.append(CollectorTimeSeries(
         title="CPU Average Load (5 min)",
         dataSource='default',
@@ -288,14 +288,55 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def graph_linux_os_mem(system_name, resource_name, metric, y_pos):
+def graph_linux_os_mem(system_name, resource_name, y_pos):
     str_title = "Memory Usage (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     pos = y_pos + 1
 
     target_mem = [InfluxDBTarget(
-        query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\" FROM \"mem\" WHERE $timeFilter AND (\"system\"::tag = '" + system_name + "') GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
+        query="SELECT  (total)-(avail) as \"Used\", (avail) as \"Available\", \"total\" as \"Total\", "
+              "\"used\"/\"total\"*100 as \"Used%\" FROM \"mem\" WHERE $timeFilter AND (\"system\"::tag = '" +
+              system_name + "') GROUP BY \"host\"::tag ORDER BY time DESC LIMIT 1",
         format="table")]
+
+    json_overrides = [
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total"
+            },
+            "properties": [
+                {
+                    "id": "custom.hideFrom",
+                    "value": {
+                        "tooltip": False,
+                        "viz": True,
+                        "legend": True
+                    }
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Used%"
+            },
+            "properties": [
+                {
+                    "id": "unit",
+                    "value": "percent"
+                },
+                {
+                    "id": "custom.hideFrom",
+                    "value": {
+                        "tooltip": False,
+                        "viz": True,
+                        "legend": True
+                    }
+                }
+            ]
+        }
+    ]
 
     panels_list.append(CollectorBarChart(
         title="Memory Usage",
@@ -312,7 +353,9 @@ def graph_linux_os_mem(system_name, resource_name, metric, y_pos):
         legendDisplayMode="table",
         stacking={'mode': "normal"},
         tooltipMode="multi",
-    ))
+        overrides=json_overrides,
+        )
+    )
 
     pos = pos + 7
 
@@ -326,10 +369,13 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
 
     for host in metric['hosts']:
         target_fs = [InfluxDBTarget(
-            query="SELECT \"used\" as \"Used\", \"total\"-\"used\" as \"Available\", \"total\" as \"Total\", \"used\"/\"total\"*100 as \"%Used\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC LIMIT 1",
+            query="SELECT \"used\" as \"Used\", \"total\"-\"used\" as \"Available\", \"total\" as \"Total\", "
+                  "\"used\"/\"total\"*100 as \"%Used\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" +
+                  system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC "
+                                                                   "LIMIT 1",
             format="table")]
 
-        overrides_lst = [
+        json_overrides = [
           {
             "matcher": {
               "id": "byName",
@@ -415,7 +461,7 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
             tooltipMode="multi",
             xTickLabelRotation=-45,
             valueDecimals=2,
-            overrides=overrides_lst,
+            overrides=json_overrides,
         ))
         pos = pos + 7
 
@@ -513,7 +559,8 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-        ))
+            )
+        )
 
         panels_target_list = [InfluxDBTarget(
             query=("SELECT mean(\"r/s\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
@@ -538,7 +585,8 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-        ))
+            )
+        )
 
         panels_target_list = [InfluxDBTarget(
             query=("SELECT mean(\"r_await\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
@@ -563,7 +611,8 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-        ))
+            )
+        )
 
         panels_target_list = [InfluxDBTarget(
             query=("SELECT mean(\"w/s\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
@@ -588,7 +637,8 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-        ))
+            )
+        )
 
         panels_target_list = [InfluxDBTarget(
             query=("SELECT mean(\"w_await\") FROM \"fs_io\" WHERE (\"system\"::tag = '" + system_name +
@@ -613,7 +663,8 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-        ))
+            )
+        )
 
         pos = pos + 7
 
