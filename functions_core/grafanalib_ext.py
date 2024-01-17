@@ -32,13 +32,13 @@ from grafanalib.influxdb import *
 BARCHART_TYPE = 'barchart'
 
 # Common graphics visualization properties, to enable a consistent view
-COLLECTOR_GRADIENT_MODE = 'hue'
+COLLECTOR_GRADIENT_MODE = 'none' #none, opacity, hue
 COLLECTOR_SHOW_POINTS = 'never'
 COLLECTOR_LINE_INTERPOLATION = 'smooth'
 COLLECTOR_FILL_OPACITY = 25
-COLLECTOR_SPAN_NULLS = True
+COLLECTOR_SPAN_NULLS = True # True
 COLLECTOR_FC_UNITS = 'MBs' # Data rate MBytes/sec = 'MBs'
-COLLECTOR_NET_UNITS = 'Bps' # Data rate/ Bytes/sec = 'Bps'
+COLLECTOR_NET_UNITS = 'binBps' # Data rate/ Bytes/sec = 'Bps' or Data rate/ Bytes/sec(IEC)
 COLLECTOR_FS_UNITS = 'kbytes' # kibibytes
 
 

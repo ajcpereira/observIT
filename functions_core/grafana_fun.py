@@ -251,7 +251,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         legendPlacement="right",
         legendDisplayMode="table",
         legendSortBy="Name",
-        #legendCalcs=['mean', 'max'],
+        legendCalcs=['mean', 'max'],
         legendSortDesc=False,
         valueMax=100,
         )
@@ -279,6 +279,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         legendPlacement="right",
         legendDisplayMode="table",
         legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
         legendSortDesc=False,
     ))
 
