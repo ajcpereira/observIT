@@ -1,4 +1,4 @@
-import os, logging, subprocess, time
+import os, logging, subprocess, time, re
 from functions_core.send_influxdb import *
 from functions_core.secure_connect import *
 
@@ -544,62 +544,12 @@ def eternus_cs8000_pvgprofile(**args):
     
     logging.debug("Finished func_eternus_cs8000_pvgprofile")
 
-
-
 def eternus_cs8000_fc(**args):
 
     logging.debug("Starting func_eternus_cs8000_fc")
-
-    # Organize the args from ip calling specific function     
-    args=args_setup(args)
-
-    # Command line to run remotly
-    #cmd1="for i in `ls /sys/class/fc_host`; do tx=`cat /sys/class/fc_host/$i/statistics/tx_words`; rx=`cat /sys/class/fc_host/$i/statistics/rx_words`; echo $i $tx $rx; done"
-    #cmd1="LST=`ls /sys/kernel/config/target/qla2xxx| grep \":\" | sed \'s/://g\'`;MYDHBA=\"\";MYTHBA=\"\";DISK=`lsscsi | awk \'{ print $1, $2 }\' | grep disk | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;TAPE=`lsscsi | awk \'{ print $1, $2 }\' | grep tape | cut -d \":\" -f 1 | sed \'s/\\[//\' | sort -u`;for x in $TAPE; do    MYTHBA=$MYTHBA\" host\"$x; done;for i in `ls /sys/class/fc_host`; do    WWN=`cat /sys/class/fc_host/$i/port_name | sed \'s/^0x//\'`   ;    if [[ ${LST,,} = *${WWN,,}* ]];    then         i=$i\"-TGT\"; TMP=`echo $WWN | sed \'s/../&:/g;s/:$//\'`; RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk \'{ sum += $1 } END { print sum }\'`; TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk \'{ sum += $1 } END { print sum }\'`;    elif [[ ${MYDHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-INT\";    elif [[ ${MYTHBA,,} = *${i,,}* ]];    then RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n \'{ print $1+0}\'`; TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n \'{ print $1+0}\'`; i=$i\"-BE\";    fi;    echo $i $WWN $RX $TX; done" 
-    cmd1="INT=\"-INT\";\
-BE=\"-BE\";\
-TGT=\"-TGT\";\
-LSDISK=`lsscsi | awk '{ print $1, $2 }' | grep disk | cut -d \":\" -f 1 | sed 's/\[//' | sort -u`; \
-LSTAPE=`lsscsi | awk '{ print $1, $2 }' | grep tape | cut -d \":\" -f 1 | sed 's/\[//' | sort -u`; \
-if [[ -d /sys/class/fc_host ]];\
-then \
-LSHBA=`ls /sys/class/fc_host`; \
-fi; \
-if [[ -d /sys/kernel/config/target/qla2xxx ]]; \
-then \
-ls /sys/kernel/config/target/qla2xxx| grep \":\" | sed 's/://g'; \
-LSTHBA=`cat /tmp/fjcollector/FC_lsthba`; \
-fi; \
-if [[ ! -z $LSHBA ]]; \
-then \
-for i in $LSHBA; \
-do \
-WWN=`cat /sys/class/fc_host/$i/port_name | sed 's/^0x//'`; \
-if [[ ${LSTHBA,,} = *${WWN,,}* ]]; \
-then \
-i=$i$TGT; \
-TMP=`echo $WWN | sed 's/../&:/g;s/:$//'`; \
-RX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes | awk '{ sum += $1 } END { print sum }'`; \
-TX=`cat /sys/kernel/config/target/qla2xxx/$TMP/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes | awk '{ sum += $1 } END { print sum }'`; \
-elif [[ ${LSHBA,,} = *${i,,}* ]]; \
-then \
-RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes | awk -n '{ print $1+0}'`; \
-TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; \
-i=$i$INT; \
-elif [[ ${LSTAPE,,} = *${i,,}* ]]; \
-then \
-RX=`cat /sys/class/fc_host/$i/statistics/fcp_input_megabytes| awk -n '{ print $1+0}'`; \
-TX=`cat /sys/class/fc_host/$i/statistics/fcp_output_megabytes| awk -n '{ print $1+0}'`; \
-i=$i$BE; \
-fi; \
-echo $i $WWN $RX $TX; \
-done; \
-fi"
-
-    logging.debug("Command Line 1 - %s" % cmd1)
-
-    flag_test=None
     
+    flag_test=None
+    # If there's a test file it will be used instead of real, nevertheless the ssh connection will be attempted
     if os.path.isfile("./tests/fc_transmit"):
           flag_test=True
           cmd="cat ./tests/fc_transmit"
@@ -607,13 +557,16 @@ fi"
           logging.debug("Testfile for fc is:\n%s" % response)
           logging.warning("You are using test file for FC, not really data")
 
+    # Organize the args from ip calling specific function     
+    args=args_setup(args)
+
+    # Open ssh session
     try:
         ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error("Failed to connect to %s with error %s" % (args['ip'], msgerror))
         ssh.ssh_del()
         return -1
-    
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
     if flag_test:
@@ -625,47 +578,159 @@ fi"
              ssh.ssh_del()
              return -1
     else:
-        try:
-            stdout = ssh.ssh_run(cmd1)
-            response = stdout.stdout
-            if stdout.stderr:
-                 logging.error("Got error from command line:\n%s" % stdout.error)
-                 return -1
-        except Exception as msgerror:
-             logging.error("Failed to run command to %s with error %s" % (args['ip'], msgerror))
-             ssh.ssh_del()
-             return -1            
-    timestamp = int(time.time())
-    logging.debug("Output of Command Line 1:\n%s" % response)
 
+########## WILL EXECUTE MAIN SSH COMMANDS ###########################        
+        try:
+            cmd1="for hosthba in `ls /sys/class/fc_host`;do WWN=`cat /sys/class/fc_host/$hosthba/port_name | sed 's/^0x//' | sed 's/../&:/g;s/:$//'`; echo $hosthba $WWN; done"
+            logging.debug("Command Line 1 - %s" % cmd1)
+            stdoutcmd1 = ssh.ssh_run(cmd1)
+            logging.debug("Output of Command Line 1:\n%s" % stdoutcmd1.stdout)
+
+            cmd2="lsscsi | awk '{ print $1, $2 }' | grep disk"
+            logging.debug("Command Line 2 - %s" % cmd2)
+            stdoutcmd2 = ssh.ssh_run(cmd2)
+            logging.debug("Output of Command Line 2:\n%s" % stdoutcmd2.stdout)
+
+            
+            cmd3="lsscsi | awk '{ print $1, $2 }' | grep tape"
+            logging.debug("Command Line 3 - %s" % cmd3)
+            stdoutcmd3 = ssh.ssh_run(cmd3)
+            logging.debug("Output of Command Line 3:\n%s" % stdoutcmd3.stdout)
+
+            cmd4="ls /sys/kernel/config/target/qla2xxx | grep :"
+            logging.debug("Command Line 4 - %s" % cmd4)    
+            stdoutcmd4 = ssh.ssh_run(cmd4)
+            logging.debug("Output of Command Line 4:\n%s" % stdoutcmd4.stdout)
+            
+            cmd5="cat /etc/os-release | grep VERSION_ID"
+            logging.debug("Command Line 5 - %s" % cmd5)
+            stdoutcmd5 = ssh.ssh_run(cmd5)
+            logging.debug("Output of Command Line 5:\n%s" % stdoutcmd5.stdout)
+            
+            if stdoutcmd1.stderr or stdoutcmd2.stderr or stdoutcmd3.stderr or stdoutcmd4.stderr or stdoutcmd5.stderr:
+                logging.error("Got error from one of the commands line:\n%s %s %s %s %s" % (stdoutcmd1.error, stdoutcmd2.error, stdoutcmd3.error, stdoutcmd4.error, stdoutcmd5.error))
+                return -1
+        except Exception as msgerror:
+            logging.error("Failed the cmd execution in %s with error %s" % (args['ip'], msgerror))
+            ssh.ssh_del()
+            return -1
+########## END EXECUTE MAIN SSH COMMANDS ###########################        
+        
+########## WILL PROCESS THE COMMANDS OUTPUT ###########################
+        
+        os_ver = re.search(r'\d+(\.\d+)?', stdoutcmd5.stdout)
+        if os_ver:
+             os_ver = float(match.group())
+        else:
+             logging.error("Failed to get the OS version, consider the output %s"% stdoutcmd5.stdout)
+             return -1
+        hostctlint = "host"+str(list(set(int(match.group(1)) for match in re.finditer(r'\[(\d+):', stdoutcmd2.stdout))))
+        hostctlbe = "host"+str(list(set(int(match.group(1)) for match in re.finditer(r'\[(\d+):', stdoutcmd3.stdout))))
+        hosttgt = stdoutcmd4.stdout
+    
+        record=[]
+    ########## WILL PROCESS INTERNAL HBA's ################################
+        if hostctlint:
+            for line in hostctlint.splitlines():
+                if not line.strip():
+                    continue
+                if os_ver >= 15:
+                    try:
+                        tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
+                        rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
+                        tx_mbytes = int(tx_bytes.stdout, 16)
+                        rx_mbytes = int(rx_bytes.stdout, 16)
+                    except Exception as msgerror:
+                        logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
+                        ssh.ssh_del()
+                        return -1
+                else:
+                    try:
+                        tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
+                        rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
+                        tx_mbytes = int(tx_bytes.stdout, 16)*4 / (1024*1024)
+                        rx_mbytes = int(rx_bytes.stdout, 16)*4 / (1024*1024)
+                    except Exception as msgerror:
+                        logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
+                        ssh.ssh_del()
+                        return -1
+                
+                timestamp = int(time.time())    
+                record = record + [
+                {"measurement": "fc",
+                "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
+                "hba": line+"-int"},
+                "fields": {"rx_bytes": rx_mbytes, "tx_bytes": tx_mbytes},
+                "time": timestamp
+                }]
+
+    ########## WILL PROCESS BACKEND HBA's ################################
+        if hostctlbe:
+            for line in hostctlbe.splitlines():
+                if not line.strip():
+                    continue
+                if os_ver >= 15:
+                    try:
+                        tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
+                        rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
+                        tx_mbytes = int(tx_bytes.stdout, 16)
+                        rx_mbytes = int(rx_bytes.stdout, 16)
+                    except Exception as msgerror:
+                        logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
+                        ssh.ssh_del()
+                        return -1
+                else:
+                    try:
+                        tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
+                        rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
+                        tx_mbytes = int(tx_bytes.stdout, 16)*4 / (1024*1024)
+                        rx_mbytes = int(rx_bytes.stdout, 16)*4 / (1024*1024)
+                    except Exception as msgerror:
+                        logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
+                        ssh.ssh_del()
+                        return -1
+
+                timestamp = int(time.time())                    
+                record = record + [
+                {"measurement": "fc",
+                "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
+                "hba": line+"-be"},
+                "fields": {"rx_bytes": rx_mbytes, "tx_bytes": tx_mbytes},
+                "time": timestamp
+                }]
+                 
+    ########## WILL PROCESS TARGET HBA's #################################
+        if hosttgt:
+            for line in hosttgt.splitlines():
+                if not line.strip():
+                    continue
+                if line in stdoutcmd1.stdout():
+                    hostctltgt = stdoutcmd1.stdout[stdoutcmd1.stdout.index(line) - 1]
+                    try:
+                        tx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes|awk '{ sum += $1 } END { print sum}'")
+                        rx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes|awk '{ sum += $1 } END { print sum}'")
+                    except Exception as msgerror:
+                        logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
+                        ssh.ssh_del()
+                        return -1
+                else:
+                    logging.error("Can't find the wwn from the target in the list of host controllers:\n%s" % line)
+                    return -1
+
+                timestamp = int(time.time())                    
+                record = record + [
+                {"measurement": "fc",
+                "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
+                "hba": hostctltgt+"-tgt"},
+                "fields": {"rx_bytes": rx_mbytes, "tx_bytes": tx_mbytes},
+                "time": timestamp
+                }]
+
+########## END PROCESS THE COMMANDS OUTPUT ############################
 
     # Close ssh session
     ssh.ssh_del()
     logging.debug("Finished core function ssh with args:\n%s" % args)
-
-
-    logging.debug("Starting metrics processing on FC")
-    ##############################
-    record = []
-    for line in response.splitlines():
-        if not line.strip():
-            continue
-
-        columns = line.split()
-
-        if len(columns) == 4:
-            record = record + [
-                {"measurement": "fc",
-                 "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
-                          "hba": columns[0]},
-                 "fields": {"rx_bytes": int(columns[2]), "tx_bytes": int(columns[3])},
-                 "time": timestamp
-                 }
-            ]
-        else:
-             logging.error("The number of columns wasn't the expected one:\n%s"% columns)
-    ########################
-    logging.debug("Finished metrics processing on FC")
 
     # Send Data to InfluxDB
     logging.debug("Data to be sent to DB by fc:\n%s" % record)
