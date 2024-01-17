@@ -147,15 +147,15 @@ def graph_eternus_cs8000(system_name, resource_name, data, global_pos):
                 panels_list = panels_list + panel
 
             case "drives":
-                y_pos, panel = graph_eternus_cs8000_drives(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_eternus_cs8000_drives(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "medias":
-                y_pos, panel = graph_eternus_cs8000_medias(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_eternus_cs8000_medias(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "pvgprofile":
-                y_pos, panel = graph_eternus_cs8000_pvgprofile(system_name, resource_name, metric, y_pos)
+                y_pos, panel = graph_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos)
                 panels_list = panels_list + panel
 
             case "fc":
@@ -671,7 +671,7 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
     return pos, panels_list
 
 
-def graph_eternus_cs8000_drives(system_name, resource_name, metric, y_pos):
+def graph_eternus_cs8000_drives(system_name, resource_name, y_pos):
     str_title = "Tape Libraries (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -763,7 +763,7 @@ def graph_eternus_cs8000_drives(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def graph_eternus_cs8000_medias(system_name, resource_name, metric, y_pos):
+def graph_eternus_cs8000_medias(system_name, resource_name, y_pos):
     str_title = "Tape Medias (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -871,7 +871,7 @@ def graph_eternus_cs8000_medias(system_name, resource_name, metric, y_pos):
     return line, panels_list
 
 
-def graph_eternus_cs8000_pvgprofile(system_name, resource_name, metric, y_pos):
+def graph_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
     str_title = "Physical Volume Group Profile (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
