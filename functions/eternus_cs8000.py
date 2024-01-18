@@ -607,9 +607,9 @@ def eternus_cs8000_fc(**args):
             stdoutcmd5 = ssh.ssh_run(cmd5)
             logging.debug("Output of Command Line 5:\n%s" % stdoutcmd5.stdout)
             
-            if stdoutcmd1.stderr or stdoutcmd2.stderr or stdoutcmd3.stderr or stdoutcmd4.stderr or stdoutcmd5.stderr:
-                logging.error("Got error from one of the commands line:\n%s %s %s %s %s" % (stdoutcmd1.error, stdoutcmd2.error, stdoutcmd3.error, stdoutcmd4.error, stdoutcmd5.error))
-                return -1
+            #if stdoutcmd1.stderr or stdoutcmd2.stderr or stdoutcmd3.stderr or stdoutcmd4.stderr or stdoutcmd5.stderr:
+            #    logging.error("Got error from one of the commands line:\n%s %s %s %s %s" % (stdoutcmd1.error, stdoutcmd2.error, stdoutcmd3.error, stdoutcmd4.error, stdoutcmd5.error))
+            #    return -1
         except Exception as msgerror:
             logging.error("Failed the cmd execution in %s with error %s" % (args['ip'], msgerror))
             ssh.ssh_del()
@@ -620,36 +620,42 @@ def eternus_cs8000_fc(**args):
         
         os_ver = re.search(r'\d+(\.\d+)?', stdoutcmd5.stdout)
         if os_ver:
-             os_ver = float(match.group())
+             os_ver = float(os_ver.group())
         else:
              logging.error("Failed to get the OS version, consider the output %s"% stdoutcmd5.stdout)
              return -1
-        hostctlint = "host"+str(list(set(int(match.group(1)) for match in re.finditer(r'\[(\d+):', stdoutcmd2.stdout))))
-        hostctlbe = "host"+str(list(set(int(match.group(1)) for match in re.finditer(r'\[(\d+):', stdoutcmd3.stdout))))
+        hostctlint = ', '.join([f'host{match}' for line in stdoutcmd2.stdout.split('\n') for match in re.findall(r'\[(\d+):', line)])
+        hostctlbe = ', '.join([f'host{match}' for line in stdoutcmd3.stdout.split('\n') for match in re.findall(r'\[(\d+):', line)])
         hosttgt = stdoutcmd4.stdout
+        logging.debug(f"Internal List Host Controller {hostctlint}")
+        logging.debug(f"BackEnd List Host Controller {hostctlbe}")
+        logging.debug(f"Target WWN's {hosttgt}")
     
         record=[]
     ########## WILL PROCESS INTERNAL HBA's ################################
-        if hostctlint:
+        if hostctlint in stdoutcmd1.stdout:
             for line in hostctlint.splitlines():
                 if not line.strip():
                     continue
+                logging.debug(f"Will process internal HBA {line}")
                 if os_ver >= 15:
+                    logging.debug(f"OS Version is >= 15 it's {os_ver}")
                     try:
                         tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
                         rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
-                        tx_mbytes = int(tx_bytes.stdout, 16)
-                        rx_mbytes = int(rx_bytes.stdout, 16)
+                        tx_mbytes = int(tx_mbytes.stdout, 16)
+                        rx_mbytes = int(rx_mbytes.stdout, 16)
                     except Exception as msgerror:
                         logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                         ssh.ssh_del()
                         return -1
                 else:
+                    logging.debug(f"OS Version is < 15 it's {os_ver}")
                     try:
                         tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                         rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
-                        tx_mbytes = int(tx_bytes.stdout, 16)*4 / (1024*1024)
-                        rx_mbytes = int(rx_bytes.stdout, 16)*4 / (1024*1024)
+                        tx_mbytes = int(tx_mbytes.stdout, 16)*4 / (1024*1024)
+                        rx_mbytes = int(rx_mbytes.stdout, 16)*4 / (1024*1024)
                     except Exception as msgerror:
                         logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                         ssh.ssh_del()
@@ -665,11 +671,13 @@ def eternus_cs8000_fc(**args):
                 }]
 
     ########## WILL PROCESS BACKEND HBA's ################################
-        if hostctlbe:
+        if hostctlbe in stdoutcmd1.stdout:
             for line in hostctlbe.splitlines():
                 if not line.strip():
                     continue
+                logging.debug(f"Will process backend HBA {line}")
                 if os_ver >= 15:
+                    logging.debug(f"OS Version is >= 15 it's {os_ver}")
                     try:
                         tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
                         rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
@@ -681,6 +689,7 @@ def eternus_cs8000_fc(**args):
                         return -1
                 else:
                     try:
+                        logging.debug(f"OS Version is < 15 it's {os_ver}")
                         tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                         rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
                         tx_mbytes = int(tx_bytes.stdout, 16)*4 / (1024*1024)
@@ -706,9 +715,10 @@ def eternus_cs8000_fc(**args):
                     continue
                 if line in stdoutcmd1.stdout():
                     hostctltgt = stdoutcmd1.stdout[stdoutcmd1.stdout.index(line) - 1]
+                    logging.debug(f"Target Controller with WWN {line} is HBA {hostctltgt}")
                     try:
-                        tx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes|awk '{ sum += $1 } END { print sum}'")
-                        rx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes|awk '{ sum += $1 } END { print sum}'")
+                        tx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
+                        rx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
                     except Exception as msgerror:
                         logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                         ssh.ssh_del()
@@ -733,7 +743,9 @@ def eternus_cs8000_fc(**args):
     logging.debug("Finished core function ssh with args:\n%s" % args)
 
     # Send Data to InfluxDB
-    logging.debug("Data to be sent to DB by fc:\n%s" % record)
-    send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
-    
+    if record:
+        logging.debug("Data to be sent to DB by fc:\n%s" % record)
+        send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
+    else:
+         logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metris?")
     logging.debug("Finished func_eternus_cs8000_fc")
