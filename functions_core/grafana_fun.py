@@ -445,7 +445,7 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
         ]
 
         panels_list.append(CollectorBarChart(
-            title=host + " Filesystem",
+            title=host + " File System Capacity",
             dataSource='default',
             targets=target_fs,
             drawStyle='line',
