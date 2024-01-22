@@ -637,8 +637,8 @@ def eternus_cs8000_fc(**args):
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
-                    tx_mbytes = int(tx_mbytes.stdout, 16)*4 / (1024*1024)
-                    rx_mbytes = int(rx_mbytes.stdout, 16)*4 / (1024*1024)
+                    tx_mbytes = int(int(tx_mbytes.stdout, 16)*4 / (1024*1024))
+                    rx_mbytes = int(int(rx_mbytes.stdout, 16)*4 / (1024*1024))
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.ssh_del()
@@ -676,8 +676,8 @@ def eternus_cs8000_fc(**args):
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
-                    tx_mbytes = int(tx_bytes.stdout, 16)*4 / (1024*1024)
-                    rx_mbytes = int(rx_bytes.stdout, 16)*4 / (1024*1024)
+                    tx_mbytes = int(int(tx_bytes.stdout, 16)*4 / (1024*1024))
+                    rx_mbytes = int(int(rx_bytes.stdout, 16)*4 / (1024*1024))
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.ssh_del()
@@ -715,7 +715,7 @@ def eternus_cs8000_fc(**args):
             {"measurement": "fc",
             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
             "hba": hostctltgt+"-tgt"},
-            "fields": {"rx_bytes": rx_mbytes, "tx_bytes": tx_mbytes},
+            "fields": {"rx_bytes": rx_mbytes.stdout, "tx_bytes": tx_mbytes.stdout},
             "time": timestamp
             }]
 
