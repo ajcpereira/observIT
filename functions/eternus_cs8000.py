@@ -603,8 +603,8 @@ def eternus_cs8000_fc(**args):
     else:
          logging.error("Failed to get the OS version, consider the output %s"% stdoutcmd5.stdout)
          return -1
-    hostctlint = ', '.join(set(f'host{match}' for match in re.findall(r'host(\d+)', original_string)))
-    hostctlbe = ', '.join([f'host{match}' for line in stdoutcmd3.stdout.split('\n') for match in re.findall(r'\[(\d+):', line)])
+    hostctlint = set(', '.join([f'host{match}' for line in stdoutcmd2.stdout.split('\n') for match in re.findall(r'\[(\d+):', line)]))
+    hostctlbe = set(', '.join([f'host{match}' for line in stdoutcmd3.stdout.split('\n') for match in re.findall(r'\[(\d+):', line)]))
     hosttgt = stdoutcmd4.stdout
     logging.debug(f"Internal List Host Controller {hostctlint}")
     logging.debug(f"BackEnd List Host Controller {hostctlbe}")
