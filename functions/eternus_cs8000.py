@@ -567,6 +567,7 @@ def eternus_cs8000_fc(**args):
         logging.debug("Command Line 1 - %s" % cmd1)
         stdoutcmd1 = ssh.ssh_run(cmd1)
         logging.debug("Output of Command Line 1:\n%s" % stdoutcmd1.stdout)
+        
         cmd2="lsscsi | awk '{ print $1, $2 }' | grep disk"
         logging.debug("Command Line 2 - %s" % cmd2)
         stdoutcmd2 = ssh.ssh_run(cmd2)
@@ -576,6 +577,7 @@ def eternus_cs8000_fc(**args):
         logging.debug("Command Line 3 - %s" % cmd3)
         stdoutcmd3 = ssh.ssh_run(cmd3)
         logging.debug("Output of Command Line 3:\n%s" % stdoutcmd3.stdout)
+        
         cmd4="ls /sys/kernel/config/target/qla2xxx | grep :"
         logging.debug("Command Line 4 - %s" % cmd4)    
         stdoutcmd4 = ssh.ssh_run(cmd4)
@@ -613,7 +615,7 @@ def eternus_cs8000_fc(**args):
     record=[]
     ########## WILL PROCESS INTERNAL HBA's ################################
     for line in hostctlint:
-        if any(host in hostctlint for host in stdoutcmd1.stdout):
+        if line in stdoutcmd1.stdout:
             if not line.strip():
                 continue
             logging.debug(f"Will process internal HBA {line}")
