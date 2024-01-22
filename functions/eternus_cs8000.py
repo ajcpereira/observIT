@@ -696,7 +696,7 @@ def eternus_cs8000_fc(**args):
         for line in hosttgt.splitlines():
             if not line.strip():
                 continue
-            if line in stdoutcmd1.stdout():
+            if line in stdoutcmd1.stdout:
                 hostctltgt = stdoutcmd1.stdout[stdoutcmd1.stdout.index(line) - 1]
                 logging.debug(f"Target Controller with WWN {line} is HBA {hostctltgt}")
                 try:
