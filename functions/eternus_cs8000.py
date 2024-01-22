@@ -622,6 +622,7 @@ def eternus_cs8000_fc(**args):
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
                     tx_mbytes = int(tx_mbytes.stdout, 16)
                     rx_mbytes = int(rx_mbytes.stdout, 16)
                 except Exception as msgerror:
@@ -633,6 +634,7 @@ def eternus_cs8000_fc(**args):
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
                     tx_mbytes = int(tx_mbytes.stdout, 16)*4 / (1024*1024)
                     rx_mbytes = int(rx_mbytes.stdout, 16)*4 / (1024*1024)
                 except Exception as msgerror:
@@ -659,6 +661,7 @@ def eternus_cs8000_fc(**args):
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
                     tx_mbytes = int(tx_bytes.stdout, 16)
                     rx_mbytes = int(rx_bytes.stdout, 16)
                 except Exception as msgerror:
@@ -670,6 +673,7 @@ def eternus_cs8000_fc(**args):
                     logging.debug(f"OS Version is < 15 it's {os_ver}")
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
                     tx_mbytes = int(tx_bytes.stdout, 16)*4 / (1024*1024)
                     rx_mbytes = int(rx_bytes.stdout, 16)*4 / (1024*1024)
                 except Exception as msgerror:
