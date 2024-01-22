@@ -715,7 +715,7 @@ def eternus_cs8000_fc(**args):
             {"measurement": "fc",
             "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
             "hba": hostctltgt+"-tgt"},
-            "fields": {"rx_bytes": rx_mbytes.stdout, "tx_bytes": tx_mbytes.stdout},
+            "fields": {"rx_bytes": int(rx_mbytes.stdout), "tx_bytes": int(tx_mbytes.stdout)},
             "time": timestamp
             }]
 
