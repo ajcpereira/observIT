@@ -612,8 +612,8 @@ def eternus_cs8000_fc(**args):
 
     record=[]
     ########## WILL PROCESS INTERNAL HBA's ################################
-    if any(host in hostctlint for host in stdoutcmd1.stdout):
-        for line in hostctlint:
+    for line in hostctlint:
+        if any(host in hostctlint for host in stdoutcmd1.stdout):
             if not line.strip():
                 continue
             logging.debug(f"Will process internal HBA {line}")
