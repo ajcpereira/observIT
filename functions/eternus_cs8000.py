@@ -622,7 +622,7 @@ def eternus_cs8000_fc(**args):
             if os_ver >= 15:
                 logging.debug(f"OS Version is >= 15 it's {os_ver}")
                 try:
-                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
+                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_output_megabytes")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_mbytes.stdout, 16)
@@ -661,7 +661,7 @@ def eternus_cs8000_fc(**args):
             if os_ver >= 15:
                 logging.debug(f"OS Version is >= 15 it's {os_ver}")
                 try:
-                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
+                    tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_output_megabytes")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
                     logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_bytes.stdout, 16)
