@@ -51,8 +51,8 @@ def data_model_system_exists(sys_name, dict):
             logging.debug("Grafana data model: system name %s exists, is new %s", sys_name, False)
             return False, sys
 
-    logging.debug("Grafana data model: system name %s doesnt exists, is new %s, initiate data model with %s",
-                  sys_name, True, {'system': sys_name, 'resources': []})
+    logging.debug("Grafana data model: system name %s doesnt exists, is new %s, initiate data model with %s"
+                   % (sys_name, True, {'system': sys_name, 'resources': []}))
 
     return True, {'system': sys_name, 'resources': []}
 
@@ -64,8 +64,8 @@ def data_model_resource_exists(res_name, dict):
             logging.debug("Grafana data model: resource name %s exists, is new %s", res_name, False)
             return False, res
 
-    logging.debug("Grafana data model: resource name %s doesnt exists, is new %s, initiate data model with %s",
-                  res_name, True, {'system': res_name, 'resources': []})
+    logging.debug("Grafana data model: resource name %s doesnt exists, is new %s, initiate data model with %s"
+                  % (res_name, True, {'system': res_name, 'resources': []}))
 
     return True, {'name': res_name, 'data': []}
 
@@ -77,8 +77,8 @@ def data_model_metric_exists(met_name, dict):
             logging.debug("Grafana data model: metric name %s exists, is new %s", met_name, False)
             return False, res
 
-    logging.debug("Grafana data model: metric name %s doesnt exists, is new %s, initiate data model with %s",
-                  met_name, True, {'metric': met_name, 'hosts': []})
+    logging.debug("Grafana data model: metric name %s doesnt exists, is new %s, initiate data model with %s"
+                  % (met_name, True, {'metric': met_name, 'hosts': []}))
 
     return True, {'metric': met_name, 'hosts': []}
 
@@ -120,11 +120,10 @@ def data_model_build(config):
             if new_d_sys:
                 d_model = d_model + [d_sys]
 
-        logging.debug("%s: Grafana_fun data model is: ",data_model_build.__name__, d_model)
+        logging.debug("%s: Grafana_fun data model is: %s" %(data_model_build.__name__, d_model))
 
     except Exception as msgerror:
-        logging.error("%s: Failed to create grafana data model with error %s", data_model_build.__name__, msgerror)
-        print("Data Model is: ", d_model)
+        logging.error("%s: Failed to create grafana data model with error %s" %(data_model_build.__name__, msgerror))
         return []
 
     return d_model
