@@ -612,7 +612,7 @@ def eternus_cs8000_fc(**args):
 
     record=[]
     ########## WILL PROCESS INTERNAL HBA's ################################
-    if any(host in stdoutcmd1.stdout for host in hostctlint):
+    if any(host in hostctlint for host in stdoutcmd1.stdout):
         for line in hostctlint:
             if not line.strip():
                 continue
