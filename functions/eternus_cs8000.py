@@ -624,7 +624,7 @@ def eternus_cs8000_fc(**args):
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
-                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_mbytes.stdout, 16)
                     rx_mbytes = int(rx_mbytes.stdout, 16)
                 except Exception as msgerror:
@@ -636,7 +636,7 @@ def eternus_cs8000_fc(**args):
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
-                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_mbytes.stdout, 16)*4 / (1024*1024)
                     rx_mbytes = int(rx_mbytes.stdout, 16)*4 / (1024*1024)
                 except Exception as msgerror:
@@ -653,8 +653,8 @@ def eternus_cs8000_fc(**args):
             "time": timestamp
             }]
     ########## WILL PROCESS BACKEND HBA's ################################
-    if any(host in stdoutcmd1.stdout for host in hostctlbe):
-        for line in hostctlbe.splitlines():
+    for line in hostctlbe:
+        if line in stdoutcmd1.stdout:            
             if not line.strip():
                 continue
             logging.debug(f"Will process backend HBA {line}")
@@ -663,7 +663,7 @@ def eternus_cs8000_fc(**args):
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_out_megabytes")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/fcp_input_megabytes")
-                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_bytes.stdout, 16)
                     rx_mbytes = int(rx_bytes.stdout, 16)
                 except Exception as msgerror:
@@ -675,7 +675,7 @@ def eternus_cs8000_fc(**args):
                     logging.debug(f"OS Version is < 15 it's {os_ver}")
                     tx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/tx_words")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/class/fc_host/{line}/statistics/rx_words")
-                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the {rx_mbytes}")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                     tx_mbytes = int(tx_bytes.stdout, 16)*4 / (1024*1024)
                     rx_mbytes = int(rx_bytes.stdout, 16)*4 / (1024*1024)
                 except Exception as msgerror:
@@ -702,6 +702,7 @@ def eternus_cs8000_fc(**args):
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
                     rx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/write_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
+                    logging.debug(f"Controller is {line} and the tx output is {tx_mbytes.stdout} and the rx {rx_mbytes.stdout}")
                 except Exception as msgerror:
                     logging.error("Failed the cmd execution for mbytes calculation in %s with error %s" % (args['ip'], msgerror))
                     ssh.ssh_del()
