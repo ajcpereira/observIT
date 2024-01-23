@@ -697,7 +697,7 @@ def eternus_cs8000_fc(**args):
             if not line.strip():
                 continue
             if line in stdoutcmd1.stdout:
-                hostctltgt = stdoutcmd1.stdout[stdoutcmd1.stdout.index(line) - 1]
+                hostctltgt = next((host for line in stdoutcmd1.stdout.split() if line == host), None)
                 logging.debug(f"Target Controller with WWN {line} is HBA {hostctltgt}")
                 try:
                     tx_mbytes = ssh.ssh_run(f"cat /sys/kernel/config/target/qla2xxx/{line}/tpgt_1/lun/lun_*/statistics/scsi_tgt_port/read_mbytes|awk '{{ sum += $1 }} END {{ print sum }}'")
