@@ -697,7 +697,7 @@ def eternus_cs8000_fc(**args):
             if not line.strip():
                 continue
             if line in stdoutcmd1.stdout:
-                hostctltgt = next((host.split()[0] for host in stdoutcmd1.split('\n') if line in host), None)
+                hostctltgt = next((host.split()[0] for host in stdoutcmd1.stdout.split('\n') if line in host), None)
                 #hostctltgt = next((hostctl for hostctl in stdoutcmd1.stdout.split() if hostctl == line), None)
                 logging.debug(f"Target Controller with WWN {line} is HBA {hostctltgt}")
                 try:
