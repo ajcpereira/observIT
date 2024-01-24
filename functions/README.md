@@ -8,29 +8,35 @@
 
 Here you will find the information for each resource type
 
-## ETERNUS_ICP
+## ETERNUS_CS8000
 
 Protocol: ssh<br>
-Security: The user must be created previously and we recommend a common user with permissions only to sudo the following command: /opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out<br>
-Database Structure:<br>
-  system name<br>
-  resources_types<br>
-  hostname or alias<br>
-  metric name<br>
-  filesytem name from CS<br>
-  dm disk from CS<br>
-  raw disk from CS<br>
-  svctm/r_await/w_await<br>
-
-with the example config file structure would be:
-MYCS8000.eternus_icp.localhost.fs.filesystem-name.dm-disk.rdisk.svctm
-MYCS8000.eternus_icp.localhost.fs.filesystem-name.dm-disk.rdisk.r_await
-MYCS8000.eternus_icp.localhost.fs.filesystem-name.dm-disk.rdisk.w_await
-
-### TEST ENVIRONMENT
-
-If file cafs_iostat exists under the dir tests it will be used instead of real data.
-
+Security: The user must be created previously and the public key must exist in the destination system<br>
+Metrics:<br>
+  fs_io<br>
+    Reports the "svctm", "r_await", "w_await", "r/s" and "w/s" for each filesystem/dm/rawdevice <br>
+    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/CentricStor/bin/rdNsdInfos -a"<br>
+    If file cafs_iostat exists under the dir tests it will be used instead of real data. <br>
+  drives<br>
+    Reports the drive occupation for each physical library
+    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"<br>
+  pvgprofile<br>
+    Reports for each PVG the following "Total Medias" "Fault Medias" "Inacessible Medias" "Scratch Medias" "Medias with -10%, -20%, -30%, -40%, -50%, -60%, -70%, -80%, -90% and >90% valid LV's" "Total Cap (GiB)" "Total Used (GiB)" <br>
+    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"<br>
+  medias<br>
+    Reports all medias: "Total Medias" "Total Cap GiB" "Total Val GiB" "Val %" "Total Clean Medias" "Total Ina" "Total Fault"
+    sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"<br>
+  fs<br>
+    Reports the filesystem usage on each system<br>
+  cpu<br>
+    Reports the cpu usage in each system<br>
+  mem<br>
+    Reports the memory usage in each system<br>
+  fc<br>
+    Reports the fc throughput in each HBA, including the targets that are virtual drives
+  net<br>
+    Reports the net throughput in each NIC
+      
 ### Config File example
 
 ````
