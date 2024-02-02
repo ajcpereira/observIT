@@ -62,7 +62,7 @@ class Secure_Connect():
             logging.debug(f"Returned value from function is {ret_value}")
             if ret_value:
                 logging.debug(f"Will return value:{ret_value}")
-                ret_value
+                return ret_value
             else:
                 Secure_Connect.existing_sessions.append(session_key)
                 logging.debug("No value was returned so let's run all the process")
