@@ -1,4 +1,3 @@
-
 import json, requests, logging
 from functions_core.yaml_validate import *
 from functions_core.grafanafun_dm import data_model_build
@@ -217,14 +216,19 @@ def create_dashboard_vars(data):
                     default='All',
                     refresh=2,
                     hide=HIDE_VARIABLE,
-                    )
+                )
                 ]
 
     return tpl_lst
 
 
+########################################################################################################################
+#
+# Resource Type: graph_linux_os_cpu
+#   Plot
+#
+########################################################################################################################
 def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
-
     str_title = "CPU Usage (" + resource_name + ")"
     panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
     line = y_pos + 1
@@ -241,13 +245,13 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
                   "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY \"host\"::tag",
             alias="$tag_host")]
 
-    #Create Panel do show CPU use Graph
+    # Create Panel to show CPU use Graph
     panels_list.append(CollectorTimeSeries(
         title="CPU utilization (%)",
         dataSource='default',
         targets=panels_target_list_cpu_use,
         drawStyle='line',
-        lineInterpolation= COLLECTOR_LINE_INTERPOLATION,
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
         showPoints=COLLECTOR_SHOW_POINTS,
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
@@ -260,7 +264,7 @@ def graph_linux_os_cpu(system_name, resource_name, metric, y_pos):
         legendCalcs=['mean', 'max'],
         legendSortDesc=False,
         valueMax=100,
-        )
+    )
     )
 
     # Create Panel do show CPU Load
@@ -354,7 +358,7 @@ def graph_linux_os_mem(system_name, resource_name, y_pos):
         stacking={'mode': "normal"},
         tooltipMode="multi",
         overrides=json_overrides,
-        )
+    )
     )
 
     pos = pos + 7
@@ -368,84 +372,98 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
     pos = y_pos + 1
 
     for host in metric['hosts']:
-        target_fs = [InfluxDBTarget(
+        target_fs = [
+            InfluxDBTarget(
             query="SELECT \"used\" as \"Used\", \"total\"-\"used\" as \"Available\", \"total\" as \"Total\", "
                   "\"used\"/\"total\"*100 as \"%Used\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" +
                   system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC "
                                                                    "LIMIT 1",
-            format="table")]
-
-        json_overrides = [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "%Used"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "percent"
-              },
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": True,
-                  "tooltip": False,
-                  "viz": True
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Total"
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": True,
-                  "tooltip": False,
-                  "viz": True
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Used"
-            },
-            "properties": [
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "percentage",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": None
-                    },
-                    {
-                      "color": "red",
-                      "value": 95
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              }
-            ]
-          }
+            format="table"
+            )
         ]
 
+        target_fs_table = [
+            InfluxDBTarget(
+                query="SELECT \"used\"/\"total\"*100 as \"%Used\", \"total\" as \"Total\", \"used\" as \"Used\", "
+                      "\"total\"-\"used\" as \"Available\" FROM \"fs\" WHERE $timeFilter AND ( \"system\"::tag = '" +
+                      system_name + "' AND \"host\"::tag = '" + host + "') GROUP BY \"mount\"::tag ORDER BY time DESC "
+                                                                    "LIMIT 1",
+                format="table"
+                )
+        ]
+
+        json_overrides = [
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "%Used"
+                },
+                "properties": [
+                    {
+                        "id": "unit",
+                        "value": "percent"
+                    },
+                    {
+                        "id": "custom.hideFrom",
+                        "value": {
+                            "legend": True,
+                            "tooltip": False,
+                            "viz": True
+                        }
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Total"
+                },
+                "properties": [
+                    {
+                        "id": "custom.hideFrom",
+                        "value": {
+                            "legend": True,
+                            "tooltip": False,
+                            "viz": True
+                        }
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Used"
+                },
+                "properties": [
+                    {
+                        "id": "thresholds",
+                        "value": {
+                            "mode": "percentage",
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": None
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 95
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "id": "color",
+                        "value": {
+                            "mode": "thresholds"
+                        }
+                    }
+                ]
+            }
+        ]
+
+
         panels_list.append(CollectorBarChart(
-            title=host + " File System Capacity",
+            title=host + " File System Capacity Chart",
             dataSource='default',
             targets=target_fs,
             drawStyle='line',
@@ -462,8 +480,82 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
             xTickLabelRotation=-45,
             valueDecimals=2,
             overrides=json_overrides,
-        ))
-        pos = pos + 7
+            )
+        )
+
+        json_overrides_table = [
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "%Used"
+                },
+                "properties": [
+                    {
+                        "id": "unit",
+                        "value": "percent"
+                    },
+                    {
+                        "id": "custom.cellOptions",
+                        "value": {
+                            "mode": "basic",
+                            "type": "gauge",
+                            "valueDisplayMode": "color"
+                        }
+                    },
+                    {
+                        "id": "max",
+                        "value": 100
+                    },
+                    {
+                        "id": "min",
+                        "value": 0
+                    },
+                    {
+                        "id": "thresholds",
+                        "value": {
+                            "mode": "percentage",
+                            "steps": [
+                                {
+                                    "color": "green",
+                                    "value": None
+                                },
+                                {
+                                    "color": "red",
+                                    "value": 95
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "matcher": {
+                    "id": "byName",
+                    "options": "Time"
+                },
+                "properties": [
+                    {
+                        "id": "custom.hidden",
+                        "value": True
+                    }
+                ]
+            }
+        ]
+
+        panels_list.append(CollectorTable(
+            title=host + " File System Capacity Table",
+            dataSource='default',
+            targets=target_fs_table,
+            gridPos=GridPos(h=7, w=24, x=0, y=pos+7),
+            filterable=True,
+            unit=COLLECTOR_FS_UNITS,
+            displayMode="color-text",
+            colorMode="thresholds",
+            overrides=json_overrides_table,
+            )
+        )
+
+        pos = pos + 14
 
     return pos, panels_list
 
@@ -474,55 +566,54 @@ def graph_linux_os_net(system_name, resource_name, metric, y_pos):
     pos = y_pos + 1
 
     for host in metric['hosts']:
-        target_net_outbound = [InfluxDBTarget(
+        target_net = [InfluxDBTarget(
             query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" +
                   system_name + "' AND \"host\"::tag = '" + host +
                   "' AND \"if\"::tag!='lo') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
-            alias="$tag_if")]
+            alias="$tag_if (Tx)"),
+            InfluxDBTarget(
+                query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" +
+                      system_name + "' AND \"host\"::tag = '" + host +
+                      "' AND \"if\"::tag!='lo') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
+                alias="$tag_if (Rx)")
+        ]
+
+        override_lst = [
+            {
+                "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "B"
+                },
+                "properties": [
+                    {
+                        "id": "custom.transform",
+                        "value": "negative-Y"
+                    }
+                ]
+            }
+        ]
 
         panels_list.append(CollectorTimeSeries(
-            title=host + " Network Transmit (tx)",
+            title=host + " Network Traffic",
             dataSource='default',
-            targets=target_net_outbound,
+            targets=target_net,
             drawStyle='line',
             lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
             showPoints=COLLECTOR_SHOW_POINTS,
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
             unit=COLLECTOR_NET_UNITS,
-            gridPos=GridPos(h=7, w=12, x=0, y=pos),
+            gridPos=GridPos(h=7, w=24, x=0, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
             legendDisplayMode="table",
             stacking={"mode": "normal", "group": "A"},
             legendSortBy="Name",
+            legendCalcs=['mean', 'max'],
             legendSortDesc=False,
+            overrides=override_lst,
         ))
 
-        target_net_inbound = [InfluxDBTarget(
-            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"net\" WHERE (\"system\"::tag = '" +
-                  system_name + "' AND \"host\"::tag = '" + host +
-                  "' AND \"if\"::tag!='lo') AND $timeFilter GROUP BY time($__interval), \"if\"::tag fill(null)",
-            alias="$tag_if")]
-
-        panels_list.append(CollectorTimeSeries(
-            title=host + " Network Receive (rx)",
-            dataSource='default',
-            targets=target_net_inbound,
-            drawStyle='line',
-            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
-            showPoints=COLLECTOR_SHOW_POINTS,
-            gradientMode=COLLECTOR_GRADIENT_MODE,
-            fillOpacity=COLLECTOR_FILL_OPACITY,
-            unit=COLLECTOR_NET_UNITS,
-            gridPos=GridPos(h=7, w=12, x=12, y=pos),
-            spanNulls=COLLECTOR_SPAN_NULLS,
-            legendPlacement="right",
-            legendDisplayMode="table",
-            stacking={"mode": "normal", "group": "A"},
-            legendSortBy="Name",
-            legendSortDesc=False,
-        ))
         pos = pos + 7
 
     return pos, panels_list
@@ -559,7 +650,7 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-            )
+        )
         )
 
         panels_target_list = [InfluxDBTarget(
@@ -585,7 +676,7 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-            )
+        )
         )
 
         panels_target_list = [InfluxDBTarget(
@@ -611,7 +702,7 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-            )
+        )
         )
 
         panels_target_list = [InfluxDBTarget(
@@ -637,7 +728,7 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-            )
+        )
         )
 
         panels_target_list = [InfluxDBTarget(
@@ -663,7 +754,7 @@ def graph_eternus_cs8000_fs_io(system_name, resource_name, metric, y_pos):
             legendCalcs=["max", "mean"],
             legendSortBy="Max",
             legendSortDesc=True,
-            )
+        )
         )
 
         pos = pos + 7
@@ -679,63 +770,63 @@ def graph_eternus_cs8000_drives(system_name, resource_name, y_pos):
     target_list = [InfluxDBTarget(
         query="SELECT \"total\" as Total , \"used\"+\"other\" as Used, \"other\" as Unavailable FROM \"drives\" WHERE (\"system\"::tag = '" +
               system_name + "' AND \"tapename\"::tag =~ /^$tapename$/) AND $timeFilter",
-        )
+    )
     ]
 
     override_lst = [
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "drives.Unavailable"
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "drives.Unavailable"
+            },
+            "properties": [
+                {
+                    "id": "custom.fillOpacity",
+                    "value": 100
+                },
+                {
+                    "id": "custom.gradientMode",
+                    "value": "none"
+                },
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "#ff331c",
+                        "mode": "fixed"
+                    }
+                }
+            ]
         },
-        "properties": [
-          {
-            "id": "custom.fillOpacity",
-            "value": 100
-          },
-          {
-            "id": "custom.gradientMode",
-            "value": "none"
-          },
-          {
-            "id": "color",
-            "value": {
-              "fixedColor": "#ff331c",
-              "mode": "fixed"
-            }
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "drives.Total"
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "drives.Total"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "mode": "fixed",
+                        "fixedColor": "blue"
+                    }
+                }
+            ]
         },
-        "properties": [
-          {
-            "id": "color",
-            "value": {
-              "mode": "fixed",
-              "fixedColor": "blue"
-            }
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "drives.Used"
-        },
-        "properties": [
-          {
-            "id": "color",
-            "value": {
-              "mode": "fixed",
-              "fixedColor": "green"
-            }
-          }
-        ]
-      }
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "drives.Used"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "mode": "fixed",
+                        "fixedColor": "green"
+                    }
+                }
+            ]
+        }
     ]
 
     panels_list.append(CollectorTimeSeries(
@@ -776,74 +867,74 @@ def graph_eternus_cs8000_medias(system_name, resource_name, y_pos):
         format="table")]
 
     override_lst = [
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "Time"
-        },
-        "properties": [
-          {
-            "id": "custom.hidden",
-            "value": True
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "Total Capacity"
-        },
-        "properties": [
-          {
-            "id": "unit",
-            "value": "decgbytes"
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "Total Valid"
-        },
-        "properties": [
-          {
-            "id": "unit",
-            "value": "decgbytes"
-          }
-        ]
-      },
-      {
-        "matcher": {
-          "id": "byName",
-          "options": "Valid %"
-        },
-        "properties": [
-          {
-            "id": "unit",
-            "value": "percent"
-          },
-          {
-            "id": "thresholds",
-            "value": {
-              "mode": "absolute",
-              "steps": [
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Time"
+            },
+            "properties": [
                 {
-                  "color": "green",
-                  "value": None
-                },
-                {
-                  "color": "#EAB839",
-                  "value": 65
-                },
-                {
-                  "color": "red",
-                  "value": 75
+                    "id": "custom.hidden",
+                    "value": True
                 }
-              ]
-            }
-          }
-        ]
-      }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total Capacity"
+            },
+            "properties": [
+                {
+                    "id": "unit",
+                    "value": "decgbytes"
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total Valid"
+            },
+            "properties": [
+                {
+                    "id": "unit",
+                    "value": "decgbytes"
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Valid %"
+            },
+            "properties": [
+                {
+                    "id": "unit",
+                    "value": "percent"
+                },
+                {
+                    "id": "thresholds",
+                    "value": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": None
+                            },
+                            {
+                                "color": "#EAB839",
+                                "value": 65
+                            },
+                            {
+                                "color": "red",
+                                "value": 75
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
     ]
 
     thres = [
@@ -863,7 +954,7 @@ def graph_eternus_cs8000_medias(system_name, resource_name, y_pos):
         colorMode="thresholds",
         overrides=override_lst,
         thresholds=thres,
-        )
+    )
     )
 
     line = line + 7
@@ -970,7 +1061,7 @@ def graph_eternus_cs8000_pvgprofile(system_name, resource_name, y_pos):
         # thresholds=Threshold(line=False,color='text', index=0, value=0.0, op=EVAL_GT),
         thresholds=thres,
         fontSize="85%",
-        minWidth = 55,
+        minWidth=55,
         align="center",
     ))
 
@@ -985,52 +1076,51 @@ def graph_eternus_cs8000_fc(system_name, resource_name, metric, y_pos):
     pos = y_pos + 1
 
     for host in metric['hosts']:
-        target_net_outbound = [InfluxDBTarget(
-            query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
-            alias="$tag_hba")]
+        target_net = [
+            InfluxDBTarget(
+                query="SELECT non_negative_derivative(mean(\"tx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
+                alias="$tag_hba (Tx)"),
+            InfluxDBTarget(
+                query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
+                alias="$tag_hba (Rx)")
+        ]
+
+        override_lst = [
+            {
+                "matcher": {
+                    "id": "byFrameRefID",
+                    "options": "B"
+                },
+                "properties": [
+                    {
+                        "id": "custom.transform",
+                        "value": "negative-Y"
+                    }
+                ]
+            }
+        ]
 
         panels_list.append(CollectorTimeSeries(
-            title=host + " FC Transmit (tx)",
+            title=host + " FC Traffic",
             dataSource='default',
-            targets=target_net_outbound,
+            targets=target_net,
             drawStyle='line',
             lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
             showPoints=COLLECTOR_SHOW_POINTS,
             gradientMode=COLLECTOR_GRADIENT_MODE,
             fillOpacity=COLLECTOR_FILL_OPACITY,
             unit=COLLECTOR_FC_UNITS,
-            gridPos=GridPos(h=7, w=12, x=0, y=pos),
+            gridPos=GridPos(h=7, w=24, x=0, y=pos),
             spanNulls=COLLECTOR_SPAN_NULLS,
             legendPlacement="right",
             legendDisplayMode="table",
             stacking={"mode": "normal", "group": "A"},
             legendSortBy="Name",
+            legendCalcs=['mean', 'max'],
             legendSortDesc=False,
+            overrides=override_lst,
         ))
 
-        target_net_inbound = [InfluxDBTarget(
-            query="SELECT non_negative_derivative(mean(\"rx_bytes\"), 1s) FROM \"fc\" WHERE (\"system\"::tag = '" + system_name + "' AND \"host\"::tag = '" + host + "') AND $timeFilter GROUP BY time($__interval), \"hba\"::tag fill(null)",
-            alias="$tag_hba")]
-
-        panels_list.append(CollectorTimeSeries(
-            title=host + " FC Receive (rx)",
-            dataSource='default',
-            targets=target_net_inbound,
-            drawStyle='line',
-            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
-            showPoints=COLLECTOR_SHOW_POINTS,
-            gradientMode=COLLECTOR_GRADIENT_MODE,
-            fillOpacity=COLLECTOR_FILL_OPACITY,
-            unit=COLLECTOR_FC_UNITS,
-            gridPos=GridPos(h=7, w=12, x=12, y=pos),
-            spanNulls=COLLECTOR_SPAN_NULLS,
-            legendPlacement="right",
-            legendDisplayMode="table",
-            stacking={"mode": "normal", "group": "A"},
-            legendSortBy="Name",
-            legendSortDesc=False,
-        ))
         pos = pos + 7
 
     return pos, panels_list
-
