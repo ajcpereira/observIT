@@ -8,7 +8,7 @@
 # This module extends some of the grafanalib classes, that will be used in the
 # collector dashboards.
 #       CollectorTimeSeries (extended properties)
-#       CollectorBarChart   (doens't exists in grafanalib release)
+#       CollectorBarChart   (doesn't exist in grafanalib release)
 #       CollectorTable      (extended properties)
 #
 
@@ -455,7 +455,7 @@ class CollectorTable(Panel):
 
     # added by MachadoN / BEGIN
     minWidth = attr.ib(default=150, validator=instance_of(int))
-
+    unit = attr.ib(default='', validator=instance_of(str))
     # added by MachadoN / END
 
     @classmethod
@@ -481,6 +481,9 @@ class CollectorTable(Panel):
                             'filterable': self.filterable,
                             'minWidth': self.minWidth
                         },
+                        # added by MachadoN / BEGIN
+                        'unit': self.unit,
+                        # added by MachadoN / END
                     },
                     'overrides': self.overrides
                 },

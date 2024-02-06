@@ -16,7 +16,7 @@ VERSION=0.1
 
 import yaml
 import json, requests, logging
-from functions_core.yaml_validate import *
+import functions_core.yaml_validate
 from functions_core.grafana_fun import *
 
 
@@ -28,8 +28,9 @@ def testes():
     print("Command line collector dashboards generator v", VERSION)
 
     print("Reading config file:", configfile)
-    #config = read_yaml(configfile)
+    #config2 = read_yaml(configfile)
     config, orig_mtime, configfile_running = configfile_read(configfile)
+    result_dicts, global_parms = create_metric_ip_dicts(config)
 
     #print(config)
     #print("Create dashboards in grafana server:", config['global_parameters'])
