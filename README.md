@@ -42,9 +42,25 @@ The setup will need to be run with root so it can create the structure in /opt a
 
 ### Pre-Setup
 
-Every system you need to ssh make sure you generate a private key and in the destination you use the public key in the authorized keys, then keep the private keys under:
+Every metric that needs to make ssh, make sure you generate a private key and in the destination you use the public key in the authorized keys, then keep the private keys under:
   /opt/fjcollector/collector/keys
 If different keys are used they may be specified in the config.yaml
+
+Under the user fjcollector, pls do:
+
+# ssh-keygen -t rsa -b 2048
+
+you can accept defaults with no passphrase. The files will be created under fjcollector/.ssh/id_rsa for the private key and fjcollector/.ssh/id_rsa.pub for the public key.
+
+The private key should be specified in the config.yaml file, because it's running under a container, we recommend to put under /opt/fjcollector/collector/keys.
+
+The public key must be added to the user used for the login (we assume fjcollector) so, /home/fjcollector/.ssh/authorized_keys owned by fjcollector and with 600 permissions, and the .ssh directory should be 700 with owner fjcollector.
+
+If you are using a CS8000 the user must be created using:
+# ecs-add-user --user=fjcollector --role=csobserv
+
+Keep in mind that some metrics require sudo permissions, set them accordingly
+
 
 We recommend to you have a look in the functions Readme
 
