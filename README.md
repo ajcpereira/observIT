@@ -30,15 +30,17 @@ Requires git
 
 Requires curl
 
+Requires make
+
 Internet access to github.com
+
+Requires user 'fjcollector'
 
 Will install under folder /opt/fjcollector
 
 The setup will need to be run with root so it can create the structure in /opt and change the owners of the files to user fjcollector
 
 ### Pre-Setup
-
-Requires user 'fjcollector'
 
 Every system you need to ssh make sure you generate a private key and in the destination you use the public key in the authorized keys, then keep the private keys under:
   /opt/fjcollector/collector/keys
