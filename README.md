@@ -48,7 +48,9 @@ If different keys are used they may be specified in the config.yaml
 
 Under the user fjcollector, pls do:
 
-# ssh-keygen -t rsa -b 2048
+````
+ssh-keygen -t rsa -b 2048
+````
 
 you can accept defaults with no passphrase. The files will be created under fjcollector/.ssh/id_rsa for the private key and fjcollector/.ssh/id_rsa.pub for the public key.
 
@@ -57,8 +59,9 @@ The private key should be specified in the config.yaml file, because it's runnin
 The public key must be added to the user used for the login (we assume fjcollector) so, /home/fjcollector/.ssh/authorized_keys owned by fjcollector and with 600 permissions, and the .ssh directory should be 700 with owner fjcollector.
 
 If you are using a CS8000 the user must be created using:
-# ecs-add-user --user=fjcollector --role=csobserv
-
+````
+ecs-add-user --user=fjcollector --role=csobserv
+````
 Keep in mind that some metrics require sudo permissions, set them accordingly
 
 
