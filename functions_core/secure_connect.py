@@ -152,7 +152,6 @@ class Secure_Connect():
 
     def ssh_run(self, cmd):
         with Secure_Connect.global_lock:
-            Secure_Connect.fabric_concurrent = 0
             try:
                 logging.debug("Execute command with session %s" % self)
                 stdout = self.ssh.run(cmd, hide=True, timeout=30, warn=True)
