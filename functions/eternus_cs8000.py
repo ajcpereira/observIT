@@ -34,6 +34,9 @@ def eternus_cs8000_fs_io(**args):
 
     logging.debug("Starting func_eternus_cs8000_fs_io")
 
+    # Organize the args from ip calling specific function     
+    args=args_setup(args)
+
     # Command line to run remotly
     cmd1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
     cmd2="/usr/bin/iostat -x -k 1 2| awk '!/^sd/'|awk -vN=2 '/avg-cpu/{++n} n>=N' > /tmp/stats_iostat.out"
@@ -60,30 +63,11 @@ def eternus_cs8000_fs_io(**args):
     logging.debug("Command Line 2 - %s" % cmd2)
     logging.debug("Command Line 3 - %s" % cmd3)
 
-###########################################
-    if args['ip_bastion']:
-        bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-        bastion=str(args['bastion'])
-    else:
-        bastion=None
-
-    if args['ip_host_keys']:
-        host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-        host_keys=args['host_keys']
-    else:
-        host_keys=None
-
-    if args['alias']:
-        hostname = args['alias']
-    else:
-        hostname = str(args['ip'])
-###########################################
     try:
-        ssh=Secure_Connect(str(args['ip']),bastion,args['user'],host_keys)
+        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
-        logging.error("Failed to connect to %s" % args['ip'])
+        logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
+        ssh.ssh_del()
         return -1
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -119,7 +103,7 @@ def eternus_cs8000_fs_io(**args):
 
             record = record + [
                      {"measurement": "fs_io",
-                              "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname,
+                              "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
                                        "fs": str(columns[0]), "dm": str(columns[1]),"rawdev": str(columns[17])},
                               "fields": {"svctm": float(columns[15]), "r_await": float(columns[10]), "w_await": float(columns[11]), "r/s": float(columns[2]), "w/s": float(columns[3])},
                               "time": timestamp
@@ -135,6 +119,9 @@ def eternus_cs8000_fs_io(**args):
 def eternus_cs8000_drives(**args):
 
     logging.debug("Starting func_eternus_cs8000_drives")
+
+    # Organize the args from ip calling specific function     
+    args=args_setup(args)
 
     # Command line to run remotly
     cmd1="/opt/fsc/bin/plmcmd query -D"
@@ -156,33 +143,12 @@ def eternus_cs8000_drives(**args):
           cmd1 = subprocess.run(['cat', './tests/plmcmd_query-D'], stdout=subprocess.PIPE).stdout.decode('utf-8')
           logging.debug("cmd1 for test %s" % cmd1)
           logging.warning("You are using test file for Drives, not really data")
-          
-
-    ###########################################
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    if args['alias']:
-        hostname = args['alias']
-    else:
-        hostname = str(args['ip'])
-    ###########################################
 
     try:
-        ssh=Secure_Connect(str(args['ip']),bastion,args['user'],host_keys)
+        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
-        logging.error("Failed to connect to %s with error %s" % (args['ip'], msgerror))
+        logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
+        ssh.ssh_del()
         return -1
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -219,7 +185,7 @@ def eternus_cs8000_drives(**args):
         if line.startswith("Tapelibrary"):    
             if tapename != None:
           
-                record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": tapename },
+                record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'], "tapename": tapename },
                                   "fields": {"total": int(count_used+count_unused+count_another_state), "used": int(count_used), "other": int(count_another_state)},
                                   "time": timestamp}]
     
@@ -241,7 +207,7 @@ def eternus_cs8000_drives(**args):
             else:
                 count_another_state = count_another_state + 1
     
-    record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": tapename },
+    record = record + [{"measurement": "drives", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'], "tapename": tapename },
                                   "fields": {"total": int(count_used+count_unused+count_another_state), "used": int(count_used), "other": int(count_another_state)},
                                   "time": timestamp}]
 
@@ -254,6 +220,9 @@ def eternus_cs8000_drives(**args):
 def eternus_cs8000_medias(**args):
 
     logging.debug("Starting func_eternus_cs8000_medias")
+
+    # Organize the args from ip calling specific function     
+    args=args_setup(args)
 
     # Command line to run remotly
     cmd1="/opt/fsc/bin/plmcmd query -V"
@@ -275,33 +244,12 @@ def eternus_cs8000_medias(**args):
           cmd1 = subprocess.run(['cat', './tests/plmcmd_query-V'], stdout=subprocess.PIPE).stdout.decode('utf-8')
           logging.debug("cmd1 for test %s" % cmd1)
           logging.warning("You are using test file for Drives, not really data")
-          
-
-    ###########################################
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    if args['alias']:
-        hostname = args['alias']
-    else:
-        hostname = str(args['ip'])
-    ###########################################
 
     try:
-        ssh=Secure_Connect(str(args['ip']),bastion,args['user'],host_keys)
+        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
-        logging.error("Failed to connect to %s with error %s" % (args['ip'], msgerror))
+        logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
+        ssh.ssh_del()
         return -1
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -350,7 +298,7 @@ def eternus_cs8000_medias(**args):
                 elif float(columns[8]) > 0.0 and not str(columns[1]).startswith("CLN"):
                     library[str(columns[2])]=[str(columns[2]),1,float(columns[8]),float(columns[9]),float(columns[10]),0,0,0]
                 else:
-                    logging.error("This line requires development analysis -  %s" % columns)
+                    logging.error("This line requires development analysis in metric medias -  %s" % columns)
             else:
                 if str(columns[4][0]) == 'i' and not str(columns[1]).startswith("CLN"):
                     library[str(columns[2])]=[str(columns[2]),int(library[str(columns[2])][1])+0,float(library[str(columns[2])][2]),float(library[str(columns[2])][3]),float(library[str(columns[2])][4]),int(library[str(columns[2])][5])+0,int(library[str(columns[2])][6])+1,int(library[str(columns[2])][7])+0]
@@ -361,13 +309,13 @@ def eternus_cs8000_medias(**args):
                 elif float(columns[8]) > 0 and not str(columns[1]).startswith("CLN"):
                     library[str(columns[2])]=[str(columns[2]),int(library[str(columns[2])][1])+1,float(library[str(columns[2])][2])+float(columns[8]),float(library[str(columns[2])][3])+float(columns[9]),float(library[str(columns[2])][4])+float(columns[10]),int(library[str(columns[2])][5])+0,int(library[str(columns[2])][6])+0,int(library[str(columns[2])][7])+0]
                 else:
-                    logging.error("This line requires development analysis -  %s" % columns)
+                    logging.error("This line requires development analysis in metric medias -  %s" % columns)
 
     for line in library.values():
         if line[4] != 0 and line[1] != 0:
             line[4]=line[4]/line[1]
 
-        record = record + [{"measurement": "medias", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "tapename": line[0] },
+        record = record + [{"measurement": "medias", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'], "tapename": line[0] },
                                   "fields": {"Total Medias": line[1], "Total Cap GiB": line[2], "Total Val GiB": line[3], "Val %": line[4], "Total Clean Medias": line[5], "Total Ina": line[6], "Total Fault": line[7]},
                                   "time": timestamp}]
     ########################
@@ -381,6 +329,9 @@ def eternus_cs8000_medias(**args):
 def eternus_cs8000_pvgprofile(**args):
 
     logging.debug("Starting func_eternus_cs8000_pvgprofile")
+
+    # Organize the args from ip calling specific function     
+    args=args_setup(args)
 
     # Command line to run remotly
     cmd1="/opt/fsc/bin/plmcmd query -V | grep -v CLN | grep -v \'PVG\'"
@@ -402,33 +353,12 @@ def eternus_cs8000_pvgprofile(**args):
           cmd1 = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
           logging.debug("cmd1 for test %s" % cmd1)
           logging.warning("You are using test file for PVG Profile, not really data")
-          
-
-    ###########################################
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    if args['alias']:
-        hostname = args['alias']
-    else:
-        hostname = str(args['ip'])
-    ###########################################
 
     try:
-        ssh=Secure_Connect(str(args['ip']),bastion,args['user'],host_keys)
+        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
-        logging.error("Failed to connect to %s with error %s" % (args['ip'], msgerror))
+        logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
+        ssh.ssh_del()
         return -1
     
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
@@ -492,9 +422,9 @@ def eternus_cs8000_pvgprofile(**args):
                     elif float(columns[10]) >= 90:
                         library[str(columns[3])]=[str(columns[3]),1,0,0,0,0,0,0,0,0,0,0,0,0,1,float(columns[8]),float(columns[9])]
                     else:
-                        logging.error("This line requires development analysis -  %s" % columns)
+                        logging.error("This line requires development analysis in metric PVGPROFILE -  %s" % columns)
                 else:
-                    logging.error("This line requires development analysis -  %s" % columns)
+                    logging.error("This line requires development analysis  in metric PVGPROFILE -  %s" % columns)
             # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
             else:
                 #                            tapename 0       Total PVG 1                           Fault 2                              Ina 3                            Scr 4                                -10 5                                -20 6                               -30 7                                -40 8                            -50 9                                -60 10                                -70 11                                -80 12                                -90 13                                +90 14                                Total Cap 15        Used Cap 16
@@ -527,13 +457,13 @@ def eternus_cs8000_pvgprofile(**args):
                     elif float(columns[10]) >= 90:
                         library[str(columns[3])]=[str(columns[3]),int(library[str(columns[3])][1])+1,int(library[str(columns[3])][2])+0,int(library[str(columns[3])][3])+0,int(library[str(columns[3])][4])+0,int(library[str(columns[3])][5])+0,int(library[str(columns[3])][6])+0,int(library[str(columns[3])][7])+0,int(library[str(columns[3])][8])+0,int(library[str(columns[3])][9])+0,int(library[str(columns[3])][10])+0,int(library[str(columns[3])][11])+0,int(library[str(columns[3])][12])+0,int(library[str(columns[3])][13])+0,int(library[str(columns[3])][14])+1,float(library[str(columns[3])][15])+float(columns[8]),float(library[str(columns[3])][16])+float(columns[9])]
                     else:
-                        logging.error("This line requires development analysis -  %s" % columns)
+                        logging.error("This line requires development analysis in metric PVGPROFILE -  %s" % columns)
                 else:
-                    logging.error("This line requires development analysis -  %s" % columns)
+                    logging.error("This line requires development analysis in metric PVGPROFILE -  %s" % columns)
 
     for line in library.values():
         # PVG_Library PVG / Total PV's / Fault / Ina / Scr / -10 / -20 / -30 / -40 / -50 / -60 / -70 / -80 / -90 / >90 / Total Cap TB / Use Cap TB
-        record = record + [{"measurement": "pvgprofile", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": hostname, "pvgname": line[0] },
+        record = record + [{"measurement": "pvgprofile", "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'], "pvgname": line[0] },
                                   "fields": {"Total Medias": line[1], "Fault": line[2], "Ina": line[3], "Scr": line[4], "-10": line[5], "-20": line[6], "-30": line[7], "-40": line[8], "-50": line[9], "-60": line[10], "-70": line[11], "-80": line[12], "-90": line[13], ">90": line[14], "Total Cap (GiB)": line[15], "Total Used (GiB)": line[16]},
                                   "time": timestamp}]
     ########################
@@ -555,9 +485,10 @@ def eternus_cs8000_fc(**args):
     try:
         ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
-        logging.error("Failed to connect to %s with error %s" % (args['ip'], msgerror))
+        logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
         return -1
+    
     logging.debug("This is my ssh session from the Class Secure_Connect %s" % ssh)
     
 

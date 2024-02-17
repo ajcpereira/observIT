@@ -13,9 +13,7 @@ class Secure_Connect():
         timestamp_now = time.time()
         keep_sessions = []
         valid_session = []
-        
         logging.debug(f"Managing sessions for this session keys:{session_key} and this content for active_sessions {Secure_Connect.active_sessions}")
-
         if not len(Secure_Connect.active_sessions) == 0:
             logging.debug(f"Existing sessions are not empty {Secure_Connect.active_sessions}")
             for value in Secure_Connect.active_sessions:
@@ -28,14 +26,14 @@ class Secure_Connect():
                 else:
                     logging.debug(f"Will close sessions not longer valid {value}")
                     invalid_session=value[4]
-                    if hasattr(invalid_session,'ssh'):
-                        invalid_session.ssh.close()
-                        del invalid_session.ssh
-                        logging.debug("Closed session on Class Secure_connect - %s" % invalid_session)
                     if hasattr(invalid_session, 'ssh_bastion'):
                         invalid_session.ssh_bastion.close()
                         del invalid_session.ssh_bastion
                         logging.debug("Closed bastion session on Class Secure_connect - %s" % invalid_session)
+                    if hasattr(invalid_session,'ssh'):
+                        invalid_session.ssh.close()
+                        del invalid_session.ssh
+                        logging.debug("Closed session on Class Secure_connect - %s" % invalid_session)
             Secure_Connect.active_sessions = keep_sessions
             logging.debug(f"The active sessions are:\n{Secure_Connect.active_sessions}")
             if valid_session:
@@ -83,6 +81,7 @@ class Secure_Connect():
                             self.ssh_bastion.close()
                             del self.ssh_bastion
                         del self
+                        raise Exception(f"Failed the connection to bastion srv with msg: {msgerror}")
                     # Get pkey on bastion
                     try:
                         logging.debug("Will get pkey")
@@ -98,6 +97,7 @@ class Secure_Connect():
                             self.ssh_bastion.close()
                             del self.ssh_bastion
                         del self
+                        raise Exception(f"Failed to get PKEY in bastion srv with msg: {msgerror}")
                     # Write the private key contents to a temporary file
                     with tempfile.NamedTemporaryFile(delete=False, buffering=- 1) as f:
                         f.write(pkey_bastion.encode())
@@ -116,6 +116,7 @@ class Secure_Connect():
                             self.ssh_bastion.close()
                             del self.ssh_bastion
                         del self
+                        raise Exception(f"Failed the connection to srv through bastion with msg: {msgerror}")
                     # open connection through bastion to host
                     try:
                         logging.debug("will open session")
@@ -130,6 +131,7 @@ class Secure_Connect():
                             self.ssh_bastion.close()
                             del self.ssh_bastion
                         del self
+                        raise Exception(f"Failed to open connection through bastion with msg: {msgerror}")
                     Secure_Connect.active_sessions.append(session_key)
                 # open connection without bastion
                 else:
@@ -144,24 +146,28 @@ class Secure_Connect():
                             self.ssh.close()
                             del self.ssh
                         del self
+                        raise Exception(f"Failed the connection for srv (no bastion) with msg: {msgerror}")
                     Secure_Connect.active_sessions.append(session_key)
                      
 
     def ssh_run(self, cmd):
-        try:
-            logging.debug("Execute command with session %s" % self)
-            stdout = self.ssh.run(cmd, hide=True, timeout=30, warn=True)
-            return stdout
-        except Exception as msgerror:
-            logging.error("Class Secure_Connect failed to exec cmd in function ssh_run %s" % msgerror)
-            if hasattr(self,'ssh'):
-                self.ssh.close()
-                del self.ssh
-            if hasattr(self, 'ssh_bastion'):
-                self.ssh_bastion.close()
-                del self.ssh_bastion
-            del self
-    # after run the caller should call the ssh_del() method so we can check which connections are still valid
+        with Secure_Connect.global_lock:
+            Secure_Connect.fabric_concurrent = 0
+            try:
+                logging.debug("Execute command with session %s" % self)
+                stdout = self.ssh.run(cmd, hide=True, timeout=30, warn=True)
+                return stdout
+            except Exception as msgerror:
+                logging.error("Class Secure_Connect failed to exec cmd in function ssh_run %s" % msgerror)
+                if hasattr(self,'ssh'):
+                    self.ssh.close()
+                    del self.ssh
+                if hasattr(self, 'ssh_bastion'):
+                    self.ssh_bastion.close()
+                    del self.ssh_bastion
+                del self
+                raise Exception(f"Failed the cmd execution with msg: {msgerror}")
+                # after run the caller should call the ssh_del() method so we can check which connections are still valid
     def ssh_del(self):
         with Secure_Connect.global_lock:
             Secure_Connect.manage_sessions(None)

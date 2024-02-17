@@ -23,7 +23,9 @@ import sys, os, logging, time
 from threading import Thread, Event
 from functions_core.yaml_validate import *
 from functions_core.grafana_fun import *
+from functions_core.secure_connect import *
 from functions import *
+
 
 #################################################################################
 #                                                                               #
@@ -45,14 +47,21 @@ event = Event()
 def run_threaded(**args) -> None:
 
     while True:
-        event.wait(timeout=args['poll']*60)
-        logging.debug("Will run_thread with %s" % args)
-        if event.is_set():
-            logging.debug("#### Exited run_thread ####")
-            break
-        #Thread(target=eval(args['func']+"."+args['func']), kwargs=args).start()
-        #Thread(target=eval(args['resources_types']+"."+args['func']), kwargs=args).start()
-        Thread(target=eval(args['func']), kwargs=args).start()
+        if 'control' in args:
+            event.wait(60)
+            logging.debug("Will run managed sessions")
+            if event.is_set():
+                logging.debug("#### Exited run_thread for Managed Sessions ####")
+                break
+            with Secure_Connect.global_lock:
+                Secure_Connect.manage_sessions(None)
+        else:
+            event.wait(timeout=args['poll']*60)
+            logging.debug("Will run_thread with %s" % args)
+            if event.is_set():
+                logging.debug("#### Exited run_thread ####")
+                break
+            Thread(target=eval(args['func']), kwargs=args).start()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
@@ -61,6 +70,8 @@ def launch_thread(result_dicts):
     for result_dict in result_dicts:
         logging.debug("Will launch thread %s" % result_dict)
         Thread(target=run_threaded, kwargs=result_dict).start()
+    # Will add a Thread to check ssh sessions
+    Thread(target=run_threaded, kwargs={'control': 'yes'}).start()
 
 ########## FUNCTION FOR EACH METRIC LAUNCH THREADS  #############################
 
