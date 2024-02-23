@@ -7,6 +7,7 @@ default: usage ;
 usage:
 	@echo "Usage:"
 	@echo "make setup"
+	@echo "make setup_offline"
 	@echo "make start"
 	@echo "make stop"
 	@echo "make remove"
@@ -16,6 +17,52 @@ usage:
 	@echo "make build_collector"
 	@echo "make env_dev_ip"
 
+.ONESHELL:
+setup_offline:
+
+	echo "##########################################################"
+	echo "# We are assuming that the container images are already  #"
+	echo "# in the system.                                         #"
+	echo "#                                                        #"
+	echo "##########################################################"
+	@read -p "Press any key to continue"
+
+	mkdir -p /opt/fjcollector/grafana/provisioning
+	mkdir -p /opt/fjcollector/grafana/data/grafana
+	mkdir -p /opt/fjcollector/collector/logs
+	mkdir -p /opt/fjcollector/collector/config
+	mkdir -p /opt/fjcollector/collector/keys
+	mkdir -p /opt/fjcollector/collector/tests
+
+	mkdir -p /opt/fjcollector/influxdb/influxdb
+	mkdir -p /opt/fjcollector/influxdb/influxdb2
+	mkdir -p /opt/fjcollector/influxdb/influxdb2-config
+
+	chown -R  fjcollector:fjcollector /opt/fjcollector
+	
+	#cp ./install/Dockerfile .
+	#docker build . -t fjcollector:latest
+
+	docker compose up -d
+
+	if [ ! -f /opt/fjcollector/collector/config/config.yaml ]
+	then
+		cp config/config.yaml /opt/fjcollector/collector/config
+		chown fjcollector:fjcollector /opt/fjcollector/collector/config/config.yaml
+	fi
+
+	#rm Dockerfile
+
+	echo "WILL PAUSE BEFORE CHANGE CONFIGFILE (30 secs)"
+
+	sleep 30
+
+	$(MAKE) update_logins
+	$(MAKE) update_datasource
+	$(MAKE) update_theme
+
+	docker compose stop fjcollector
+	docker compose start fjcollector
 	
 .ONESHELL:
 setup:
