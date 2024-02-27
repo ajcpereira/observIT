@@ -60,7 +60,7 @@ The public key must be added to the user used for the login (we assume fjcollect
 
 If you are using a CS8000 the user must be created using:
 ````
-ecs-add-user --user=fjcollector --role=csobserv
+ecs-add-user --user=fjcollector --role=csobserve
 ````
 Keep in mind that some metrics require sudo permissions, set them accordingly
 
