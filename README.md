@@ -24,7 +24,7 @@ Copyright (c) 2018 InfluxData (...)
 
 Requires linux
 
-Requires docker
+Requires docker - https://docs.docker.com/engine/install/
 
 Requires git
 
