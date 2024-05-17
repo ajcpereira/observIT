@@ -6,7 +6,7 @@
 
 # FJ Data Collector
 
-This is an aggregator for data collection that populates data in InfluxDB and since Grafana integrates with Infludb you can draw your graphs in Grafana.
+This is an aggregator for data collection that populates data in InfluxDB and since Grafana integrates with Infludb you can draw your graphs in Grafana, nevertheless we draw our standard graphs for each of the metrics we support, feel free to customize your own, we are in the process to give you a cli to help you build your own graphs.
 
 The Collector is a scheduler that collects information based in a YAML file, each schedule runs on it's own thread and it uses python:
 https://github.com/ajcpereira/fjcollector
@@ -24,7 +24,7 @@ Copyright (c) 2018 InfluxData (...)
 
 Requires linux
 
-Requires docker
+Requires docker - https://docs.docker.com/engine/install/
 
 Requires git
 
