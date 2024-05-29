@@ -32,7 +32,7 @@ Security: The user must be created previously and the public key must exist in t
   
   #### cpu<br>
   
-    Reports the cpu  **use**, **iowait**, **load1m**, **load5m**, **load15m** usage in each system
+    Reports the cpu  <strong>use</strong>, **iowait**, **load1m**, **load5m**, **load15m** usage in each system
   
   #### mem<br>
   
