@@ -28,15 +28,15 @@ Security: The user must be created previously and the public key must exist in t
   
   #### fs<br>
   
-    Reports, for each mount point, the **available**, **used**, **total** filesystem usage in KB for each system
+    Reports, for each mount point, the "available", "used", "total" filesystem usage in KB for each system
   
   #### cpu<br>
   
-    Reports the cpu  <strong>use</strong>, **iowait**, **load1m**, **load5m**, **load15m** usage in each system
+    Reports the cpu  "use", "iowait", "load1m", "load5m", "load15m" usage in each system.
   
   #### mem<br>
   
-    Reports the memory **total**, **used**, **free**, **shared**, **buff**, **avail** usage in MB for each system
+    Reports the memory "total", "used", "free", "shared", "buff", "avail" usage in MB for each system
   
   #### fc<br>
   
@@ -44,7 +44,7 @@ Security: The user must be created previously and the public key must exist in t
   
   #### net<br>
   
-    Reports the acumulated **rx_bytes**, **tx_bytes** for each NIC.
+    Reports the acumulated "rx_bytes", "tx_bytes" for each NIC.
       
 ## resources_types: linux_os
 
@@ -54,19 +54,19 @@ Security: The user must be created previously and the public key must exist in t
 
   #### cpu<br>
 
-    Reports the cpu  **use**, **iowait**, **load1m**, **load5m**, **load15m** usage in each system.
+    Reports the cpu  "use", "iowait", "load1m", "load5m", "load15m" usage in each system.
 
   #### mem<br>
 
-    Reports the memory **total**, **used**, **free**, **shared**, **buff**, **avail** usage in MB for each system
+    Reports the memory "total", "used", "free", "shared", "buff", "avail" usage in MB for each system
 
   #### fs<br>
 
-    Reports, for each mount point, the **available**, **used**, **total** filesystem usage in KB for each system
+    Reports, for each mount point, the "available", "used", "total" filesystem usage in KB for each system
 
   #### net<br>
 
-     Reports the acumulated **rx_bytes**, **tx_bytes** for each NIC.
+     Reports the acumulated "rx_bytes", "tx_bytes" for each NIC.
 
 ### Config File example<br>
 
