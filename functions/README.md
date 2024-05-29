@@ -27,19 +27,24 @@ Security: The user must be created previously and the public key must exist in t
     sudo is required: In /etc/sudoers you must have "fjcollector CSTOR = NOPASSWD: /opt/fsc/bin/plmcmd query *"
   
   #### fs<br>
-    Reports the filesystem usage on each system
+  
+    Reports, for each mount point, the **available**, **used**, **total** filesystem usage in KB for each system
   
   #### cpu<br>
-    Reports the cpu usage in each system
+  
+    Reports the cpu  **use**, **iowait**, **load1m**, **load5m**, **load15m** usage in each system
   
   #### mem<br>
-    Reports the memory usage in each system
+  
+    Reports the memory **total**, **used**, **free**, **shared**, **buff**, **avail** usage in MB for each system
   
   #### fc<br>
+  
     Reports the fc throughput in each HBA, including the targets that are virtual drives
   
   #### net<br>
-    Reports the net throughput in each NIC
+  
+    Reports the acumulated **rx_bytes**, **tx_bytes** for each NIC.
       
 ## resources_types: linux_os
 
@@ -49,19 +54,19 @@ Security: The user must be created previously and the public key must exist in t
 
   #### cpu<br>
 
-    Reports the cpu usage in each system
+    Reports the cpu  **use**, **iowait**, **load1m**, **load5m**, **load15m** usage in each system.
 
   #### mem<br>
 
-    Reports the memory usage in each system
+    Reports the memory **total**, **used**, **free**, **shared**, **buff**, **avail** usage in MB for each system
 
   #### fs<br>
 
-    Reports the filesystem usage on each system
+    Reports, for each mount point, the **available**, **used**, **total** filesystem usage in KB for each system
 
   #### net<br>
 
-    Reports the net throughput in each NIC
+     Reports the acumulated **rx_bytes**, **tx_bytes** for each NIC.
 
 ### Config File example<br>
 
