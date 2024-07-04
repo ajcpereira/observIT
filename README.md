@@ -113,8 +113,8 @@ Consult the README inside the folder functions:
 
 ### Metrics Retention
 
-By default the bucket that will retain the information in Influxdb is of 3 years, manual change must be done if you wish to have a different retention.
-You can remove and create a new bucket just make sure the name is 'fjcollector'.
+By default the bucket that will retain the information in Influxdb is of **2 years**, manual change must be done if you wish to have a different retention.
+At the moment this must be done with user admin in the future we expect to give this through scripting or other way.
 
 
 ### Architecture
