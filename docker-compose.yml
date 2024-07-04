@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   fjcollector:
     image: "fjcollector:latest"
@@ -21,11 +20,11 @@ services:
     image: "grafana/grafana-enterprise:latest"
     restart: unless-stopped
     ports:
-    - "80:3000/tcp"
+    - "443:3000/tcp"
     volumes:
-      - /opt/fjcollector/grafana/provisioning/:/etc/grafana/provisioning/
+      - /opt/fjcollector/grafana/etc/:/etc/grafana/
       - /opt/fjcollector/grafana/data/grafana:/var/lib/grafana/
-    user: "0"
+    user: "1000"
 #    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
 #      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
@@ -44,11 +43,14 @@ services:
       - /opt/fjcollector/influxdb/influxdb:/var/lib/influxdb
       - /opt/fjcollector/influxdb/influxdb2:/var/lib/influxdb2
       - /opt/fjcollector/influxdb/influxdb2-config:/etc/influxdb
-    user: "0"
-#    environment:
+      - /opt/fjcollector/influxdb/influxdb2-ssl:/etc/ssl
+    user: "1000"
+    environment:
 #      - ENV HTTP_PROXY="http\://20.220.3.113\:8080"
 #      - ENV HTTPS_PROXY="https\://20.220.3.113\:8080"
 #      - ENV FTP_PROXY="ftp\://20.220.3.113\:8080"
+      - INFLUXD_TLS_CERT=/etc/ssl/influxdb.crt
+      - INFLUXD_TLS_KEY=/etc/ssl/influxdb.key
     logging:
        options:
          max-size: "10m"
