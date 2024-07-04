@@ -10,6 +10,7 @@ The aggregator is a scheduler that collects information based in a YAML file (/o
 
 This is built on a virtual appliance which can be found here: 
 <BR>https://drive.proton.me/urls/6WE4036KX8#dHQ35JnT8Obz
+<BR>In the future a script will be made available for create a fixed IP, atm the virtual appliance is based in DHCP.
 
 ## Licensing
 Regarding the 2 mention applications be aware of their licenses if you wish to use in your organization.
