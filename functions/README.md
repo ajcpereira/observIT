@@ -45,6 +45,10 @@ Security: The user must be created previously and the public key must exist in t
   #### net<br>
   
     Reports the acumulated "rx_bytes", "tx_bytes" for each NIC.
+
+  #### vtldirtycache<br>
+
+    Reports the dirty cache for the VTL system
       
 ## resources_types: linux_os
 
