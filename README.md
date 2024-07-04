@@ -1,49 +1,49 @@
+# ObservIT
 
+This is an aggregator for data collection that populates data in InfluxDB and uses Grafana which integrates natively with Infludb where you can draw your graphs.
+<BR>We draw our standard graphs for each of the metrics we support but please feel free to personalize your own graphics.
 
-#                       IDENTIFICATION DIVISION
+## How it Works
 
+The aggregator is a scheduler that collects information based in a YAML file (/opt/fjcollector/collector/conf/config.yaml), each schedule runs on it's own thread and it uses python, all the supported metrics may be found here:
+<BR>https://github.com/ajcpereira/fjcollector/blob/main/functions/README.md
 
+This is built on a virtual appliance which can be found here: 
+<BR>https://drive.proton.me/urls/6WE4036KX8#dHQ35JnT8Obz
 
-# FJ Data Collector
+## Licensing
+Regarding the 2 mention applications be aware of their licenses if you wish to use in your organization.
+We install both but they are not part of the code of the ObservIT, so you should check your policies or maybe you already have them in your organization and you just need to change the configfile to use your own:
 
-This is an aggregator for data collection that populates data in InfluxDB and since Grafana integrates with Infludb you can draw your graphs in Grafana, nevertheless we draw our standard graphs for each of the metrics we support, feel free to customize your own, we are in the process to give you a cli to help you build your own graphs.
+|Components		|Licensing                                                  |
+|---------------|:---------------------------------------------------------:|
+|Ubuntu			|https://ubuntu.com/legal/intellectual-property-policy      |
+|make			|https://www.gnu.org/licenses/gpl-3.0.html                  |
+|curl			|https://ubuntu.com/legal/open-source-licences              |
+|git			|https://git-scm.com/about/free-and-open-source             |
+|docker engine	|https://github.com/moby/moby/blob/master/LICENSE     |
+|Python			|https://opensource.org/license/python-2-0                  |
+|Grafana		|https://grafana.com/licensing/                             |
+|Influxdb		|https://github.com/influxdata/influxdb/blob/master/LICENSE |
 
-The Collector is a scheduler that collects information based in a YAML file, each schedule runs on it's own thread and it uses python:
-https://github.com/ajcpereira/fjcollector
-
-Regarding the other 2 mention applications be aware of their licenses if you wish to use in your organization.
-Our makefile installs both but they are not part of the code of the fjcollector, so you should check your policies or maybe you already have them in your organization so you can use them:
-
-Grafana - https://grafana.com/licensing/ - 26/07/2023: (...) On April 20, 2021, Grafana Labs announced that going forward, our core open source projects will be moving from the Apache License v2.0 to AGPLv3.
-Users who don’t intend to modify Grafana code can simply use our Enterprise download. This is a free-to-use, proprietary-licensed, compiled binary that matches the features of the AGPL version, and can be upgraded to take advantage of all the commercial features in Grafana Enterprise (Enterprise plugins, advanced security, reporting, support, and more) with the purchase of a license key. (...)
-
-Influxdb - https://www.influxdata.com/ - 18/12/2023: https://github.com/influxdata/influxdb/blob/master/LICENSE (...) MIT License
-Copyright (c) 2018 InfluxData (...)
-
+## Technical Section
 ### Requirements
 
-Requires linux
+You need a virtualization environment, our virtual appliance, for a basic configuation up to 80 metrics needs the following requirements:
 
-Requires docker - https://docs.docker.com/engine/install/
+| vCPU          | Mem           | Disk      |
+| ------------- |:-------------:| ---------:|
+| 4             | 8GB           | 30GB+15GB |
 
-Requires git
+*The 15GB disk can grow to accomodate your retention period, you will need the root access at this moment until we give you a script to do so with fjcollector user.
 
-Requires curl
 
-Requires make
-
-Internet access to github.com
-
-Requires user 'fjcollector'
-
-Will install under folder /opt/fjcollector
-
-The setup will need to be run with root so it can create the structure in /opt and change the owners of the files to user fjcollector
+The only user available to you will be fjcollector and by default user and password are equal, please change this password as soon as you login.
 
 ### Pre-Setup
 
 Every metric that needs to make ssh, make sure you generate a private key and in the destination you use the public key in the authorized keys, then keep the private keys under:
-  /opt/fjcollector/collector/keys
+<BR>/opt/fjcollector/collector/keys
 If different keys are used they may be specified in the config.yaml
 
 Under the user fjcollector, pls do:
@@ -64,36 +64,12 @@ ecs-add-user --user=fjcollector --role=csobserve
 ````
 Keep in mind that some metrics require sudo permissions, set them accordingly
 
+We recommend to you have a look in the functions Readme:
+<BR>https://github.com/ajcpereira/fjcollector/blob/main/functions/README.md
 
-We recommend to you have a look in the functions Readme
-
-If your network needs a proxy you need to setup in you shell session but also inside the Dockerfile 'install/Dockerfile' and in the docker-compose.yml, the lines are commented, so, just uncomment it and insert your IP.
-
-### Installation Procedure
-
-Clone the git repository:
-
-````
-git clone https://github.com/ajcpereira/fjcollector.git
-````
-
-Now, just run the install
-
-````
-cd fj-collector
-sudo make setup
-````
-
-For each IP that you access through ssh you will need the private key.
-On the previous file (config.yaml) you can specifie it's location (host_keys entry)
-Be aware that since the code runs inside a container the config.yaml uses the path inside of the container, so:
-  /collector/fjcollector/config/
-  is your
-  /opt/fjcollector/collector/config/
-
-  We recommend you use relative paths:
-    host_keys: keys/id_rsa
-    logfile: logs/fjcollector.log
+We recommend you use relative paths:
+    <BR>host_keys: keys/id_rsa
+    <BR>logfile: logs/fjcollector.log
 
 edit /opt/fjcollector/collector/config/config.yaml
 
@@ -132,7 +108,8 @@ global_parameters:
 
 ### Metrics
 
-Consult the README inside the folder functions
+Consult the README inside the folder functions:
+<BR>https://github.com/ajcpereira/fjcollector/blob/main/functions/README.md
 
 ### Metrics Retention
 
