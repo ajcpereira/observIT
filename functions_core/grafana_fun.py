@@ -28,7 +28,7 @@ def get_dashboard_json(dashboard, overwrite=False, message="Updated by grafanlib
         }, sort_keys=True, indent=2, cls=DashboardEncoder)
 
 
-def upload_to_grafana(json_data, server, api_key, verify=True):
+def upload_to_grafana(json_data, server, api_key, verify=False):
     '''
     upload_to_grafana tries to upload dashboard to grafana and prints response
 
@@ -40,7 +40,7 @@ def upload_to_grafana(json_data, server, api_key, verify=True):
     headers = {'Authorization': f"Bearer {api_key}", 'Content-Type': 'application/json'}
 
     try:
-        r = requests.post(f"http://{server}/api/dashboards/db", data=json_data, headers=headers, verify=verify)
+        r = requests.post(f"https://{server}/api/dashboards/db", data=json_data, headers=headers, verify=verify)
         logging.debug("Message from grafana_fun is %s" % r.json())
     except Exception as msgerror:
         logging.error("Failed to create report in grafana %s with error %s" % (server, msgerror))
@@ -1186,5 +1186,3 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
         pos = pos + 20
 
     return pos, panels_list
-
-
