@@ -78,6 +78,8 @@ We recommend you use relative paths:
 edit /opt/fjcollector/collector/config/config.yaml
 
 ### config.yaml
+Configuration manual can be found in https://github.com/ajcpereira/fjcollector/blob/main/config/README.md
+
 ````
 systems:
   - name: MYCS0100
