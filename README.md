@@ -1,4 +1,5 @@
 # ObservIT
+![Design](https://github.com/ajcpereira/reporting/raw/main/img/observit.jpg)
 
 This is an aggregator for data collection that populates data in InfluxDB and uses Grafana which integrates natively with Infludb where you can draw your graphs.
 <BR>We draw our standard graphs for each of the metrics we support but please feel free to personalize your own graphics.
