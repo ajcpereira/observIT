@@ -1,5 +1,5 @@
 # ObservIT
-![Logo](https://github.com/ajcpereira/observIT/blob/main/img/ObservIT.jpg =100x20)
+![Logo](https://github.com/ajcpereira/observIT/blob/main/img/ObservIT.jpg)
 
 This is an aggregator for data collection that populates data in InfluxDB and uses Grafana which integrates natively with Infludb where you can draw your graphs.
 <BR>We draw our standard graphs for each of the metrics we support but please feel free to personalize your own graphics.
