@@ -3,7 +3,7 @@
 This is an aggregator for data collection that populates data in InfluxDB and uses Grafana which integrates natively with Infludb where you can draw your graphs.
 <BR>We draw our standard graphs for each of the metrics we support but please feel free to personalize your own graphics.
 
-<BR>Please Consult our wiki if you wish to contribute with new metrics https://github.com/ajcpereira/observIT.wiki.git
+<BR>Please Consult our wiki if you wish to contribute with new metrics [https://github.com/ajcpereira/observIT.wiki.git](https://github.com/ajcpereira/observIT/wiki/Development-Rules-%E2%80%90-New-Function-using-ssh)
 
 ## How it Works
 
