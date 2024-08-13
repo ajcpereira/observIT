@@ -5,7 +5,7 @@
 #################################################################################
 import yaml
 from typing import List, Literal, Optional
-from pydantic import BaseModel, StrictStr, PositiveInt, Field
+from pydantic import BaseModel, StrictStr, PositiveInt, Field, HttpUrl, Base64Str
 from pydantic.networks import IPvAnyAddress
 import os,logging,sys
 
@@ -49,7 +49,10 @@ class AllowedMetrics:
                             'eternus_cs8000.eternus_cs8000_fc','eternus_cs8000_vtldirtycache']],
         'linux_os': [['cpu', 'mem', 'fs', 'net'],
                      ['linux_os.linux_os_cpu', 'linux_os.linux_os_mem', 'linux_os.linux_os_fs', 'linux_os.linux_os_net']],
-        'fj_ism': [['temp'], ['ism_temp']]
+        'fj_ism': [['temp'], 
+                   ['ism_temp']],
+        'server': [['power','temp'], 
+                   ['server.server_power','server.server_temp']]
     }
 
     @classmethod
@@ -80,9 +83,13 @@ class Ip(BaseModel):
     ip_use_sudo: Optional[bool] = None
     ip_host_keys: Optional[str] = Field(None, max_length=100)
     ip_bastion: Optional[IPvAnyAddress] = Field(None)
+    ip_redfish_url: Optional[HttpUrl] = Field(None)
+    ip_redfish_user: Optional[StrictStr] = Field(None)
+    ip_redfish_pwd64: Optional[Base64Str] = Field(None)
+    ip_redfish_unsecured: Optional[bool] = Field(False)    
 
 class Parameters(BaseModel):
-    user: StrictStr
+    user: Optional[StrictStr] = Field(None)
     host_keys: Optional[str] = Field(None, max_length=100)
     poll: PositiveInt = Field(..., ge=1, le=1440)
     use_sudo: Optional[bool] = None
@@ -91,7 +98,11 @@ class Parameters(BaseModel):
     ism_server: Optional[IPvAnyAddress] = Field(None)
     ism_password: Optional[str] = Field(None)
     ism_port: Optional[PositiveInt] = Field(None, ge=1, le=65535)
-    ism_secure: Optional[bool] = Field(True)
+    ism_unsecured: Optional[bool] = Field(False)
+    redfish_url: Optional[HttpUrl] = Field(None)
+    redfish_user: Optional[StrictStr] = Field(None)
+    redfish_pwd64: Optional[Base64Str] = Field(None)
+    redfish_unsecured: Optional[bool] = Field(False)
 class Metrics(BaseModel):
     name: StrictStr
 
