@@ -1,42 +1,13 @@
 import os, logging, subprocess, time, re
 import pandas as pd
 from functions_core.send_influxdb import *
-from functions_core.secure_connect import *
-
-
-def args_setup(args):
-
-    if args['ip_bastion']:
-          bastion=str(args['ip_bastion'])
-    elif args['bastion']:
-          bastion=str(args['bastion'])
-    else:
-          bastion=None
-
-    if args['ip_host_keys']:
-          host_keys=args['ip_host_keys']
-    elif args['host_keys']:
-          host_keys=args['host_keys']
-    else:
-          host_keys=None
-
-    if args['alias']:
-        hostname = args['alias']
-    else:
-        hostname = str(args['ip'])
-        
-    args['bastion']=bastion
-    args['host_keys']=host_keys
-    args['hostname']=hostname
-
-    return args  
+from functions_core.secure_connect import *  
 
 def eternus_cs8000_fs_io(**args):
 
     logging.debug("Starting func_eternus_cs8000_fs_io")
 
     # Organize the args from ip calling specific function     
-    args=args_setup(args)
 
     # Command line to run remotly
     cmd1="/opt/fsc/CentricStor/bin/rdNsdInfos -a > /tmp/stats_nsd.out"
@@ -126,7 +97,7 @@ def eternus_cs8000_drives(**args):
     logging.debug("Starting func_eternus_cs8000_drives")
 
     # Organize the args from ip calling specific function     
-    args=args_setup(args)
+    
 
     # Command line to run remotly
     cmd1="/opt/fsc/bin/plmcmd query -D"
@@ -227,7 +198,6 @@ def eternus_cs8000_medias(**args):
     logging.debug("Starting func_eternus_cs8000_medias")
 
     # Organize the args from ip calling specific function     
-    args=args_setup(args)
 
     # Command line to run remotly
     cmd1="/opt/fsc/bin/plmcmd query -V"
@@ -336,7 +306,6 @@ def eternus_cs8000_pvgprofile(**args):
     logging.debug("Starting func_eternus_cs8000_pvgprofile")
 
     # Organize the args from ip calling specific function     
-    args=args_setup(args)
 
     # Command line to run remotly
     cmd1="/opt/fsc/bin/plmcmd query -V | grep -v CLN | grep -v \'PVG\'"
@@ -484,7 +453,6 @@ def eternus_cs8000_fc(**args):
     logging.debug("Starting func_eternus_cs8000_fc")
     
     # Organize the args from ip calling specific function     
-    args=args_setup(args)
 
     # Open ssh session
     try:
@@ -677,7 +645,6 @@ def eternus_cs8000_vtldirtycache(**args):
     logging.debug("Starting func_eternus_cs8000_vtldirtycache")
     
     # Organize the args from ip calling specific function     
-    args=args_setup(args)
 
     # Open ssh session
     try:
