@@ -1,6 +1,7 @@
 FROM debian:latest
 
-WORKDIR /collector
+ENV WORKDIR="/collector"
+WORKDIR $WORKDIR
 ENV VIRTUAL_ENV="$WORKDIR/.venv"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
