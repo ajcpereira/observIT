@@ -18,7 +18,8 @@
 #                       ENVIRONMENT DIVISION                                    #
 #                                                                               #
 #################################################################################
-import json, logging
+import json
+import logging
 
 
 #################################################################################
@@ -45,20 +46,18 @@ def check_alias(alias, ip):
 
 
 def data_model_system_exists(sys_name, dict):
-
     for sys in dict:
         if sys['system'] == sys_name:
             logging.debug("Grafana data model: system name %s exists, is new %s", sys_name, False)
             return False, sys
 
     logging.debug("Grafana data model: system name %s doesnt exists, is new %s, initiate data model with %s"
-                   % (sys_name, True, {'system': sys_name, 'resources': []}))
+                  % (sys_name, True, {'system': sys_name, 'resources': []}))
 
     return True, {'system': sys_name, 'resources': []}
 
 
 def data_model_resource_exists(res_name, dict):
-
     for res in dict['resources']:
         if res['name'] == res_name:
             logging.debug("Grafana data model: resource name %s exists, is new %s", res_name, False)
@@ -71,7 +70,6 @@ def data_model_resource_exists(res_name, dict):
 
 
 def data_model_metric_exists(met_name, dict):
-
     for res in dict['data']:
         if res['metric'] == met_name:
             logging.debug("Grafana data model: metric name %s exists, is new %s", met_name, False)
@@ -84,11 +82,10 @@ def data_model_metric_exists(met_name, dict):
 
 
 def data_model_build(config):
-
     json_dict = json.loads(config.model_dump_json())
     d_model = []
 
-    logging.debug("%s - Config file in JSON format is: %s" % (data_model_build.__name__,json_dict))
+    logging.debug("%s - Config file in JSON format is: %s" % (data_model_build.__name__, json_dict))
 
     try:
         for sys in json_dict['systems']:
@@ -104,9 +101,8 @@ def data_model_build(config):
                 new_d_met, d_metric = data_model_metric_exists(metrics['name'], d_res)
 
                 for host in sys['config']['ips']:
-                        hostname = check_alias(host['alias'], host['ip'])
-                        #d_metric['hosts'] = d_metric['hosts'] + [host['alias']]
-                        d_metric['hosts'] = d_metric['hosts'] + [hostname]
+                    hostname = check_alias(host['alias'], host['ip'])
+                    d_metric['hosts'] = d_metric['hosts'] + [hostname]
 
                 # if the metric doesn't exist new_d_met = True then create new - else it has already been updated do nothing
                 if new_d_met:
@@ -120,11 +116,10 @@ def data_model_build(config):
             if new_d_sys:
                 d_model = d_model + [d_sys]
 
-        logging.debug("%s: Grafana_fun data model is: %s" %(data_model_build.__name__, d_model))
+        logging.debug("%s: Grafana_fun data model is: %s" % (data_model_build.__name__, d_model))
 
     except Exception as msgerror:
-        logging.error("%s: Failed to create grafana data model with error %s" %(data_model_build.__name__, msgerror))
+        logging.error("%s: Failed to create grafana data model with error %s" % (data_model_build.__name__, msgerror))
         return []
 
     return d_model
-
