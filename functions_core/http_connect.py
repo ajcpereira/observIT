@@ -1,12 +1,16 @@
 import logging
 import requests
+import urllib3
+# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class HttpConnect:
-    def __init__(self, base_url, username, password):
+    def __init__(self, base_url, username, password, unsecured):
         self.session = requests.Session()
         self.session.auth = (username, password)
         self.base_url = base_url
+        if unsecured is True:
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def get(self, endpoint):
         try:
