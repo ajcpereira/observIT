@@ -22,7 +22,7 @@ def linux_os_cpu(**args):
 
     bastion = args['bastion']
     host_keys = args['host_keys']
-    hostname = args['ip']
+    hostname = args['hostname']
 
     #unix bash command to be executed
     STR_CMD = "echo $(vmstat 1 2 | tail -1 | awk '{print $15, $16}') $(cat /proc/loadavg | awk '{print $1, $2, $3}')"
@@ -81,7 +81,7 @@ def linux_os_mem(**args):
 
     bastion = args['bastion']
     host_keys = args['host_keys']
-    hostname = args['ip']
+    hostname = args['hostname']
 
     # unix bash command to be executed
     STR_CMD = "free -m | grep Mem | awk '{print $2, $3, $4, $5, $6, $7}'"
@@ -139,7 +139,7 @@ def linux_os_fs(**args):
 
     bastion = args['bastion']
     host_keys = args['host_keys']
-    hostname = args['ip']
+    hostname = args['hostname']
 
     # unix bash command to be executed
     STR_CMD = "df -x tmpfs -x devtmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
@@ -200,7 +200,7 @@ def linux_os_net(**args):
 
     bastion = args['bastion']
     host_keys = args['host_keys']
-    hostname = args['ip']
+    hostname = args['hostname']
 
     # unix bash command to be executed
     STR_CMD = "tail -n +3 /proc/net/dev | awk '{sub(/:/, \"\");print $1, $2, $10}'"
