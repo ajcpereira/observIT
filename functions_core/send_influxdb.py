@@ -5,7 +5,7 @@ import influxdb_client
 
 def send_influxdb(srv, port, token, org, bucket, data):
 
-    logging.debug("Sending data to InfluxDB server: %s", srv)
+    logging.debug("Sending data to InfluxDB server: %s %s %s %s %s %s" % (srv, port, token, org, bucket, data))
 
     try:
         write_client = influxdb_client.InfluxDBClient(url="https://" + srv + ":" + port, token=token, org=org,timeout=10000, enable_gzip=True,verify_ssl=False)

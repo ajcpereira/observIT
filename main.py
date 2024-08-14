@@ -24,6 +24,7 @@ from threading import Thread, Event
 from functions_core.yaml_validate import *
 from functions_core.grafana_fun import *
 from functions_core.secure_connect import *
+from functions_core.utils import *
 from functions import *
 
 
@@ -45,7 +46,7 @@ event = Event()
 ########## FUNCTION LAUNCH A THREAD FOR EACH SCHEDULE ###########################
 
 def run_threaded(**args) -> None:
-
+    
     while True:
         if 'control' in args:
             event.wait(60)
@@ -56,6 +57,7 @@ def run_threaded(**args) -> None:
             with Secure_Connect.global_lock:
                 Secure_Connect.manage_sessions(None)
         else:
+            args=args_setup(args)
             event.wait(timeout=args['poll']*60)
             logging.debug("Will run_thread with %s" % args)
             if event.is_set():

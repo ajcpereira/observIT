@@ -20,9 +20,9 @@ def linux_os_cpu(**args):
     # Definitions/Constants
 
 
-    bastion = check_bastion(args['ip_bastion'], args['bastion'])
-    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
-    hostname = check_alias(args['alias'], args['ip'])
+    bastion = args['bastion']
+    host_keys = args['host_keys']
+    hostname = args['hostname']
 
     #unix bash command to be executed
     STR_CMD = "echo $(vmstat 1 2 | tail -1 | awk '{print $15, $16}') $(cat /proc/loadavg | awk '{print $1, $2, $3}')"
@@ -79,9 +79,9 @@ def linux_os_cpu(**args):
 ###################################################################################
 def linux_os_mem(**args):
 
-    bastion = check_bastion(args['ip_bastion'], args['bastion'])
-    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
-    hostname = check_alias(args['alias'], args['ip'])
+    bastion = args['bastion']
+    host_keys = args['host_keys']
+    hostname = args['hostname']
 
     # unix bash command to be executed
     STR_CMD = "free -m | grep Mem | awk '{print $2, $3, $4, $5, $6, $7}'"
@@ -137,9 +137,9 @@ def linux_os_mem(**args):
 #################################################################################
 def linux_os_fs(**args):
 
-    bastion = check_bastion(args['ip_bastion'], args['bastion'])
-    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
-    hostname = check_alias(args['alias'], args['ip'])
+    bastion = args['bastion']
+    host_keys = args['host_keys']
+    hostname = args['hostname']
 
     # unix bash command to be executed
     STR_CMD = "df -x tmpfs -x devtmpfs | tail -n +2 | awk '{print $6, $4, $3, $2}'"
@@ -198,9 +198,9 @@ def linux_os_net(**args):
     # Network
     # interface  rx_bytes tx_bytes
 
-    bastion = check_bastion(args['ip_bastion'], args['bastion'])
-    host_keys = check_ip_host_keys(args['ip_host_keys'], args['host_keys'])
-    hostname = check_alias(args['alias'], args['ip'])
+    bastion = args['bastion']
+    host_keys = args['host_keys']
+    hostname = args['hostname']
 
     # unix bash command to be executed
     STR_CMD = "tail -n +3 /proc/net/dev | awk '{sub(/:/, \"\");print $1, $2, $10}'"
@@ -246,38 +246,3 @@ def linux_os_net(**args):
     except Exception as msgerror:
         logging.error("linux_os_net: Failed to collect data from %s with error %s" % (args['ip'], msgerror))
         return -1
-
-
-# HELPER FUNCTIONS
-
-def check_bastion(ip_bastion, bastion):
-    # Check if Bastion host is defined, in order to proxy the connection
-    if ip_bastion:
-        res_bastion = str(ip_bastion)
-    elif bastion:
-        res_bastion = str(bastion)
-    else:
-        res_bastion = None
-
-    return res_bastion
-
-
-def check_alias(alias, ip):
-    # Check if Alias is defined, if not use IPAddress for hostname
-    if alias:
-        hostname = alias
-    else:
-        hostname = ip
-
-    return hostname
-
-def check_ip_host_keys(ip_host_keys, host_keys):
-
-    if ip_host_keys:
-        res_host_keys = ip_host_keys
-    elif host_keys:
-        res_host_keys = host_keys
-    else:
-        res_host_keys = None
-
-    return res_host_keys
