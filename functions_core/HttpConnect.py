@@ -1,7 +1,10 @@
 import requests, logging, time, threading
 
+# Will be used for a multi-thread environment to manage http connections
 class HttpConnect:
+     # Will keep track of http sessions, if parameters are the same will not open new, avoiding exhausting http sessions in servers
     active_sessions = []
+    # Since this class will be used in a multi-thread environment to avoid race conditions we need to lock resources like the method manage_sessions() and the tuple active_sessions
     global_lock = threading.Lock()
 
     @staticmethod 
@@ -23,6 +26,7 @@ class HttpConnect:
         HttpConnect.active_sessions = keep_sessions
         return valid_session
 
+    # (url, proxy, user, pwd64, unsecured)
     def __init__(self, base_url, headers=None):
         session_key = [base_url, headers, self, time.time()]
         logging.debug(f"Session key: {session_key[:2]}")
@@ -40,7 +44,8 @@ class HttpConnect:
         self.session.headers.update(headers or {})
         self.base_url = base_url
         logging.debug(f"Created new HTTP session for {self.base_url}")
-
+    
+    # (endpoint)
     def http_get(self, endpoint, params=None):
         with HttpConnect.global_lock:
             url = f"{self.base_url}{endpoint}"
