@@ -23,7 +23,7 @@ import sys, os, logging, time
 from threading import Thread, Event
 from functions_core.yaml_validate import *
 from functions_core.grafana_fun import *
-from functions_core.secure_connect import *
+from functions_core.SshConnect import *
 from functions_core.utils import *
 from functions import *
 
@@ -54,8 +54,8 @@ def run_threaded(**args) -> None:
             if event.is_set():
                 logging.debug("#### Exited run_thread for Managed Sessions ####")
                 break
-            with Secure_Connect.global_lock:
-                Secure_Connect.manage_sessions(None)
+            with SshConnect.global_lock:
+                SshConnect.manage_sessions(None)
         else:
             args=args_setup(args)
             event.wait(timeout=args['poll']*60)

@@ -1,7 +1,7 @@
 import os, logging, subprocess, time, re
 import pandas as pd
 from functions_core.send_influxdb import *
-from functions_core.secure_connect import *  
+from functions_core.SshConnect import *  
 
 def eternus_cs8000_fs_io(**args):
 
@@ -36,7 +36,7 @@ def eternus_cs8000_fs_io(**args):
     logging.debug("Command Line 3 - %s" % cmd3)
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -121,7 +121,7 @@ def eternus_cs8000_drives(**args):
           logging.warning("You are using test file for Drives, not really data")
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -221,7 +221,7 @@ def eternus_cs8000_medias(**args):
           logging.warning("You are using test file for Drives, not really data")
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -329,7 +329,7 @@ def eternus_cs8000_pvgprofile(**args):
           logging.warning("You are using test file for PVG Profile, not really data")
 
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -456,7 +456,7 @@ def eternus_cs8000_fc(**args):
 
     # Open ssh session
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
@@ -648,7 +648,7 @@ def eternus_cs8000_vtldirtycache(**args):
 
     # Open ssh session
     try:
-        ssh=Secure_Connect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
+        ssh=SshConnect(str(args['ip']),args['bastion'],args['user'],args['host_keys'])
     except Exception as msgerror:
         logging.error(f"Failed to connect to {args['ip']} with error: {msgerror}")
         ssh.ssh_del()
