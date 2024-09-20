@@ -37,6 +37,31 @@ change_timezone() {
     sudo timedatectl set-timezone $TIMEZONE
 }
 
+# Function to manage containers
+manage_containers() {
+    CONTAINERS=$(docker ps --format "{{.Names}}" | awk '{print NR, $1}')
+    CONTAINER=$(dialog --menu "Select a container to manage:" 15 50 10 $CONTAINERS 3>&1 1>&2 2>&3 3>&-)
+    
+    if [ -n "$CONTAINER" ]; then
+        ACTION=$(dialog --menu "Choose an action for $CONTAINER:" 15 50 5 \
+        1 "Start" \
+        2 "Stop" \
+        3 "Restart" 3>&1 1>&2 2>&3 3>&-)
+        
+        case $ACTION in
+            1)
+                docker start $CONTAINER
+                ;;
+            2)
+                docker stop $CONTAINER
+                ;;
+            3)
+                docker restart $CONTAINER
+                ;;
+        esac
+    fi
+}
+
 # Main menu
 while true; do
     CHOICE=$(dialog --menu "System Configuration Menu" 15 50 6 \
@@ -44,7 +69,8 @@ while true; do
     2 "Change Network Settings" \
     3 "Change Keyboard Layout" \
     4 "Change Timezone" \
-    5 "Exit" 3>&1 1>&2 2>&3 3>&-)
+    5 "Manage Containers" \
+    6 "Exit" 3>&1 1>&2 2>&3 3>&-)
     
     case $CHOICE in
         1)
@@ -60,6 +86,9 @@ while true; do
             change_timezone
             ;;
         5)
+            manage_containers
+            ;;
+        6)
             break
             ;;
         *)
