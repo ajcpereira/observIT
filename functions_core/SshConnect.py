@@ -7,7 +7,9 @@ class SshConnect():
     active_sessions = []
     # Since this class will be used in a multi-thread environment to avoid race conditions we need to lock resources like the method manage_sessions() and the tuple active_sessions
     global_lock = threading.Lock()
-
+    # After this time, sessions should be removed
+    session_timeout=55 
+    
     @staticmethod 
     def manage_sessions(session_key: list):
         timestamp_now = time.time()
@@ -17,7 +19,7 @@ class SshConnect():
         if not len(SshConnect.active_sessions) == 0:
             logging.debug(f"Existing sessions are not empty {SshConnect.active_sessions}")
             for value in SshConnect.active_sessions:
-                if abs(timestamp_now - value[5]) <= 55 and value[4].ssh.is_connected:
+                if abs(timestamp_now - value[5]) <= SshConnect.session_timeout and value[4].ssh.is_connected:
                     logging.debug(f"Still a valid session with time below 55s {abs(timestamp_now - value[5])} and is_connected for session {value}")
                     keep_sessions.append(value)
                     if session_key and value[:4] == session_key[:4]:
