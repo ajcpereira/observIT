@@ -15,7 +15,7 @@ The `config` section contains the configuration parameters for each resource_typ
 
 - `user`: The username to be used to authenticate on the host we are retrieving metrics from.
 - `host_keys`: The location of the host keys if ssh will be used.
-- `poll`: The polling interval.
+- `poll`: The polling interval in minutes.
 - `use_sudo`: Whether to use sudo for commands. Can be 'yes' or 'no'.
 - `bastion`: The IP address of the bastion host (if used).
 
