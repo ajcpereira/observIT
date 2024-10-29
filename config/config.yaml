@@ -1,30 +1,95 @@
 systems:
-  - name: dev_env_99
+  - name: demo1
+    resources_types: linux_os
+    config:
+      parameters:
+        user: fjcollector
+        host_keys: keys/id_rsa
+        port:
+        proxy:
+        poll: 1
+      metrics:
+        - name: cpu
+        - name: mem
+        - name: fs
+        - name: net
+      ips:
+        - ip: 10.8.1.1
+          alias: linux1
+        - ip: 10.8.1.2
+          alias: linux2
     resources_types: eternus_cs8000
     config:
       parameters:
         user: fjcollector
         host_keys: keys/id_rsa
+        port:
+        proxy:
         poll: 1
       metrics:
         - name: fs_io
         - name: fs
         - name: cpu
         - name: mem
+        - name: drives
         - name: medias
+        - name: pvgprofile
+        - name: net
         - name: fc
+        - name: vtldirtycache
       ips:
-        - ip:  172.17.36.184
-          alias: linux14
-        - ip:  172.17.36.184
-          alias: linux02
+        - ip: 10.1.10.3
+          alias: ICP1
+        - ip: 10.1.10.2
+          alias: ICP2
+          ip_host_keys:
+          ip_user:
+          ip_proxy:
+  - name: powerstor1
+    resources_types: powerstor
+    config:
+      parameters:
+        protocol: http|https
+        port:
+        user: apereira
+        pwd64: TBD
+        unsecured: True|False
+        proxy:
+        poll: 1
+      metrics:
+        - name: node
+      ips:
+        - ip: 10.10.9.9
+          alias: powerstor1
+  - name: irmc
+    resources_types: redfish
+    config:
+      parameters:
+        protocol: http|https
+        port:
+        user: apereira
+        pwd64: TBD
+        unsecured: True|False
+        proxy:
+        poll: 1
+      metrics:
+        - name: power
+        - name: temp
+      ips:
+        - ip: 10.10.10.1
+          alias: server1
+          ip_protocol: http|https
+          ip_user:
+          ip_pwd64:
+          ip_unsecured: True|False
+          ip_proxy:
 global_parameters:
   repository: influxdb
   repository_port: 8086
   repository_protocol: tcp
-  repository_api_key: TOBEDEFINED
-  loglevel: ERROR
+  repository_api_key: TBD
+  loglevel: NOTSET|INFO|WARNING|DEBUG|ERROR|CRITICAL
   logfile: logs/fjcollector.log
-  auto_fungraph: yes
-  grafana_api_key: TOBEDEFINED
-  grafana_server: grafana
+  auto_fungraph: True|False
+  grafana_api_key: TBD
+  grafana_server: grafana|specify
