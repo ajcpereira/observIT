@@ -52,7 +52,9 @@ class AllowedMetrics:
         'fj_ism': [['temp'], 
                    ['ism_temp']],
         'server': [['power','temp'], 
-                   ['server.server_power','server.server_temp']]
+                   ['server.server_power','server.server_temp']],
+        'powerstor': [['node'], 
+                   ['powerstor.node']]
     }
 
     @classmethod
@@ -87,6 +89,10 @@ class Ip(BaseModel):
     ip_redfish_user: Optional[StrictStr] = Field(None)
     ip_redfish_pwd64: Optional[Base64Str] = Field(None)
     ip_redfish_unsecured: Optional[bool] = Field(False)    
+    ip_powerstor_url: Optional[HttpUrl] = Field(None)
+    ip_powerstor_user: Optional[StrictStr] = Field(None)
+    ip_powerstor_pwd64: Optional[Base64Str] = Field(None)
+    ip_powerstor_unsecured: Optional[bool] = Field(False)    
 
 class Parameters(BaseModel):
     user: Optional[StrictStr] = Field(None)
@@ -103,6 +109,11 @@ class Parameters(BaseModel):
     redfish_user: Optional[StrictStr] = Field(None)
     redfish_pwd64: Optional[Base64Str] = Field(None)
     redfish_unsecured: Optional[bool] = Field(False)
+    powerstor_url: Optional[HttpUrl] = Field(None)
+    powerstor_user: Optional[StrictStr] = Field(None)
+    powerstor_pwd64: Optional[Base64Str] = Field(None)
+    powerstor_unsecured: Optional[bool] = Field(False)    
+
 class Metrics(BaseModel):
     name: StrictStr
 
