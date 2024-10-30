@@ -1199,7 +1199,6 @@ def graph_linux_os_fs(system_name, resource_name, metric, y_pos):
 
 
 def graph_powerstore(system_name, resource_name, data, global_pos):
-    # todo:
 
     panels_list = []
     y_pos = global_pos
