@@ -52,6 +52,9 @@ def new_create_system_dashboard(sys, dash_name=None):
                 y_pos, res_panel = graph_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
                 templating = create_dashboard_vars(res['data'])
                 panels = panels + res_panel
+            case "powerstor":
+                y_pos, res_panel = graph_powerstore(str(sys['system']), str(res['name']), res['data'], y_pos)
+                panels = panels + res_panel
 
     my_dashboard = Dashboard(
         title=dash_name,
@@ -159,6 +162,7 @@ def main():
     # Check Data Model
     print(f"Building Data Model...")
     systems = data_model_build(config)
+    print(f"Data model is {systems}")
 
     i = 0
     str_sysname = ""
