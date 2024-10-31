@@ -53,8 +53,8 @@ class AllowedMetrics:
                    ['ism_temp']],
         'server': [['power','temp'], 
                    ['server.server_power','server.server_temp']],
-        'powerstore': [['node'], 
-                   ['powerstore.node']]
+        'powerstore': [['node','space'], 
+                   ['powerstore.node','powerstore.space']]
     }
 
     @classmethod
