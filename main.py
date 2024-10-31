@@ -23,7 +23,7 @@ import sys, os, logging, time
 from threading import Thread, Event
 from functions_core.yaml_validate import *
 from functions_core.grafana_fun import *
-from functions_core.secure_connect import *
+from functions_core.SshConnect import *
 from functions_core.utils import *
 from functions import *
 

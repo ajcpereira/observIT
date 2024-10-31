@@ -1,6 +1,6 @@
 import time
 from functions_core.send_influxdb import *
-from functions_core.http_connect import *
+from functions_core.HttpConnect import *
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

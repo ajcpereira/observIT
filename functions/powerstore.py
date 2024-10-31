@@ -1,5 +1,5 @@
 import time
-from functions_core.http_connect import *
+from functions_core.HttpConnect import *
 from functions_core.send_influxdb import *
 from functions_core.utils import *
 
@@ -8,10 +8,10 @@ from functions_core.utils import *
 def node(**args):
 
 
-    password = decode_base64(args['powerstor_pwd64'])
-    logging.debug(f"Arguments are url {args['powerstor_url']}, user {args['powerstor_user']} pass {args['powerstor_pwd64']} and unsucure {args['powerstor_unsecured']}")
+    password = decode_base64(args['powerstore_pwd64'])
+    logging.debug(f"Arguments are url {args['powerstore_url']}, user {args['powerstore_user']} pass {args['powerstore_pwd64'][4]} and unsucure {args['powerstore_unsecured']}")
 
-    http_client = HttpConnect(args['powerstor_url'], args['powerstor_user'], password, args['powerstor_unsecured'])
+    http_client = HttpConnect(args['powerstore_url'], args['powerstore_user'], password, args['powerstore_unsecured'])
     #
     # # Get the node list from Powerstore API
     response = http_client.get('api/rest/node')
@@ -20,7 +20,7 @@ def node(**args):
     #
     #
     if response is None:
-        logging.error(f"Error Retrieving node list from URL {args['powerstor_url']}{'api/rest/node'}")
+        logging.error(f"Error Retrieving node list from URL {args['powerstore_url']}{'api/rest/node'}")
         return -1
 
     nodes = response.json()
@@ -40,7 +40,7 @@ def node(**args):
         response = http_client.post('api/rest/metrics/generate', post_params, {"DELL-EMC-TOKEN": dell_emc_token}) 
 
         if response is None:
-            logging.error(f"Error Retrieving performance data for node node['id']{args['powerstor_url']}{'api/rest/node'}")
+            logging.error(f"Error Retrieving performance data for node node['id']{args['powerstore_url']}{'api/rest/node'}")
             return -1
 
         response_json = response.json()
@@ -49,7 +49,7 @@ def node(**args):
         perfdata = response_json[-1]
 
         influxdb_record = [{
-             "measurement": "powerstor_node",
+             "measurement": "powerstore_node",
              "tags": {
                  "system": args['name'],
                  "resource_type": args['resources_types'],

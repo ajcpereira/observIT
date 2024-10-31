@@ -1,7 +1,7 @@
 import os, logging, subprocess, time, re
 import pandas as pd
 from functions_core.send_influxdb import *
-from functions_core.secure_connect import *  
+from functions_core.SshConnect import *  
 
 def eternus_cs8000_fs_io(**args):
 

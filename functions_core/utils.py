@@ -51,33 +51,33 @@ def args_setup(args):
     else:
          redfish_unsecured=None
 
-    if args['ip_powerstor_url']:
-         powerstor_url=str(args['ip_powerstor_url'])
-    elif args['powerstor_url']:
-         powerstor_url=str(args['powerstor_url'])
+    if args['ip_powerstore_url']:
+         powerstore_url=str(args['ip_powerstore_url'])
+    elif args['powerstore_url']:
+         powerstore_url=str(args['powerstore_url'])
     else:
-         powerstor_url=None
+         powerstore_url=None
 
-    if args['ip_powerstor_user']:
-         powerstor_user=str(args['ip_powerstor_user'])
-    elif args['powerstor_user']:
-         powerstor_user=str(args['powerstor_user'])
+    if args['ip_powerstore_user']:
+         powerstore_user=str(args['ip_powerstore_user'])
+    elif args['powerstore_user']:
+         powerstore_user=str(args['powerstore_user'])
     else:
-         powerstor_user=None
+         powerstore_user=None
 
-    if args['ip_powerstor_pwd64']:
-         powerstor_pwd64=str(args['ip_powerstor_pwd64'])
-    elif args['powerstor_pwd64']:
-         powerstor_pwd64=str(args['powerstor_pwd64'])
+    if args['ip_powerstore_pwd64']:
+         powerstore_pwd64=str(args['ip_powerstore_pwd64'])
+    elif args['powerstore_pwd64']:
+         powerstore_pwd64=str(args['powerstore_pwd64'])
     else:
-         powerstor_pwd64=None
+         powerstore_pwd64=None
 
-    if args['ip_powerstor_unsecured']:
-         powerstor_unsecured=str(args['ip_powerstor_unsecured'])
-    elif args['powerstor_unsecured']:
-         powerstor_unsecured=str(args['powerstor_unsecured'])
+    if args['ip_powerstore_unsecured']:
+         powerstore_unsecured=str(args['ip_powerstore_unsecured'])
+    elif args['powerstore_unsecured']:
+         powerstore_unsecured=str(args['powerstore_unsecured'])
     else:
-         powerstor_unsecured=None
+         powerstore_unsecured=None
 
     args['bastion']=bastion
     args['host_keys']=host_keys
@@ -86,10 +86,10 @@ def args_setup(args):
     args['redfish_user']=redfish_user
     args['redfish_pwd64']=redfish_pwd64
     args['redfish_unsecured']=redfish_unsecured
-    args['powerstor_url']=powerstor_url
-    args['powerstor_user']=powerstor_user
-    args['powerstor_pwd64']=powerstor_pwd64
-    args['powerstor_unsecured']=powerstor_unsecured
+    args['powerstore_url']=powerstore_url
+    args['powerstore_user']=powerstore_user
+    args['powerstore_pwd64']=powerstore_pwd64
+    args['powerstore_unsecured']=powerstore_unsecured
     return args
 
 def decode_base64(base64_message):

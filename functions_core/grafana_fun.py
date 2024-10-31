@@ -65,7 +65,7 @@ def create_system_dashboard(sys, config):
                 y_pos, res_panel = graph_eternus_cs8000(str(sys['system']), str(res['name']), res['data'], y_pos)
                 templating = create_dashboard_vars(res['data'])
                 panels = panels + res_panel
-            case "powerstor":
+            case "powerstore":
                 y_pos, res_panel = graph_powerstore(str(sys['system']), str(res['name']), res['data'], y_pos)
                 panels = panels + res_panel
 
@@ -1234,7 +1234,7 @@ def graph_powerstore_node_cpu(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list_cpu_use.append(
             InfluxDBTarget(
-                query=f"SELECT 100 * mean(\"io_workload_cpu_utilization\") FROM \"powerstor_node\" "
+                query=f"SELECT 100 * mean(\"io_workload_cpu_utilization\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",      
                 alias="$tag_host $tag_node_id"
@@ -1279,7 +1279,7 @@ def graph_powerstore_node_read(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"avg_read_latency\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"avg_read_latency\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1312,7 +1312,7 @@ def graph_powerstore_node_read(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"read_iops\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"read_iops\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1345,7 +1345,7 @@ def graph_powerstore_node_read(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"read_bandwidth\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"read_bandwidth\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1388,7 +1388,7 @@ def graph_powerstore_node_write(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"avg_write_latency\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"avg_write_latency\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1421,7 +1421,7 @@ def graph_powerstore_node_write(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"write_iops\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"write_iops\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1454,7 +1454,7 @@ def graph_powerstore_node_write(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"write_bandwidth\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"write_bandwidth\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1498,7 +1498,7 @@ def graph_powerstore_node_total(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"avg_latency\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"avg_latency\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1531,7 +1531,7 @@ def graph_powerstore_node_total(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"total_iops\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"total_iops\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
@@ -1564,7 +1564,7 @@ def graph_powerstore_node_total(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list.append(
             InfluxDBTarget(
-                query=f"SELECT mean(\"total_bandwidth\") FROM \"powerstor_node\" "
+                query=f"SELECT mean(\"total_bandwidth\") FROM \"powerstore_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
                       f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
                 alias="$tag_host $tag_node_id"
