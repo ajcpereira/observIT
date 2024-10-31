@@ -36,7 +36,7 @@ COLLECTOR_GRADIENT_MODE = 'none' #none, opacity, hue
 COLLECTOR_SHOW_POINTS = 'never'
 COLLECTOR_LINE_INTERPOLATION = 'smooth'
 COLLECTOR_FILL_OPACITY = 25
-COLLECTOR_SPAN_NULLS = True # True
+COLLECTOR_SPAN_NULLS = False # False
 COLLECTOR_FC_UNITS = 'Mbits'
 #COLLECTOR_FC_UNITS = 'MBs' # Data rate MBytes/sec = 'MBs'
 COLLECTOR_NET_UNITS = 'binbps' # Data rate/ Bytes/sec = 'Bps' or Data rate/ Bytes/sec(IEC)
