@@ -1234,9 +1234,9 @@ def graph_powerstore_node_cpu(system_name, resource_name, metric, y_pos):
     for host in metric['hosts']:
         panels_target_list_cpu_use.append(
             InfluxDBTarget(
-                query=f"SELECT 100 * mean(\"io_workload_cpu_utilization\") FROM \"powerstore_node\" "
+                query=f"SELECT 100 * mean(\"io_workload_cpu_utilization\") FROM \"powerstor_node\" "
                       f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
-                      f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
+                      f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",      
                 alias="$tag_host $tag_node_id"
             )
         )
