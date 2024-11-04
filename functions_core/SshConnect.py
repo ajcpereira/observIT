@@ -71,7 +71,7 @@ class Secure_Connect():
 
                         # Setting up Paramiko SSH client options 
                         paramiko.Transport._preferred_ciphers = ('aes128-cbc', 'aes256-cbc') 
-                        paramiko.Transport._preferred_kex = ('diffie-hellman-group14-sha1',) 
+                        #paramiko.Transport._preferred_kex = ('diffie-hellman-group14-sha1',) 
                         paramiko.Transport._preferred_keys = ('ssh-rsa',)
 
                         logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
@@ -157,7 +157,7 @@ class Secure_Connect():
                         # Setting up Paramiko SSH client options 
                         
                         paramiko.Transport._preferred_ciphers = ('aes128-cbc', 'aes256-cbc') 
-                        paramiko.Transport._preferred_kex = ('diffie-hellman-group14-sha1',) 
+                        #paramiko.Transport._preferred_kex = ('diffie-hellman-group14-sha1',) 
                         paramiko.Transport._preferred_keys = ('ssh-rsa',)
                         
                         self.ssh = fabric2.Connection(
