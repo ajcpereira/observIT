@@ -97,7 +97,6 @@ class Secure_Connect():
                                 "banner_timeout":12, 
                                 "auth_timeout":12, 
                                 "channel_timeout":12,
-                                'key_policy': paramiko.AutoAddPolicy(),
                                 }
                             )
                         self.ssh_bastion.open()
@@ -195,7 +194,6 @@ class Secure_Connect():
                                 "banner_timeout":12, 
                                 "auth_timeout":12, 
                                 "channel_timeout":12,
-                                'key_policy': paramiko.AutoAddPolicy(),
                             }
                         )
                         self.ssh.open()
