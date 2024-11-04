@@ -56,7 +56,7 @@ class AllowedMetrics:
         'powerstore': [['node','space'], 
                    ['powerstore.node','powerstore.space']],
         'eternus_dx': [['host-io'], 
-                   ['eternus_dx.host-io']]
+                   ['eternus_dx.host_io']]
     }
 
     @classmethod
