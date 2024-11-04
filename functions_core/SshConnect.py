@@ -1,4 +1,4 @@
-import fabric2, logging, tempfile, time, threading
+import fabric2, logging, tempfile, time, threading, paramiko
 
 # Will be used for a multi-thread environment to manage ssh connections
 class Secure_Connect():
@@ -68,6 +68,12 @@ class Secure_Connect():
                     cmd_pkey_bastion = "cat $HOME/.ssh/id_rsa"
                     # Open connection to bastion
                     try:
+
+                        # Setting up Paramiko SSH client options 
+                        paramiko.Transport._preferred_ciphers = ('aes128-cbc', 'aes256-cbc') 
+                        paramiko.Transport._preferred_kex = ('diffie-hellman-group14-sha1',) 
+                        paramiko.Transport._preferred_keys = ('ssh-rsa',)
+
                         logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
                         self.ssh_bastion = fabric2.Connection(
                             host=str(bastion), 
@@ -78,9 +84,6 @@ class Secure_Connect():
                                 "key_filename": host_keys, 
                                 "banner_timeout":12, 
                                 "auth_timeout":12, 
-                                "PubkeyAcceptedKeyTypes": "+ssh-rsa",
-                                "HostKeyAlgorithms":"+ssh-rsa",
-                                "Ciphers": "aes128-cbc,aes256-cbc",
                                 "channel_timeout":12,
                                 }
                             )
