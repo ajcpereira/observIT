@@ -4,7 +4,7 @@ from io import StringIO
 from functions_core.send_influxdb import *
 from functions_core.SshConnect import *  
 
-def host_io(**args):
+def eternus_dx_host_io(**args):
 
     logging.debug("Starting func_eternus_dx_host_io")
     

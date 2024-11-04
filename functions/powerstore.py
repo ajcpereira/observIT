@@ -5,7 +5,7 @@ from functions_core.utils import *
 
 
 
-def node(**args):
+def powerstore_node(**args):
 
 
     password = decode_base64(args['powerstore_pwd64'])
@@ -85,7 +85,7 @@ def node(**args):
 
     http_client.close()
 
-def space(**args):
+def powerstore_space(**args):
 
 
     password = decode_base64(args['powerstore_pwd64'])
