@@ -11,6 +11,7 @@ from functions_core.SshConnect import *
 #    Ciphers=aes128-cbc,aes256-cbc
 #    HostKeyAlgorithms=+ssh-rsa
 #    PubkeyAcceptedKeyTypes=+ssh-rsa
+#signing using ssh-rsa SHA256
 
 def eternus_dx_host_io(**args):
 

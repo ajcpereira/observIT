@@ -179,8 +179,8 @@ class Secure_Connect():
                         )
                         
                         paramiko.Transport._preferred_keys = (
-                            'rsa-sha2-256', 'rsa-sha2-512',  # Modern RSA with SHA-2
-                            'ssh-rsa'                        # Legacy RSA with SHA-1
+                            'ssh-rsa',                      # Legacy RSA with SHA-1
+                            'rsa-sha2-256', 'rsa-sha2-512'  # Modern RSA with SHA-2
                         )
                         
                         self.ssh = fabric2.Connection(
