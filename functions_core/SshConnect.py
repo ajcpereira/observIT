@@ -154,7 +154,25 @@ class Secure_Connect():
                 else:
                     logging.debug("Class Secure_connect without bastion Started")
                     try:
-                        self.ssh = fabric2.Connection(host=param_ip, user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": host_keys,"banner_timeout":12, "auth_timeout":12, "channel_timeout":12,})
+                        # Setting up Paramiko SSH client options 
+                        
+                        paramiko.Transport._preferred_ciphers = ('aes128-cbc', 'aes256-cbc') 
+                        paramiko.Transport._preferred_kex = ('diffie-hellman-group14-sha1',) 
+                        paramiko.Transport._preferred_keys = ('ssh-rsa',)
+                        
+                        self.ssh = fabric2.Connection(
+                            host=param_ip, 
+                            user=user, 
+                            port=22, 
+                            connect_timeout=12, 
+                            connect_kwargs=
+                            {
+                                "key_filename": host_keys,
+                                "banner_timeout":12, 
+                                "auth_timeout":12, 
+                                "channel_timeout":12,
+                            }
+                        )
                         self.ssh.open()
                         logging.debug("Class Secure_connect open ok with bastion, will return session - %s" % self)
                     except Exception as msgerror:
