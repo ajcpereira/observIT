@@ -56,6 +56,8 @@ def run_threaded(**args) -> None:
                 break
             with Secure_Connect.global_lock:
                 Secure_Connect.manage_sessions(None)
+            #with HttpConnect.global_lock:
+            #    HttpConnect.manage_sessions(None)                
         else:
             args=args_setup(args)
             event.wait(timeout=args['poll']*60)
