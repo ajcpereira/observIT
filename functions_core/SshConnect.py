@@ -164,7 +164,7 @@ class Secure_Connect():
                     Secure_Connect.active_sessions.append(session_key)
                 # open connection without bastion
                 else:
-                    logging.debug("Class Secure_connect without bastion Started")
+                    logging.debug("Class Secure_connect (no bastion) Started")
                     try:
                         #Configure SSH options to support both legacy and modern systems.
                         paramiko.Transport._preferred_ciphers = (
@@ -198,7 +198,7 @@ class Secure_Connect():
                             }
                         )
                         self.ssh.open()
-                        logging.debug("Class Secure_connect open ok with bastion, will return session - %s" % self)
+                        logging.debug("Class Secure_connect open ok (no bastion), will return session - %s" % self)
                     except Exception as msgerror:
                         logging.error("Class Secure FAILED - %s - for ip %s" % (msgerror, param_ip))
                         if hasattr(self,'ssh'):
