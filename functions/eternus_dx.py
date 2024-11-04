@@ -4,6 +4,14 @@ from io import StringIO
 from functions_core.send_influxdb import *
 from functions_core.SshConnect import *  
 
+# The key must be generated with ssh-keygen -t rsa -N ""
+# ssh-keygen -e -f ~/.ssh/id_rsa.pub > id_rsa.pub.ietf
+# Your ~/.ssh/config should look like:
+#Host *
+#    Ciphers=aes128-cbc,aes256-cbc
+#    HostKeyAlgorithms=+ssh-rsa
+#    PubkeyAcceptedKeyTypes=+ssh-rsa
+
 def eternus_dx_host_io(**args):
 
     logging.debug("Starting func_eternus_dx_host_io")

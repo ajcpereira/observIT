@@ -69,7 +69,20 @@ class Secure_Connect():
                     # Open connection to bastion
                     try:
                         logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
-                        self.ssh_bastion = fabric2.Connection(host=str(bastion), user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": host_keys, "banner_timeout":12, "auth_timeout":12, "channel_timeout":12,})
+                        self.ssh_bastion = fabric2.Connection(
+                            host=str(bastion), 
+                            user=user, 
+                            port=22, 
+                            connect_timeout=12, 
+                            connect_kwargs={
+                                "key_filename": host_keys, 
+                                "banner_timeout":12, 
+                                "auth_timeout":12, 
+                                "PubkeyAcceptedKeyTypes": "+ssh-rsa",
+                                "Ciphers": "aes128-cbc,aes256-cbc",
+                                "channel_timeout":12,
+                                }
+                            )
                         self.ssh_bastion.open()
                         logging.debug("Got session for bastion")
                     except Exception as msgerror:
