@@ -79,6 +79,7 @@ class Secure_Connect():
                                 "banner_timeout":12, 
                                 "auth_timeout":12, 
                                 "PubkeyAcceptedKeyTypes": "+ssh-rsa",
+                                "HostKeyAlgorithms":"+ssh-rsa",
                                 "Ciphers": "aes128-cbc,aes256-cbc",
                                 "channel_timeout":12,
                                 }
