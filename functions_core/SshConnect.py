@@ -194,6 +194,7 @@ class Secure_Connect():
                                 "banner_timeout":12, 
                                 "auth_timeout":12, 
                                 "channel_timeout":12,
+                                "disabled_algorithms": {"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]},
                             }
                         )
                         self.ssh.open()
