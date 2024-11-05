@@ -1730,4 +1730,8 @@ def graph_powerstore_space(system_name, resource_name, metric, y_pos):
 
     line = line + 7
 
+<<<<<<< HEAD
     return line, panels_list
+=======
+    return line, panels_list
+>>>>>>> refs/remotes/origin/powerstor_metrics
