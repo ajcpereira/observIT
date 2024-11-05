@@ -6,6 +6,8 @@
 
 
 import json, requests, logging
+from platform import system
+
 from functions_core.yaml_validate import *
 from functions_core.grafanafun_dm import data_model_build
 from functions_core.grafanalib_ext import *
@@ -1214,6 +1216,9 @@ def graph_powerstore(system_name, resource_name, data, global_pos):
                 panels_list = panels_list + panel
                 y_pos, panel = graph_powerstore_node_total(system_name, resource_name, metric, y_pos)
                 panels_list = panels_list + panel
+            case "space":
+                y_pos, panel = graph_powerstore_space(system_name, resource_name, metric, y_pos)
+                panels_list = panels_list + panel
 
     return y_pos, panels_list
 
@@ -1581,6 +1586,137 @@ def graph_powerstore_node_total(system_name, resource_name, metric, y_pos):
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
         unit="binBps",
+        gridPos=GridPos(h=7, w=8, x=16, y=line),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
+        tooltipMode="multi",
+        legendSortDesc=False,
+    )
+    )
+
+    line = line + 7
+
+    return line, panels_list
+
+
+
+def graph_powerstore_space(system_name, resource_name, metric, y_pos):
+
+    # marteladão - tem de ser melhorado (está a forçar este painel a seguir ao cpu)
+    y_pos = 4
+    str_title = f"Capacity ({resource_name})"
+    panels_list = [RowPanel(title=str_title, gridPos=GridPos(h=1, w=24, x=0, y=y_pos))]
+    line = y_pos + 1
+
+    #panels_target_list = []
+    panels_target_physical_list = []
+    panels_target_reduction_list = []
+    panels_target_logical_list = []
+    for host in metric['hosts']:
+        #Target queries for Physical Space
+        panels_target_physical_list.append(
+                InfluxDBTarget(
+                query=f"SELECT max(\"physical_total\") FROM \"powerstore_space\" "
+                      f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                      f"GROUP BY time($__interval), \"host\"::tag, \"appliance_id\"::tag fill(null)",
+                alias="$tag_host $tag_appliance_id Physical Total",
+            ),
+        )
+        panels_target_physical_list.append(
+            InfluxDBTarget(
+                query=f"SELECT max(\"physical_used\") FROM \"powerstore_space\" "
+                      f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                      f"GROUP BY time($__interval), \"host\"::tag, \"appliance_id\"::tag fill(null)",
+                alias="$tag_host $tag_appliance_id Physical Used",
+            ),
+        )
+        # Target queries for Data Reduction
+        panels_target_reduction_list.append(
+                InfluxDBTarget(
+                query="SELECT max(\"data_reduction\") FROM \"powerstore_space\" "
+                      f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                      "GROUP BY time($__interval), \"host\"::tag, \"appliance_id\"::tag fill(null)",
+                alias="$tag_host $tag_appliance_id Data Reduction",
+            ),
+        )
+        #Target queries for Logical Space
+        panels_target_logical_list.append(
+                InfluxDBTarget(
+                query=f"SELECT max(\"logical_provisioned\") FROM \"powerstore_space\" "
+                      f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                      f"GROUP BY time($__interval), \"host\"::tag, \"appliance_id\"::tag fill(null)",
+                alias="$tag_host $tag_appliance_id Logical Provisioned",
+            ),
+        )
+        panels_target_logical_list.append(
+            InfluxDBTarget(
+                query=f"SELECT max(\"logical_used\") FROM \"powerstore_space\" "
+                      f"WHERE (\"system\"::tag = '{system_name}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                      f"GROUP BY time($__interval), \"host\"::tag, \"appliance_id\"::tag fill(null)",
+                alias="$tag_host $tag_appliance_id Logical Used",
+            ),
+        )
+
+        # Panel for Logical Space
+    panels_list.append(CollectorTimeSeries(
+        title="Space Usage Logical",
+        dataSource='default',
+        targets=panels_target_logical_list,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit="bytes",
+        gridPos=GridPos(h=7, w=8, x=0, y=line),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
+        tooltipMode="multi",
+        legendSortDesc=False,
+    )
+    )
+
+    # Panel for Data Reduction
+    panels_list.append(CollectorTimeSeries(
+        title="Space Data Reduction",
+        dataSource='default',
+        targets=panels_target_reduction_list,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit="none",
+        valueMax=12,
+        valueDecimals=2,
+        gridPos=GridPos(h=7, w=8, x=8, y=line),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
+        tooltipMode="multi",
+        legendSortDesc=False,
+    )
+    )
+
+    #Panel for Physical Space
+    panels_list.append(CollectorTimeSeries(
+        title="Space Usage Physical",
+        dataSource='default',
+        targets=panels_target_physical_list,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit="bytes",
         gridPos=GridPos(h=7, w=8, x=16, y=line),
         spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="bottom",
