@@ -68,24 +68,6 @@ class Secure_Connect():
                     cmd_pkey_bastion = "cat $HOME/.ssh/id_rsa"
                     # Open connection to bastion
                     try:
-
-                        #Configure SSH options to support both legacy and modern systems.
-                        #paramiko.Transport._preferred_ciphers = (
-                        #    'aes128-ctr', 'aes256-ctr',   # Modern ciphers
-                        #    'aes128-cbc', 'aes256-cbc'    # Legacy CBC ciphers
-                        #)
-
-                        #paramiko.Transport._preferred_kex = (
-                        #    'diffie-hellman-group14-sha256',  # Modern SHA-256 DH
-                        #    'ecdh-sha2-nistp256',             # Modern elliptic curve DH
-                        #    'diffie-hellman-group14-sha1'     # Legacy SHA-1 DH
-                        #)
-
-                        #paramiko.Transport._preferred_keys = (
-                        #    'rsa-sha2-256', 'rsa-sha2-512',  # Modern RSA with SHA-2
-                        #    'ssh-rsa'                        # Legacy RSA with SHA-1
-                        #)
-
                         logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
                         self.ssh_bastion = fabric2.Connection(
                             host=str(bastion), 
@@ -165,24 +147,7 @@ class Secure_Connect():
                 # open connection without bastion
                 else:
                     logging.debug("Class Secure_connect (no bastion) Started")
-                    try:
-                        #Configure SSH options to support both legacy and modern systems.
-                        #paramiko.Transport._preferred_ciphers = (
-                        #    'aes128-ctr', 'aes256-ctr',   # Modern ciphers
-                        #    'aes128-cbc', 'aes256-cbc'    # Legacy CBC ciphers
-                        #)
-                        #
-                        #paramiko.Transport._preferred_kex = (
-                        #    'diffie-hellman-group14-sha256',  # Modern SHA-256 DH
-                        #    'ecdh-sha2-nistp256',             # Modern elliptic curve DH
-                        #    'diffie-hellman-group14-sha1'     # Legacy SHA-1 DH
-                        #)
-                        #
-                        #paramiko.Transport._preferred_keys = (
-                        #    'ssh-rsa',                      # Legacy RSA with SHA-1
-                        #    'rsa-sha2-256', 'rsa-sha2-512'  # Modern RSA with SHA-2
-                        #)
-                        
+                    try:                     
                         self.ssh = fabric2.Connection(
                             host=param_ip, 
                             user=user, 
@@ -194,7 +159,6 @@ class Secure_Connect():
                                 "banner_timeout":12, 
                                 "auth_timeout":12, 
                                 "channel_timeout":12,
-                            #    "disabled_algorithms": {"pubkeys": ["rsa-sha2-256", "rsa-sha2-512"]},
                             }
                         )
                         self.ssh.open()
