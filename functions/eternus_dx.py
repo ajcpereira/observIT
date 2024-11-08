@@ -12,7 +12,7 @@ def eternus_dx_cpu(**args):
  
 
     nr_cores=[]
-    #Perform an SNMP WALK on a subtree (e.g., 1.3.6.1.2.1.1 for system info)
+    #Perform an SNMP WALK on a subtree
     for item in session.walk(SNMP_MIB_VER + '.5.14.2.1.2'):
         nr_cores = nr_cores + [item.value]
 
