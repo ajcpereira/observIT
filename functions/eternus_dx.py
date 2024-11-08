@@ -1,22 +1,44 @@
 from easysnmp import Session
+from functions_core.send_influxdb import *
 
 def eternus_dx_cpu(**args):
-    # Create an SNMP session to a device (replace with your device's IP)
-    session = Session(hostname='10.36.159.47', community='public', version=1)
+    # Create an SNMP session to a device
+    session = Session(hostname=str(args['ip']), community=str(args['snmp_community']), version=1)
 
-    # Perform an SNMP GET
-    #item = session.get('1.3.6.1.4.1.211.1.21.1.150.5.14.1.0')
-    #print(f'{item.oid}: {item.value}')
+    # We will get the OID version, until now all the rest of the info is the same
+    SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0').value[1:]
+
+    timestamp = int(session.get(SNMP_MIB_VER + '.5.1.4.0').value)
+ 
 
     nr_cores=[]
     #Perform an SNMP WALK on a subtree (e.g., 1.3.6.1.2.1.1 for system info)
-    for item in session.walk('1.3.6.1.4.1.211.1.21.1.150.5.14.2.1.2'):
+    for item in session.walk(SNMP_MIB_VER + '.5.14.2.1.2'):
         nr_cores = nr_cores + [item.value]
 
     i = 3
+    record=[]
     for core in nr_cores:
-         oid = "1.3.6.1.4.1.211.1.21.1.150.5.14.2.1." + str(i)
+         oid = SNMP_MIB_VER + ".5.14.2.1." + str(i)
          i += 1
          for usage in session.walk(oid):
-            print(f"My cpu usage in CM{usage.oid.split('.')[-1]} and core {i-4} is {usage.value}%")
+            #print(f"My cpu usage in CM{usage.oid.split('.')[-1]} and core {i-4} is {usage.value}%")            
 
+            record = record + [
+                {"measurement": "eternus_dx_cpu",
+                "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
+                         "CM": str(usage.oid.split('.')[-1]), "Core": str(i-4)
+                         },
+                "fields": {"busyrate": int(usage.value)},
+                "time": timestamp
+                }
+            ]
+    
+    # Send Data to InfluxDB
+    if record:
+        logging.debug("Data to be sent to DB by eternus_dx_cpu:\n%s" % record)
+        send_influxdb(str(args['repository']), str(args['repository_port']), args['repository_api_key'], args['repo_org'], args['repo_bucket'], record)
+    else:
+         logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metrics?")
+
+    logging.debug("Finished func_eternus_dx_cpu")
