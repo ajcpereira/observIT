@@ -30,7 +30,7 @@ def get_eternus_volume_names(storage_url, username, password):
 # Usage example
 storage_url = "http://10.36.159.47:5988"
 username = "apereira"
-password = "apereirA#2024"
+password = "TBD"
 
 
 volume_names = get_eternus_volume_names(storage_url, username, password)

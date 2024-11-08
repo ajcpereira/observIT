@@ -4,7 +4,7 @@ from datetime import datetime
 # Set up the connection parameters
 server_url = 'http://10.36.159.47:5988'  # Replace with your SMI-S server URL
 username = 'apereira'                       # Replace with your username
-password = 'apereirA#2024'                       # Replace with your password
+password = 'TBD'                       # Replace with your password
 
 # Connect to the SMI-S server
 conn = pywbem.WBEMConnection(
