@@ -53,8 +53,8 @@ class AllowedMetrics:
                    ['server.server_power','server.server_temp']],
         'powerstore': [['node','space'], 
                    ['powerstore.powerstore_node','powerstore.powerstore_space']],
-        'eternus_dx': [['cpu'], 
-                   ['eternus_dx.eternus_dx_cpu']]
+        'eternus_dx': [['cpu', 'tppool'], 
+                   ['eternus_dx.eternus_dx_cpu', 'eternus_dx.eternus_dx_tppool']]
     }
 
     @classmethod
