@@ -10,19 +10,23 @@ def eternus_dx_cpu(**args):
 
     timestamp = int(session.get(SNMP_MIB_VER + '.5.1.4.0').value)
  
-
-    nr_cores=[]
+    #nr_cores=[]
     #Perform an SNMP WALK on a subtree
-    for item in session.walk(SNMP_MIB_VER + '.5.14.2.1.2'):
-        nr_cores = nr_cores + [item.value]
+    #for item in session.walk(SNMP_MIB_VER + '.5.14.2.1.2'):
+        #nr_cores = nr_cores + [item.value]
 
+    logging.debug(f"Will get number of Cores ")
+    nr_cores = int(session.get(SNMP_MIB_VER + '.5.14.1.0').value)
+    logging.debug(f"Number of Cores is {nr_cores}")
     i = 3
     record=[]
-    for core in nr_cores:
+    while nr_cores > 0:
          oid = SNMP_MIB_VER + ".5.14.2.1." + str(i)
+         logging.debug(f"Getting core {i-3} usage for all CM's {oid}")
          i += 1
+         nr_cores -= 1
          for usage in session.walk(oid):
-            #print(f"My cpu usage in CM{usage.oid.split('.')[-1]} and core {i-4} is {usage.value}%")            
+            logging.debug(f"Core usage in CM{usage.oid.split('.')[-1]} and core {i-4} is {usage.value}%")            
 
             record = record + [
                 {"measurement": "eternus_dx_cpu",
