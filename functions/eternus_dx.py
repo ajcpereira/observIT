@@ -220,3 +220,8 @@ def eternus_dx_vol(**args):
 # Write Throughtput iso.3.6.1.4.1.211.1.21.1.150.5.2.2.1.7.VOLNUMBER
 # Read avg response time iso.3.6.1.4.1.211.1.21.1.150.5.2.2.1.10.VOLNUMBER
 # Write avg response time iso.3.6.1.4.1.211.1.21.1.150.5.2.2.1.11.VOLNUMBER
+
+# CA Ports
+# fujitsu.1.21.1.150.5.5.2.1.4.n n: 0-fjdaryPfCaPortCount-1 
+
+# Need community has a overwrite option
