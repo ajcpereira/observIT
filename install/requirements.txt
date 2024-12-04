@@ -7,4 +7,3 @@ python-dateutil
 grafanalib
 influxdb_client
 easysnmp
-windows-curses
