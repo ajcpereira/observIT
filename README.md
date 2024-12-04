@@ -14,6 +14,8 @@ The aggregator is a scheduler that collects information based in a YAML file (/o
 This is built on a virtual appliance which can be found here: 
 <BR>https://drive.proton.me/urls/6WE4036KX8#dHQ35JnT8Obz
 
+Note: If installing the image in hyper-v keep in mind you need to change the Security -> Secure boot enabled -> Microsoft UEFI Certificate Authority
+
 <BR>In the future a script will be made available for create a fixed IP, atm the virtual appliance is based in DHCP.
 
 <BR>You can make OS updates for security reasons using the following: "cd /home/observit/observit; make update_os"
