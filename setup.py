@@ -16,6 +16,9 @@ def manage_containers():
     print("Managing Containers...")
 
 def menu(stdscr):
+    curses.start_color() 
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    
     curses.curs_set(0)
     stdscr.clear()
     stdscr.refresh()
