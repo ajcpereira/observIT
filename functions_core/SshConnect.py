@@ -1,4 +1,4 @@
-import fabric2, logging, tempfile, time, threading
+import fabric2, logging, tempfile, time, threading, paramiko
 
 # Will be used for a multi-thread environment to manage ssh connections
 class Secure_Connect():
@@ -69,7 +69,18 @@ class Secure_Connect():
                     # Open connection to bastion
                     try:
                         logging.debug("Values ip %s, bastion %s, user %s and host_keys %s" % (param_ip, bastion, user, host_keys))
-                        self.ssh_bastion = fabric2.Connection(host=str(bastion), user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": host_keys, "banner_timeout":12, "auth_timeout":12, "channel_timeout":12,})
+                        self.ssh_bastion = fabric2.Connection(
+                            host=str(bastion), 
+                            user=user, 
+                            port=22, 
+                            connect_timeout=12, 
+                            connect_kwargs={
+                                "key_filename": host_keys, 
+                                "banner_timeout":12, 
+                                "auth_timeout":12, 
+                                "channel_timeout":12,
+                                }
+                            )
                         self.ssh_bastion.open()
                         logging.debug("Got session for bastion")
                     except Exception as msgerror:
@@ -135,11 +146,23 @@ class Secure_Connect():
                     Secure_Connect.active_sessions.append(session_key)
                 # open connection without bastion
                 else:
-                    logging.debug("Class Secure_connect without bastion Started")
-                    try:
-                        self.ssh = fabric2.Connection(host=param_ip, user=user, port=22, connect_timeout=12, connect_kwargs={"key_filename": host_keys,"banner_timeout":12, "auth_timeout":12, "channel_timeout":12,})
+                    logging.debug("Class Secure_connect (no bastion) Started")
+                    try:                     
+                        self.ssh = fabric2.Connection(
+                            host=param_ip, 
+                            user=user, 
+                            port=22, 
+                            connect_timeout=12, 
+                            connect_kwargs=
+                            {
+                                "key_filename": host_keys,
+                                "banner_timeout":12, 
+                                "auth_timeout":12, 
+                                "channel_timeout":12,
+                            }
+                        )
                         self.ssh.open()
-                        logging.debug("Class Secure_connect open ok with bastion, will return session - %s" % self)
+                        logging.debug("Class Secure_connect open ok (no bastion), will return session - %s" % self)
                     except Exception as msgerror:
                         logging.error("Class Secure FAILED - %s - for ip %s" % (msgerror, param_ip))
                         if hasattr(self,'ssh'):

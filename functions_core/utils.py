@@ -1,6 +1,6 @@
 import logging
+import base64
 
-#args=args_setup(args)
 def args_setup(args):
 
     logging.debug("utils lib outpu from arg dict %s" % args)
@@ -51,6 +51,34 @@ def args_setup(args):
     else:
          redfish_unsecured=None
 
+    if args['ip_powerstore_url']:
+         powerstore_url=str(args['ip_powerstore_url'])
+    elif args['powerstore_url']:
+         powerstore_url=str(args['powerstore_url'])
+    else:
+         powerstore_url=None
+
+    if args['ip_powerstore_user']:
+         powerstore_user=str(args['ip_powerstore_user'])
+    elif args['powerstore_user']:
+         powerstore_user=str(args['powerstore_user'])
+    else:
+         powerstore_user=None
+
+    if args['ip_powerstore_pwd64']:
+         powerstore_pwd64=str(args['ip_powerstore_pwd64'])
+    elif args['powerstore_pwd64']:
+         powerstore_pwd64=str(args['powerstore_pwd64'])
+    else:
+         powerstore_pwd64=None
+
+    if args['ip_powerstore_unsecured']:
+         powerstore_unsecured=str(args['ip_powerstore_unsecured'])
+    elif args['powerstore_unsecured']:
+         powerstore_unsecured=str(args['powerstore_unsecured'])
+    else:
+         powerstore_unsecured=None
+
     args['bastion']=bastion
     args['host_keys']=host_keys
     args['hostname']=hostname
@@ -58,4 +86,15 @@ def args_setup(args):
     args['redfish_user']=redfish_user
     args['redfish_pwd64']=redfish_pwd64
     args['redfish_unsecured']=redfish_unsecured
+    args['powerstore_url']=powerstore_url
+    args['powerstore_user']=powerstore_user
+    args['powerstore_pwd64']=powerstore_pwd64
+    args['powerstore_unsecured']=powerstore_unsecured
     return args
+
+def decode_base64(base64_message):
+    base64_bytes = base64_message.encode('ascii')
+    message_bytes = base64.b64decode(base64_bytes)
+    message = message_bytes.decode('ascii')
+
+    return message

@@ -49,10 +49,12 @@ class AllowedMetrics:
                             'eternus_cs8000.eternus_cs8000_fc','eternus_cs8000_vtldirtycache']],
         'linux_os': [['cpu', 'mem', 'fs', 'net'],
                      ['linux_os.linux_os_cpu', 'linux_os.linux_os_mem', 'linux_os.linux_os_fs', 'linux_os.linux_os_net']],
-        'fj_ism': [['temp'], 
-                   ['ism_temp']],
         'server': [['power','temp'], 
-                   ['server.server_power','server.server_temp']]
+                   ['server.server_power','server.server_temp']],
+        'powerstore': [['node','space'], 
+                   ['powerstore.powerstore_node','powerstore.powerstore_space']],
+        'eternus_dx': [['cpu', 'tppool', 'power','temp','vol'], 
+                   ['eternus_dx.eternus_dx_cpu', 'eternus_dx.eternus_dx_tppool', 'eternus_dx.eternus_dx_power','eternus_dx.eternus_dx_temp','eternus_dx.eternus_dx_vol']]
     }
 
     @classmethod
@@ -87,6 +89,10 @@ class Ip(BaseModel):
     ip_redfish_user: Optional[StrictStr] = Field(None)
     ip_redfish_pwd64: Optional[Base64Str] = Field(None)
     ip_redfish_unsecured: Optional[bool] = Field(False)    
+    ip_powerstore_url: Optional[HttpUrl] = Field(None)
+    ip_powerstore_user: Optional[StrictStr] = Field(None)
+    ip_powerstore_pwd64: Optional[Base64Str] = Field(None)
+    ip_powerstore_unsecured: Optional[bool] = Field(False)    
 
 class Parameters(BaseModel):
     user: Optional[StrictStr] = Field(None)
@@ -103,6 +109,11 @@ class Parameters(BaseModel):
     redfish_user: Optional[StrictStr] = Field(None)
     redfish_pwd64: Optional[Base64Str] = Field(None)
     redfish_unsecured: Optional[bool] = Field(False)
+    powerstore_url: Optional[HttpUrl] = Field(None)
+    powerstore_user: Optional[StrictStr] = Field(None)
+    powerstore_pwd64: Optional[Base64Str] = Field(None)
+    powerstore_unsecured: Optional[bool] = Field(False)    
+
 class Metrics(BaseModel):
     name: StrictStr
 
