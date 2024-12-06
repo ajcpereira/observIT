@@ -23,6 +23,14 @@ def args_setup(args):
     else:
         hostname = str(args['ip'])
 
+    if args['ip_snmp_community']:
+         snmp_community=str(args['ip_snmp_community'])
+    elif args['snmp_community']:
+         snmp_community=str(args['snmp_community'])
+    else:
+         snmp_community=None
+
+
     if args['ip_redfish_url']:
          redfish_url=str(args['ip_redfish_url'])
     elif args['redfish_url']:
@@ -90,6 +98,7 @@ def args_setup(args):
     args['powerstore_user']=powerstore_user
     args['powerstore_pwd64']=powerstore_pwd64
     args['powerstore_unsecured']=powerstore_unsecured
+    args['snmp_community']=snmp_community
     return args
 
 def decode_base64(base64_message):

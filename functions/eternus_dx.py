@@ -23,7 +23,7 @@ def eternus_dx_cpu(**args):
 
     for count_cm in range(nr_cm):
         i = 3 # the OID 3 is the core id 0. OID 4 is core id 1 and so on.
-        
+
         logging.debug(f"Will get number of Cores in CM#{count_cm}")
         oid_query_cores = str(SNMP_MIB_VER + ".5.14.2.1.2." + str(count_cm))
 
@@ -239,6 +239,8 @@ def eternus_dx_vol(**args):
 # Write avg response time iso.3.6.1.4.1.211.1.21.1.150.5.2.2.1.11.VOLNUMBER
 
 # CA Ports
-# fujitsu.1.21.1.150.5.5.2.1.4.n n: 0-fjdaryPfCaPortCount-1 
+# Get all ports walk 1.3.6.1.4.1.211.1.21.1.150.5.5.2.1.2 if value 11 it's a CA
+# 1.3.6.1.4.1.211.1.21.1.150.5.5.2.1.6 + CA's number thoughput MB's
+# 1.3.6.1.4.1.211.1.21.1.150.5.5.2.1.3 + CA's number IOPs
 
 # Need community has a overwrite option and license 
