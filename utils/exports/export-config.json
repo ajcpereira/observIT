@@ -1,0 +1,14 @@
+{
+  "start_time": "-90d",
+  "stop_time": "now()",
+  "output_dir": "qres",
+  "measurements": [
+    "eternus_dx_cpu",
+    "eternus_dx_tppool",
+    "eternus_dx_power",
+    "eternus_dx_temp",
+    "eternus_dx_vol",
+    "cpu"
+  ]
+}
+
