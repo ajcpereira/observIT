@@ -9,31 +9,46 @@ def eternus_dx_cpu(**args):
     SNMP_MIB_VER = session.get('1.3.6.1.2.1.1.2.0').value[1:]
 
     timestamp = int(session.get(SNMP_MIB_VER + '.5.1.4.0').value)
- 
-    #nr_cores=[]
-    #Perform an SNMP WALK on a subtree
-    #for item in session.walk(SNMP_MIB_VER + '.5.14.2.1.2'):
-        #nr_cores = nr_cores + [item.value]
 
-    logging.debug(f"Will get number of Cores ")
-    nr_cores = int(session.get(SNMP_MIB_VER + '.5.14.1.0').value)
-    logging.debug(f"Number of Cores is {nr_cores}")
-    i = 3
+    #Core
+    # Number of CM's iso.3.6.1.4.1.211.1.21.1.150.5.14.1.0
+    # Cores per CM iso.3.6.1.4.1.211.1.21.1.150.5.14.2.1.2
+
+    logging.debug(f"Will get number of CM's ")
+    nr_cm = int(session.get(SNMP_MIB_VER + '.5.14.1.0').value)
+    logging.debug(f"Number of CM's is {nr_cm}")
+
+    
     record=[]
-    while nr_cores > 0:
-         oid = SNMP_MIB_VER + ".5.14.2.1." + str(i)
-         logging.debug(f"Getting core {i-3} usage for all CM's {oid}")
-         i += 1
-         nr_cores -= 1
-         for usage in session.walk(oid):
-            logging.debug(f"Core usage in CM{usage.oid.split('.')[-1]} and core {i-4} is {usage.value}%")            
+
+    for count_cm in range(nr_cm):
+        i = 3 # the OID 3 is the core id 0. OID 4 is core id 1 and so on.
+        
+        logging.debug(f"Will get number of Cores in CM#{count_cm}")
+        oid_query_cores = str(SNMP_MIB_VER + ".5.14.2.1.2." + str(count_cm))
+
+
+        logging.debug(f"OID to query cores is {str(oid_query_cores)}")
+   
+        nr_cores = int(session.get(oid_query_cores).value)
+
+        logging.debug(f"CM#{count_cm} have cores#{nr_cores}")
+
+        for count_cores in range(nr_cores):
+
+            oid_query_usage = str(SNMP_MIB_VER + ".5.14.2.1." + str(i) + '.' + str(count_cm))
+
+            logging.debug(f"OID to query usage is {oid_query_usage}")
+            
+            logging.debug(f"CM#{count_cm} Core#{count_cores} usage is {int(session.get(oid_query_usage).value)}")
+            i += 1
 
             record = record + [
                 {"measurement": "eternus_dx_cpu",
                 "tags": {"system": args['name'], "resource_type": args['resources_types'], "host": args['hostname'],
-                         "CM": str(usage.oid.split('.')[-1]), "Core": str(i-4)
+                         "CM": str(count_cm), "Core": str(i-4)
                          },
-                "fields": {"busyrate": int(usage.value)},
+                "fields": {"busyrate": int(session.get(oid_query_usage).value)},
                 "time": timestamp
                 }
             ]
@@ -180,10 +195,10 @@ def eternus_dx_vol(**args):
             "fields": {"vol_size": int(session.get(snmp_mib_ver + '.14.2.2.1.4.' + vol.value).value),
                        "read_iops": int(session.get(snmp_mib_ver + '.5.2.2.1.2.' + vol.value).value),
                        "write_iops": int(session.get(snmp_mib_ver + '.5.2.2.1.3.' + vol.value).value),
-                       "read_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.6.' + vol.value).value),
-                       "write_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.7.' + vol.value).value),
-                       "read_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.10.' + vol.value).value),
-                       "write_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.11.' + vol.value).value)
+                       "read_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.6.' + vol.value).value), #MB/s
+                       "write_throughput": int(session.get(snmp_mib_ver + '.5.2.2.1.7.' + vol.value).value),#MB/s
+                       "read_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.10.' + vol.value).value),  #ms
+                       "write_avg_time": int(session.get(snmp_mib_ver + '.5.2.2.1.11.' + vol.value).value)  #ms
             },
             "time": timestamp
             }
@@ -197,6 +212,8 @@ def eternus_dx_vol(**args):
          logging.warning(f"There is no data to be sent to influxdb, are you in the correct system with the correct metrics?")
 
     logging.debug("Finished func_eternus_dx_vol")
+
+
 
 # POWER
 # GET TIME iso.3.6.1.4.1.211.1.21.1.150.13.1.2.1.4.0
@@ -224,4 +241,4 @@ def eternus_dx_vol(**args):
 # CA Ports
 # fujitsu.1.21.1.150.5.5.2.1.4.n n: 0-fjdaryPfCaPortCount-1 
 
-# Need community has a overwrite option and license
+# Need community has a overwrite option and license 
