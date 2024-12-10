@@ -128,3 +128,34 @@ def data_model_build(config):
 
     return d_model
 
+
+def data_model_get_hosts_per_resource_grouped(json_data):
+     # Load JSON data if it's in string format
+    if isinstance(json_data, str):
+        json_data = json.loads(json_data)
+
+    result = {}
+
+    # Iterate over each system to gather data
+    for system in json_data:
+        system_name = system['system']
+        resources = system['resources']
+        
+        for resource in resources:
+            resource_name = resource['name']
+            if resource_name not in result:
+                result[resource_name] = {}
+
+            # Add hosts to the dictionary for that system and resource
+            for metric in resource['data']:
+                if system_name not in result[resource_name]:
+                    result[resource_name][system_name] = set()  # Use a set to ensure uniqueness
+
+                result[resource_name][system_name].update(metric['hosts'])
+
+    # Convert sets to lists to produce the final result format
+    for resource_name in result:
+        for system_name in result[resource_name]:
+            result[resource_name][system_name] = list(result[resource_name][system_name])
+
+    return result

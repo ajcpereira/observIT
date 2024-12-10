@@ -4,12 +4,11 @@
 #
 
 
-
 import json, requests, logging
 from platform import system
 
 from functions_core.yaml_validate import *
-from functions_core.grafanafun_dm import data_model_build
+from functions_core.grafanafun_dm import *
 from functions_core.grafanalib_ext import *
 from grafanalib._gen import DashboardEncoder
 
@@ -113,6 +112,24 @@ def build_dashboards(config):
         logging.debug("Created dashboard %s", my_dashboard_json)
         upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
 
+    hosts_per_res = data_model_get_hosts_per_resource_grouped(systems)
+    my_dashboard = create_main_observit_dashboard(hosts_per_res)
+    
+    my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True, message="Updated by grafun-cli")
+    res = upload_to_grafana(my_dashboard_json, grafana_server, grafana_api_key)
+
+    if res is not None:
+        if res.status_code == 200:
+            logging.debug(f"Main observIT dashboard created ({res.status_code} {res.reason})")
+            return -1
+        else:
+            logging.error(f"Unable to create Main observIT dashboard error is: {res.status_code} {res.reason}")
+    else:
+        logging.error(f"Unexpected error occurred!!!")
+        return -1
+
+    return 1
+
 
 ########################################################################################################################
 #
@@ -205,11 +222,11 @@ def graph_eternus_cs8000(system_name, resource_name, data, global_pos):
 # Resource Type: create_title_panel
 #
 ########################################################################################################################
-def create_title_panel(system_name):
+def create_title_panel(system_name, panel_title=""):
     str_msg = "<br><p style=\"text-align:center\"><span style=\"font-size:36px\">System " + system_name + "</span></p>"
 
     panel = [Text(
-        title="",
+        title=panel_title,
         gridPos=GridPos(h=3, w=24, x=0, y=0),
         mode="html",
         content=str_msg,
@@ -1852,7 +1869,7 @@ def graph_eternus_dx_vol_read(system_name, resource_name, metric, y_pos):
         showPoints=COLLECTOR_SHOW_POINTS,
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
-        unit="µs",
+        unit="ms",
         gridPos=GridPos(h=7, w=8, x=0, y=line),
         spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="bottom",
@@ -1918,7 +1935,7 @@ def graph_eternus_dx_vol_read(system_name, resource_name, metric, y_pos):
         showPoints=COLLECTOR_SHOW_POINTS,
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
-        unit="binBps",
+        unit="MBs",
         gridPos=GridPos(h=7, w=8, x=16, y=line),
         spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="bottom",
@@ -1961,7 +1978,7 @@ def graph_eternus_dx_vol_write(system_name, resource_name, metric, y_pos):
         showPoints=COLLECTOR_SHOW_POINTS,
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
-        unit="µs",
+        unit="ms",
         gridPos=GridPos(h=7, w=8, x=0, y=line),
         spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="bottom",
@@ -2027,7 +2044,7 @@ def graph_eternus_dx_vol_write(system_name, resource_name, metric, y_pos):
         showPoints=COLLECTOR_SHOW_POINTS,
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
-        unit="binBps",
+        unit="MBs",
         gridPos=GridPos(h=7, w=8, x=16, y=line),
         spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="bottom",
@@ -2250,10 +2267,837 @@ def graph_eternus_dx_tpp(system_name, resource_name, metric, y_pos):
     )
     )
 
-  
-  
-
     line = line + 7
 
     return line, panels_list
+
+
+
+def create_main_observit_dashboard(data):
+    panels = []
+    templating = []
+    y_pos = 3
+
+    panels = [Text(
+        title="observIT",
+        gridPos=GridPos(h=3, w=24, x=0, y=0),
+        mode="html",
+        content="<h1>Capacity Management</h1>",
+    )]
+
+    panels.append(RowPanel(title="Storage Capacity", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
+
+    print(f"My data is : {data} ")
+
+    for resource_type, systems in data.items():
+        # Dynamically determine the function to call based on resource type
+        #print(f"My data is {resource_type} / {systems} ")
+        graph_function_name = f"graph_{resource_type}_overview"
+        logging.debug(f" I Will calll{graph_function_name} ")   
+        
+        for system, hosts in systems.items():
+            for host in hosts:
+                logging.debug(f"Calling function {graph_function_name}({system},{host})")
+                try:
+                    graph_function = globals().get(graph_function_name)
+                    if graph_function:
+                        y_pos, panel = graph_function(system, host, y_pos)
+                        panels = panels + panel
+                    else:
+                        raise ValueError(f"Function '{graph_function_name}' not found.")
+                except Exception as e:
+                    logging.debug(f"Error processing {system}, {host} for {resource_type}: {e}")
+
+    my_dashboard = Dashboard(
+        title="ObservIT Land Page",
+        description="observIT auto generated dashboard",
+        tags="observIT main",
+        timezone="browser",
+        refresh="1m",
+        time= Time("now-12M", "now+3M"),
+        panels=panels,
+        templating=Templating(templating),
+    ).auto_panel_ids()
+ 
+
+    return my_dashboard 
+
+
+def graph_eternus_dx_overview(system, host, y_pos):
+
+
+    panels_list =[]
+    pos = y_pos + 1
+
+
+   #Define queries
+   ############################################################################################################################################
+ 
+   #Query for [storage name] Capacity 
+    target_fs = [
+        InfluxDBTarget(
+            query=f"SELECT SUM(*) FROM (SELECT LAST(\"total_capacity\") FROM \"eternus_dx_tppool\" " 
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                    f"GROUP BY time($__interval), \"tppool_nr\"::tag fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+            alias="Total"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT SUM(*) FROM (SELECT LAST(\"use_capacity\") FROM \"eternus_dx_tppool\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                    f"GROUP BY time($__interval), \"tppool_nr\"::tag fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+            alias="Used"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT HOLT_WINTERS(SUM(*), 90, 0) FROM (SELECT LAST(\"use_capacity\") FROM \"eternus_dx_tppool\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                    f"GROUP BY time($__interval), \"tppool_nr\"::tag fill(null)) WHERE $timeFilter GROUP BY time($__interval)",
+            alias="Forecast"
+        ),
+    ]  
+
+    target_fs.append(
+        {
+            "refId": "D",
+            "datasource": {
+                "type": "__expr__",
+                "uid": "__expr__",
+                "name": "Expression"
+            },
+            "type": "math",
+            "hide": False,
+            "expression": "$A*0.8"
+         }
+      )
+
+
+    json_overrides_for_capacity = [
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total"
+            },
+            "properties": [
+                {
+                    "id": "custom.fillBelowTo",
+                    "value": "Used"
+                },
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-blue",
+                        "mode": "fixed"
+                    }
+                },
+                {
+                    "id": "custom.lineWidth",
+                    "value": 2
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Forecast"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-purple",
+                        "mode": "fixed"
+                    }
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Used"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "mode": "fixed",
+                        "fixedColor": "blue"
+                    }
+                }
+            ]
+        },
+        {
+        "matcher": {
+          "id": "byName",
+          "options": "D"
+        },
+        "properties": [
+          {
+            "id": "custom.lineWidth",
+            "value": 5
+          },
+          {
+            "id": "custom.lineStyle",
+            "value": {
+              "dash": [
+                10,
+                10
+              ],
+              "fill": "dash"
+            }
+          },
+          {
+            "id": "color",
+            "value": {
+              "fixedColor": "red",
+              "mode": "fixed"
+            }
+          },
+          {
+            "id": "custom.fillOpacity",
+            "value": 0
+          },
+          {
+            "id": "displayName",
+            "value": "80%"
+          }
+        ]
+      }
+    ]
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{host} Capacity",
+        dataSource='default',
+        targets=target_fs,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit=COLLECTOR_FS_UNITS,
+        gridPos=GridPos(h=14, w=9, x=0, y=pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendCalcs=['mean', 'min', 'max'],
+        tooltipMode="multi",
+        overrides=json_overrides_for_capacity,
+        valueMin=0,
+    ))
+
+    ############################################################################################################################################
+    #Query for [storage name] CPU utilization (%) 
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT mean(\"busyrate\") FROM \"eternus_dx_cpu\" "
+                f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                f"GROUP BY time($__interval), \"CM\"::tag fill(null)",
+            alias="CM#$tag_CM"
+        ),
+    ]
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{host} CPU Utilization (%)",
+        dataSource='default',
+        targets=target,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit="percent",
+        gridPos=GridPos(h=7, w=4, x=9, y=y_pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
+        legendSortDesc=False,
+        tooltipMode="multi",
+        valueMax=100,
+        )
+    )
+
+
+    ############################################################################################################################################
+    #Query: [storage name] IOPS R+W Avg $__interval
+
+
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT mean(\"read_avg_time\")+mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
+                f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                f"GROUP BY time($__interval) fill(null)",
+            alias="Total IOPS"
+        ),
+        # InfluxDBTarget(
+        #     query=f"SELECT mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
+        #         f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+        #         f"GROUP BY time($__interval) fill(null)",
+        #     alias="Write IOPS Average"
+        # ),
+    ]
+
+
+    panels_list.append(CollectorTimeSeries(
+            title=f"{host} Total IOPS",
+            dataSource='default',
+            targets=target,
+            drawStyle='line',
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
+            unit="iops",
+            gridPos=GridPos(h=7, w=4, x=9, y=y_pos+7),
+            spanNulls=COLLECTOR_SPAN_NULLS,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendSortBy="Name",
+            legendCalcs=['mean', 'max'],
+            tooltipMode="multi",
+            legendSortDesc=False,
+        )
+        )
+
+    ############################################################################################################################################
+    #Query: [storage name] IOPS R+W Avg $__interval
+
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT mean(\"read_avg_time\")+mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                    f"GROUP BY time($__interval) fill(null)",
+            alias="Total Latency"
+        ),
+        # InfluxDBTarget(
+        #     query=f"SELECT mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
+        #             f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+        #             f"GROUP BY time($__interval) fill(null)",
+        #     alias="Write Average"
+        # ),
+    ]
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{host} Total Latency",
+        dataSource='default',
+        targets=target,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit="ms",
+        gridPos=GridPos(h=7, w=4, x=13, y=y_pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
+        tooltipMode="multi",
+        legendSortDesc=False,
+    )
+    )
+
+    ############################################################################################################################################
+    #Query: [storage name] Total Throughput R+W Avg $__interval
+
+    target = [
+            InfluxDBTarget(
+                query=f"SELECT mean(\"read_throughput\")+mean(\"write_throughput\") FROM \"eternus_dx_vol\" "
+                        f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag ='{host}' ) AND $timeFilter "
+                        f"GROUP BY time($__interval) fill(null)",
+                   alias="Total Throughput"
+            ),
+            # InfluxDBTarget(
+            #     query=f"SELECT mean(\"write_throughput\") FROM \"eternus_dx_vol\" "
+            #             f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag ='{host}' ) AND $timeFilter "
+            #             f"GROUP BY time($__interval) fill(null)",
+            #     alias="Write Average"
+            #),
+        ]
+
+
+
+    panels_list.append(CollectorTimeSeries(
+            title=f"{host} Total Bandwidth",
+            dataSource='default',
+            targets=target,
+            drawStyle='line',
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
+            unit="MBs",
+            gridPos=GridPos(h=7, w=4, x=13, y=y_pos+7),
+            spanNulls=COLLECTOR_SPAN_NULLS,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendSortBy="Name",
+            legendCalcs=['mean', 'max'],
+            tooltipMode="multi",
+            legendSortDesc=False,
+        )
+        )
+
+
+    ############################################################################################################################################
+     # Query for: StorageIO - Volumes with less than 10000 I/O's during the 2 Months
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT sum(\"read_iops\") + sum(\"write_iops\") AS \"Total I/Os\", max(\"vol_size\") as \"Volume Capacity\" FROM \"eternus_dx_vol\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                    f"GROUP BY \"host\"::tag, \"vol_id\"::tag fill(none)",
+            format="table"
+        )
+    ]
+
+
+    json_overrides_table = [
+        {
+            "matcher": {
+            "id": "byName",
+            "options": "Volume Capacity"
+            },
+            "properties": [
+            {
+                "id": "unit",
+                "value": "mbytes"
+            }
+            ]
+        },
+        {
+            "matcher": {
+            "id": "byName",
+            "options": "vol_id"
+            },
+            "properties": [
+            {
+                "id": "unit"
+            },
+            {
+                "id": "custom.width",
+                "value": 107
+            }
+            ]
+        },
+        {
+            "matcher": {
+            "id": "byName",
+            "options": "Time"
+            },
+            "properties": [
+            {
+                "id": "custom.hidden",
+                "value": True
+            }
+            ]
+        }
+        ]
+
+    transformation = [
+    {
+      "id": "filterByValue",
+      "options": {
+        "filters": [
+          {
+            "config": {
+              "id": "lower",
+              "options": {
+                "value": 10000
+              }
+            },
+            "fieldName": "Total I/Os"
+          }
+        ],
+        "match": "all",
+        "type": "include"
+      }
+    }
+  ]
+
+
+    table_field_sort = [TableSortByField(displayName='Total I/O', desc=True)]
+
+    panels_list.append(CollectorTable(
+        title="StorageIO - Volumes with less than 10K I/O's during the 2 Months",
+        dataSource='default',
+        targets=target,
+        gridPos=GridPos(h=14, w=7, x=17, y=y_pos),
+        filterable=True,
+        unit="iops",
+        displayMode="color-text",
+        colorMode="thresholds",
+        transformations=transformation,
+        timeFrom="2M",
+        overrides=json_overrides_table,
+        sortBy=table_field_sort,
+        )
+    )
+
+    pos = pos + 14
+    
+    return pos, panels_list
+
+
+
+def graph_powerstore_overview(system, host, y_pos):
+
+
+    panels_list =[]
+    pos = y_pos + 1
+
+
+   #Define queries
+   ############################################################################################################################################
+ 
+   #Query for [storage name] Capacity 
+    target_fs = [
+        InfluxDBTarget(
+            query=f"SELECT MAX(\"physical_total\") FROM \"powerstore_space\" "
+                    f"WHERE (\"system\"::tag = '{system}'  AND \"host\"::tag = '{host}' ) AND $timeFilter "
+                    f"GROUP BY time($__interval) fill(null)",
+            alias="Total"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT MAX(\"physical_used\") FROM \"powerstore_space\" "
+                    f"WHERE (\"system\"::tag = '{system}'  AND \"host\"::tag = '{host}' ) AND $timeFilter "
+                    f"GROUP BY time($__interval) fill(null)",
+            alias="Used"
+        ),
+        InfluxDBTarget(
+            query=f"SELECT HOLT_WINTERS(\"physical_used\", 90, 0) FROM \"powerstore_space\" "
+                    f"WHERE (\"system\"::tag = '{system}'  AND \"host\"::tag = '{host}' ) AND $timeFilter "
+                    f"GROUP BY time($__interval) fill(null)",
+            alias="Forecast"
+        ),
+    ]  
+
+    json_overrides_for_capacity = [
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Total"
+            },
+            "properties": [
+                {
+                    "id": "custom.fillBelowTo",
+                    "value": "Used"
+                },
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-blue",
+                        "mode": "fixed"
+                    }
+                },
+                {
+                    "id": "custom.lineWidth",
+                    "value": 2
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Forecast"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "fixedColor": "super-light-purple",
+                        "mode": "fixed"
+                    }
+                }
+            ]
+        },
+        {
+            "matcher": {
+                "id": "byName",
+                "options": "Used"
+            },
+            "properties": [
+                {
+                    "id": "color",
+                    "value": {
+                        "mode": "fixed",
+                        "fixedColor": "blue"
+                    }
+                }
+            ]
+        }
+    ]
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{host} Capacity",
+        dataSource='default',
+        targets=target_fs,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit=COLLECTOR_FS_UNITS,
+        gridPos=GridPos(h=14, w=9, x=0, y=pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendCalcs=['mean', 'min', 'max'],
+        tooltipMode="multi",
+        overrides=json_overrides_for_capacity,
+        valueMin=0,
+    ))
+
+    ############################################################################################################################################
+    #Query for [storage name] CPU utilization (%) 
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT 100 * mean(\"io_workload_cpu_utilization\") FROM \"powerstore_node\" "
+                    f"WHERE (\"system\"::tag = '{system}'  AND \"host\"::tag = '{host}' ) AND $timeFilter "
+                    f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
+            alias="$tag_node_id"
+        ),
+    ]
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{host} CPU utilization (%)",
+        dataSource='default',
+        targets=target,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit="percent",
+        gridPos=GridPos(h=7, w=4, x=9, y=y_pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
+        legendSortDesc=False,
+        tooltipMode="multi",
+        valueMax=100,
+        )
+    )
+
+
+    ############################################################################################################################################
+    #Query: [storage name] IOPS R+W Avg $__interval
+
+
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT mean(\"total_iops\") FROM \"powerstore_node\" "
+                    f"WHERE (\"system\"::tag ='{system} ' AND \"host\"::tag = '{host}' ) AND $timeFilter "
+                    f"GROUP BY time($__interval) fill(null)",
+            alias="Total IOPS"
+        ),
+        # InfluxDBTarget(
+        #     query=f"SELECT mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
+        #         f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+        #         f"GROUP BY time($__interval) fill(null)",
+        #     alias="Write IOPS Average"
+        # ),
+    ]
+
+
+    panels_list.append(CollectorTimeSeries(
+            title=f"{host} IOPS Average",
+            dataSource='default',
+            targets=target,
+            drawStyle='line',
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
+            unit="iops",
+            gridPos=GridPos(h=7, w=4, x=9, y=y_pos+7),
+            spanNulls=COLLECTOR_SPAN_NULLS,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendSortBy="Name",
+            legendCalcs=['mean', 'max'],
+            tooltipMode="multi",
+            legendSortDesc=False,
+        )
+        )
+
+    ############################################################################################################################################
+    #Query: [storage name] IOPS R+W Avg $__interval
+
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT mean(\"avg_latency\") FROM \"powerstore_node\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                    f"GROUP BY time($__interval) fill(null)",
+            alias="Total Latency"
+        ),
+        # InfluxDBTarget(
+        #     query=f"SELECT mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
+        #             f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+        #             f"GROUP BY time($__interval) fill(null)",
+        #     alias="Write Average"
+        # ),
+    ]
+
+    panels_list.append(CollectorTimeSeries(
+        title=f"{host} Latency Avg",
+        dataSource='default',
+        targets=target,
+        drawStyle='line',
+        lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+        showPoints=COLLECTOR_SHOW_POINTS,
+        gradientMode=COLLECTOR_GRADIENT_MODE,
+        fillOpacity=COLLECTOR_FILL_OPACITY,
+        unit="µs",
+        gridPos=GridPos(h=7, w=4, x=13, y=y_pos),
+        spanNulls=COLLECTOR_SPAN_NULLS,
+        legendPlacement="bottom",
+        legendDisplayMode="table",
+        legendSortBy="Name",
+        legendCalcs=['mean', 'max'],
+        tooltipMode="multi",
+        legendSortDesc=False,
+    )
+    )
+
+    ############################################################################################################################################
+    #Query: [storage name] Total Throughput R+W Avg $__interval
+
+    target = [
+            InfluxDBTarget(
+                query=f"SELECT mean(\"total_bandwidth\") FROM \"powerstore_node\" "
+                        f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag ='{host}' ) AND $timeFilter "
+                        f"GROUP BY time($__interval), \"host\"::tag, \"node_id\"::tag fill(null)",
+                   alias="Total Throughput"
+            ),
+            # InfluxDBTarget(
+            #     query=f"SELECT mean(\"write_throughput\") FROM \"eternus_dx_vol\" "
+            #             f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag ='{host}' ) AND $timeFilter "
+            #             f"GROUP BY time($__interval) fill(null)",
+            #     alias="Write Average"
+            # ),
+        ]
+
+
+
+    panels_list.append(CollectorTimeSeries(
+            title=f"{host} Total Bandwidth",
+            dataSource='default',
+            targets=target,
+            drawStyle='line',
+            lineInterpolation=COLLECTOR_LINE_INTERPOLATION,
+            showPoints=COLLECTOR_SHOW_POINTS,
+            gradientMode=COLLECTOR_GRADIENT_MODE,
+            fillOpacity=COLLECTOR_FILL_OPACITY,
+            unit="binBps",
+            gridPos=GridPos(h=7, w=4, x=13, y=y_pos+7),
+            spanNulls=COLLECTOR_SPAN_NULLS,
+            legendPlacement="bottom",
+            legendDisplayMode="table",
+            legendSortBy="Name",
+            legendCalcs=['mean', 'max'],
+            tooltipMode="multi",
+            legendSortDesc=False,
+        )
+        )
+
+
+    ############################################################################################################################################
+     # Query for: StorageIO - Volumes with less than 10000 I/O's during the 2 Months
+    target = [
+        InfluxDBTarget(
+            query=f"SELECT sum(\"read_iops\") + sum(\"write_iops\") AS \"Total I/Os\", max(\"vol_size\") as \"Volume Capacity\" FROM \"eternus_dx_vol\" "
+                    f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
+                    f"GROUP BY \"host\"::tag, \"vol_id\"::tag fill(none)",
+            format="table"
+        )
+    ]
+
+
+    json_overrides_table = [
+        {
+            "matcher": {
+            "id": "byName",
+            "options": "Volume Capacity"
+            },
+            "properties": [
+            {
+                "id": "unit",
+                "value": "mbytes"
+            }
+            ]
+        },
+        {
+            "matcher": {
+            "id": "byName",
+            "options": "vol_id"
+            },
+            "properties": [
+            {
+                "id": "unit"
+            },
+            {
+                "id": "custom.width",
+                "value": 107
+            }
+            ]
+        },
+        {
+            "matcher": {
+            "id": "byName",
+            "options": "Time"
+            },
+            "properties": [
+            {
+                "id": "custom.hidden",
+                "value": True
+            }
+            ]
+        }
+        ]
+
+    transformation = [
+    {
+      "id": "filterByValue",
+      "options": {
+        "filters": [
+          {
+            "config": {
+              "id": "lower",
+              "options": {
+                "value": 100000
+              }
+            },
+            "fieldName": "Total I/Os"
+          }
+        ],
+        "match": "all",
+        "type": "include"
+      }
+    }
+  ]
+
+
+    table_field_sort = [TableSortByField(displayName='Total I/O', desc=True)]
+
+    panels_list.append(CollectorTable(
+        title="StorageIO - Volumes with less than 10000 I/O's during the 2 Months",
+        dataSource='default',
+        targets=target,
+        gridPos=GridPos(h=14, w=7, x=17, y=y_pos),
+        filterable=True,
+        unit="iops",
+        displayMode="color-text",
+        colorMode="thresholds",
+        transformations=transformation,
+        timeFrom="2M",
+        overrides=json_overrides_table,
+        sortBy=table_field_sort,
+        )
+    )
+
+    pos = pos + 14
+    
+    return pos, panels_list
 
