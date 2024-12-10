@@ -14,7 +14,8 @@ The aggregator is a scheduler that collects information based in a YAML file (/o
 This is built on a virtual appliance which can be found here: 
 <BR>https://drive.proton.me/urls/6WE4036KX8#dHQ35JnT8Obz
 
-<BR>In the future a script will be made available for create a fixed IP, atm the virtual appliance is based in DHCP.
+<BR>If you are running in Hyper-V please make sure that "Enable Secure Boot" is enabled with "Microsoft UEFI Certificate Authority" 
+<BR>Once you enter in the system just run setup and you may change the ip. The only user available to you will be observit and by default user and password are equal, please change this password as soon as you login.
 
 <BR>You can make OS updates for security reasons using the following: "cd /home/observit/observit; make update_os"
 
@@ -44,8 +45,6 @@ You need a virtualization environment, our virtual appliance, for a basic config
 
 *The 15GB disk can grow to accomodate your retention period, you will need the root access at this moment until we give you a script to do so with observit user.
 
-
-The only user available to you will be observit and by default user and password are equal, please change this password as soon as you login.
 
 ### Pre-Setup
 
