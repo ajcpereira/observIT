@@ -160,8 +160,8 @@ def create_metric_ip_dicts(config):
                     **ip_dict,
                     "func": AllowedMetrics.get_func_name(system.resources_types, metric.name),
                     **global_parms.model_dump(),
-                    "repo_org": "fjcollector",
-                    "repo_bucket": "fjcollector"
+                    "repo_org": "observit",
+                    "repo_bucket": "observit"
                 }
                 result_dicts.append(result_dict)
               
