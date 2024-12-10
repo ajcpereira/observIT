@@ -5,6 +5,15 @@ update_os() {
     sudo apt-get update && sudo apt-get upgrade -y && /usr/bin/do-release-upgrade
 }
 
+# Function for containers house keeping
+house_keeping() {
+    MYOUTPUT=`docker system prune -a -f; docker volume prune -a -f; docker image prune -a -f`
+    # Display summary of network settings
+    dialog --title "Result" --msgbox \
+        "$MYOUTPUT" 10 50
+}
+
+
 # Function to change network settings
 function change_network {
 
@@ -109,7 +118,8 @@ while true; do
     1 "Update OS" \
     2 "Change Network Settings" \
     3 "Manage Containers" \
-    4 "Exit" 3>&1 1>&2 2>&3 3>&-)
+    4 "House Keeping for containers" \
+    5 "Exit" 3>&1 1>&2 2>&3 3>&-)
     
     case $CHOICE in
         1)
@@ -122,6 +132,9 @@ while true; do
             manage_containers
             ;;
         4)
+            house_keeping
+            ;;
+        5)
             clear
             break
             ;;
