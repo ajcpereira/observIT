@@ -22,13 +22,14 @@
 ########################################################################################################################
 
 
-VERSION = 0.5
+VERSION = 0.6
 
 import yaml
 import json, requests, logging
 import functions_core.yaml_validate
 import argparse
 from functions_core.grafana_fun import *
+from functions_core.grafanafun_dm import *
 
 
 def new_create_system_dashboard(sys, dash_name=None):
@@ -119,6 +120,8 @@ def new_build_dashboards(config, grafana_url=None, grafana_token=None, dash_name
 
     systems = data_model_build(config)
 
+    # Create dashboards for each system
+
     for sys_item in systems:
         print(f"Creating Dashboard for system: {sys_item['system']}")
         my_dashboard = new_create_system_dashboard(sys_item, dash_name)
@@ -133,6 +136,24 @@ def new_build_dashboards(config, grafana_url=None, grafana_token=None, dash_name
         else:
             print(f"Unexpected error occurred!!!")
 
+    # Create Main Landing page
+
+    hosts_per_res = data_model_get_hosts_per_resource_grouped(systems)
+    my_dashboard = create_main_observit_dashboard(hosts_per_res)
+    
+    my_dashboard_json = get_dashboard_json(my_dashboard, overwrite=True, message="Updated by grafun-cli")
+    res = local_upload_to_grafana(my_dashboard_json, grafana_url, grafana_token)
+
+    if res is not None:
+        if res.status_code == 200:
+            print(f"Main observIT dashboard created ({res.status_code} {res.reason})")
+        else:
+            print(f"Unable to create Main observIT dashboard error is: {res.status_code} {res.reason}")
+    else:
+        print(f"Unexpected error occurred!!!")
+    
+    
+    return 1
     # return f"{grafana_url} Dashboard '{dash_name}' created successfully!"
 
 
@@ -188,7 +209,7 @@ def main():
     print(f"Building Data Model...")
     systems = data_model_build(config)
     print(f"Data model is {systems}")
-
+    
     i = 0
     str_sysname = ""
     for sys in systems:
