@@ -2484,7 +2484,7 @@ def graph_eternus_dx_overview(system, host, y_pos):
         showPoints=COLLECTOR_SHOW_POINTS,
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
-        unit=COLLECTOR_FS_UNITS,
+        unit="decmbytes",
         gridPos=GridPos(h=14, w=9, x=0, y=pos),
         spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="bottom",
@@ -2535,17 +2535,11 @@ def graph_eternus_dx_overview(system, host, y_pos):
 
     target = [
         InfluxDBTarget(
-            query=f"SELECT mean(\"read_avg_time\")+mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
+            query=f"SELECT mean(\"read_iops\")+mean(\"write_iops\") FROM \"eternus_dx_vol\" "
                 f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
                 f"GROUP BY time($__interval) fill(null)",
             alias="Total IOPS"
         ),
-        # InfluxDBTarget(
-        #     query=f"SELECT mean(\"write_avg_time\") FROM \"eternus_dx_vol\" "
-        #         f"WHERE (\"system\"::tag = '{system}' AND \"host\"::tag = '{host}') AND $timeFilter "
-        #         f"GROUP BY time($__interval) fill(null)",
-        #     alias="Write IOPS Average"
-        # ),
     ]
 
 
@@ -3199,6 +3193,21 @@ def graph_powerstore_overview(system, host, y_pos):
         ),
     ]  
 
+    target_fs.append(
+        {
+            "refId": "D",
+            "datasource": {
+                "type": "__expr__",
+                "uid": "__expr__",
+                "name": "Expression"
+            },
+            "type": "math",
+            "hide": False,
+            "expression": "$A*0.8"
+         }
+      )
+
+
     json_overrides_for_capacity = [
         {
             "matcher": {
@@ -3252,7 +3261,44 @@ def graph_powerstore_overview(system, host, y_pos):
                     }
                 }
             ]
-        }
+        },
+        {
+        "matcher": {
+          "id": "byName",
+          "options": "D"
+        },
+        "properties": [
+          {
+            "id": "custom.lineWidth",
+            "value": 5
+          },
+          {
+            "id": "custom.lineStyle",
+            "value": {
+              "dash": [
+                10,
+                10
+              ],
+              "fill": "dash"
+            }
+          },
+          {
+            "id": "color",
+            "value": {
+              "fixedColor": "red",
+              "mode": "fixed"
+            }
+          },
+          {
+            "id": "custom.fillOpacity",
+            "value": 0
+          },
+          {
+            "id": "displayName",
+            "value": "80%"
+          }
+        ]
+      }
     ]
 
     panels_list.append(CollectorTimeSeries(
@@ -3264,7 +3310,7 @@ def graph_powerstore_overview(system, host, y_pos):
         showPoints=COLLECTOR_SHOW_POINTS,
         gradientMode=COLLECTOR_GRADIENT_MODE,
         fillOpacity=COLLECTOR_FILL_OPACITY,
-        unit=COLLECTOR_FS_UNITS,
+        unit="bytes",
         gridPos=GridPos(h=14, w=9, x=0, y=pos),
         spanNulls=COLLECTOR_SPAN_NULLS,
         legendPlacement="bottom",
@@ -3316,8 +3362,8 @@ def graph_powerstore_overview(system, host, y_pos):
     target = [
         InfluxDBTarget(
             query=f"SELECT mean(\"total_iops\") FROM \"powerstore_node\" "
-                    f"WHERE (\"system\"::tag ='{system} ' AND \"host\"::tag = '{host}' ) AND $timeFilter "
-                    f"GROUP BY time($__interval) fill(null)",
+                f"WHERE (\"system\"::tag = 'powerstore1' AND \"host\"::tag = 'PASGPST001') AND $timeFilter "
+                f"GROUP BY time($__interval) fill(null)",
             alias="Total IOPS"
         ),
         # InfluxDBTarget(
