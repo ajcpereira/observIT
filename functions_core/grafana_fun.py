@@ -2285,7 +2285,7 @@ def create_main_observit_dashboard(data):
         content="<h1>Capacity Management</h1>",
     )]
 
-    panels.append(RowPanel(title="Total Storage Capacity", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
+    #panels.append(RowPanel(title="Total Storage Capacity", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
 
     logging.debug(f"Received host list for the creation of main dashboard : {data} ")
 
@@ -2297,16 +2297,16 @@ def create_main_observit_dashboard(data):
         logging.debug(f" I Will calll{graph_function_name} ")   
         
         for system, hosts in systems.items():
-            logging.debug(f"Calling function {graph_function_name}_total({system})")
-            try:
-                graph_function = globals().get(f"{graph_function_name}_total")
-                if graph_function:
-                    y_pos, panel = graph_function(system, "Eternus Total", y_pos)
-                    panels = panels + panel
-                else:
-                    raise ValueError(f"Function '{graph_function_name}' not found.")
-            except Exception as e:
-                logging.debug(f"Error processing {system}, {host} for {resource_type}: {e}")
+            # logging.debug(f"Calling function {graph_function_name}_total({system})")
+            # try:
+            #     graph_function = globals().get(f"{graph_function_name}_total")
+            #     if graph_function:
+            #         y_pos, panel = graph_function(system, "Eternus Total", y_pos)
+            #         panels = panels + panel
+            #     else:
+            #         raise ValueError(f"Function '{graph_function_name}' not found.")
+            # except Exception as e:
+            #     logging.debug(f"Error processing {system}, {host} for {resource_type}: {e}")
             for host in hosts:
                 panels.append(RowPanel(title="Storage Capacity per host", gridPos=GridPos(h=1, w=24, x=0, y=y_pos)))
                 logging.debug(f"Calling function {graph_function_name}({system},{host})")
