@@ -15,9 +15,9 @@ This is built on a virtual appliance which can be found here:
 <BR>https://drive.proton.me/urls/6WE4036KX8#dHQ35JnT8Obz
 
 <BR>If you are running in Hyper-V please make sure that "Enable Secure Boot" is enabled with "Microsoft UEFI Certificate Authority" 
-<BR>Once you enter in the system just run setup and you may change the ip. The only user available to you will be observit and by default user and password are equal, please change this password as soon as you login.
+<BR>Once you enter in the system just run "setup" and you may change the ip. The only user available to you will be observit and by default user and password are equal, please change this password as soon as you login.
 
-<BR>You can make OS updates for security reasons using the following: "cd /home/observit/observit; make update_os"
+<BR>You can make OS updates for security reasons also the "setup" command.
 
 ## Licensing
 Regarding the 2 mention applications be aware of their licenses if you wish to use in your organization.
@@ -26,8 +26,6 @@ We install both but they are not part of the code of the ObservIT, so you should
 |Components		|Licensing                                                  |
 |---------------|:---------------------------------------------------------:|
 |Ubuntu			|https://ubuntu.com/legal/intellectual-property-policy      |
-|make			|https://www.gnu.org/licenses/gpl-3.0.html                  |
-|curl			|https://ubuntu.com/legal/open-source-licences              |
 |git			|https://git-scm.com/about/free-and-open-source             |
 |docker engine	|https://github.com/moby/moby/blob/master/LICENSE     |
 |Python			|https://opensource.org/license/python-2-0                  |
