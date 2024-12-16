@@ -2,7 +2,15 @@
 
 # Function to update the OS
 update_os() {
-    sudo apt-get update && sudo apt-get upgrade -y && /usr/bin/do-release-upgrade
+    sudo apt-get update 
+    echo "Press any key to upgrade now"
+    read
+    sudo apt-get upgrade -y 
+    echo "Press any key to upgrade release if new is available"
+    read
+    sudo /usr/bin/do-release-upgrade
+    echo "Press any to return to setup"
+    read
 }
 
 # Function for containers house keeping
@@ -82,31 +90,50 @@ change_timezone() {
     sudo timedatectl set-timezone $TIMEZONE
 }
 
+make_dhcp() {
+    sudo rm /etc/netplan/01-netcfg.yaml
+    sudo netplan apply
+}
+
 # Function to manage containers
 manage_containers() {
-    CONTAINERS=$(docker ps --format "{{.Names}}" | awk '{print NR, $1}')
-    if [ -z $CONTAINERS ]; then
-       dialog --title "Containers Summary" --msgbox \
-       "There are no containers running some manual intervention was made, please contact support" 10 50
+
+    CONTAINERS=$(docker ps -a --format "{{.Names}} - {{.Status}}" | awk '{print NR, $0}')
+    if [ -z "$CONTAINERS" ]; then
+        dialog --title "Containers Summary" --msgbox \
+        "There are no containers running. Some manual intervention was made, please contact support." 10 50
     else
-        CONTAINER=$(dialog --menu "Select a container to manage:" 15 50 10 $CONTAINERS 3>&1 1>&2 2>&3 3>&-)
+        # Replace spaces with underscores in status part only
+        MENU_OPTIONS=$(echo "$CONTAINERS" | awk '{status=$2; for(i=3; i<=NF; i++) status=status" "$i; gsub(/ /,"_",status); print $1, status}')
+
+        # Pass the modified container list to dialog
+        CONTAINER=$(dialog --menu "Select a container to manage:" 15 50 10 $MENU_OPTIONS 3>&1 1>&2 2>&3 3>&-)
+
+        # Replace underscores back to spaces after the selection
+        CONTAINER=$(echo "$CONTAINER" | sed 's/_/ /g')
+
+        # Output the selected container for debugging purposes
+        echo "You selected: $CONTAINER"
     fi
+
+
+    
     
     if [ -n "$CONTAINER" ]; then
         ACTION=$(dialog --menu "Choose an action for $CONTAINER:" 15 50 5 \
         1 "Start" \
         2 "Stop" \
         3 "Restart" 3>&1 1>&2 2>&3 3>&-)
-        
+
         case $ACTION in
             1)
-                docker start $CONTAINER
+                docker start $(echo $CONTAINERS | tr ' ' '\n' | awk -v action="$CONTAINER" 'NR % 2 == 1 && $1 == action {getline; print $0}')
                 ;;
             2)
-                docker stop $CONTAINER
+                docker stop $(echo $CONTAINERS | tr ' ' '\n' | awk -v action="$CONTAINER" 'NR % 2 == 1 && $1 == action {getline; print $0}')
                 ;;
             3)
-                docker restart $CONTAINER
+                docker restart $(echo $CONTAINERS | tr ' ' '\n' | awk -v action="$CONTAINER" 'NR % 2 == 1 && $1 == action {getline; print $0}')
                 ;;
         esac
     fi
@@ -119,7 +146,9 @@ while true; do
     2 "Change Network Settings" \
     3 "Manage Containers" \
     4 "House Keeping for containers" \
-    5 "Exit" 3>&1 1>&2 2>&3 3>&-)
+    5 "Enable DHCP" \
+    6 "Change timezone" \
+    7 "Exit" 3>&1 1>&2 2>&3 3>&-)
     
     case $CHOICE in
         1)
@@ -135,6 +164,12 @@ while true; do
             house_keeping
             ;;
         5)
+            make_dhcp
+            ;;
+        6)
+            change_timezone
+            ;;
+        7)
             clear
             break
             ;;
@@ -144,4 +179,3 @@ while true; do
             ;;
     esac
 done
-
